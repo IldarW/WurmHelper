@@ -40,7 +40,7 @@ public class HealingBot extends Bot {
             while (inventoryItems.size() > 0) {
                 InventoryMetaItem item = inventoryItems.get(0);
                 if (woundNames.contains(item.getBaseName())
-                        && !item.getBaseName().contains("bandaged"))
+                        && !item.getDisplayName().contains("bandaged"))
                     wounds.add(item);
                 if (item.getChildren() != null)
                     inventoryItems.addAll(item.getChildren());
