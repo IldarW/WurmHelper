@@ -208,7 +208,7 @@ public class CrafterBot extends Bot {
             requestCreationList.invoke(creationWindow);
 
         } catch (Exception e) {
-            Utils.consolePrint("Can't set new source item with provided iconId");
+            Utils.consolePrint("Can't set new source item with provided id");
         }
     }
 
@@ -363,7 +363,7 @@ public class CrafterBot extends Bot {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         u("Toggle the special mode in which " + CrafterBot.class.getSimpleName() + " will place an item to the target item slot which is at the top of \"Needed items\" list", ""),
-        ssid("Set an item with provided iconId to the source slot(on the left side of crafting window)", "iconId"),
+        ssid("Set an item with provided id to the source slot(on the left side of crafting window)", "id"),
         an("Set an action number. The number of crafting operations the player will do on each click on continue/create button", "number"),
         noan("Toggles the check for action queue state before the start of each crafting operation. " +
                 "By default " + CrafterBot.class.getSimpleName() + " will check action queue and start crafting operations only when it is empty", "");

@@ -54,8 +54,8 @@ public class BulkItemGetterBot extends Bot {
     private enum InputKey {
         as("Add the source(item in bulk storage) the user is currenly pointing to", ""),
         at("Add the target item the user is currently pointing to", ""),
-        asid("Add the source(item in bulk storage) with provided iconId", "iconId"),
-        atid("Add the target item with provided iconId", "iconId"),
+        asid("Add the source(item in bulk storage) with provided id", "id"),
+        atid("Add the target item with provided id", "id"),
         ssxy("Add source item from fixed point on screen", ""),;
         public String description;
         public String usage;
@@ -74,7 +74,7 @@ public class BulkItemGetterBot extends Bot {
             SourceItem sourceItem = new SourceItem();
             sourceItem.id = Long.parseLong(input[0]);
             sources.add(sourceItem);
-            Utils.consolePrint("New source is added with iconId " + sourceItem.id);
+            Utils.consolePrint("New source is added with id " + sourceItem.id);
         } catch (Exception e) {
             Utils.consolePrint("Can't set source item");
         }
@@ -88,7 +88,7 @@ public class BulkItemGetterBot extends Bot {
         try {
             long id = Long.parseLong(input[0]);
             targets.add(id);
-            Utils.consolePrint("New target is added with iconId " + id);
+            Utils.consolePrint("New target is added with id " + id);
         } catch (Exception e) {
             Utils.consolePrint("Can't set target item");
         }
@@ -105,7 +105,7 @@ public class BulkItemGetterBot extends Bot {
                 SourceItem sourceItem = new SourceItem();
                 sourceItem.id = items[0];
                 sources.add(sourceItem);
-                Utils.consolePrint("Added new source item with iconId " + sourceItem.id);
+                Utils.consolePrint("Added new source item with id " + sourceItem.id);
             }
 
         } catch (Exception e) {

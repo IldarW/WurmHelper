@@ -320,7 +320,7 @@ public class AssistantBot extends Bot {
         try {
             toggleDrinking(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get water iconId");
+            Utils.consolePrint("Can't get water id");
         }
     }
 
@@ -332,7 +332,7 @@ public class AssistantBot extends Bot {
         try {
             toggleLockpicking(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get chest iconId");
+            Utils.consolePrint("Can't get chest id");
         }
     }
 
@@ -345,7 +345,7 @@ public class AssistantBot extends Bot {
         try {
             toggleTrashCleaning(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get trash bin iconId");
+            Utils.consolePrint("Can't get trash bin id");
         }
     }
 
@@ -357,7 +357,7 @@ public class AssistantBot extends Bot {
         try {
             togglePraying(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get altar iconId");
+            Utils.consolePrint("Can't get altar id");
         }
     }
 
@@ -369,7 +369,7 @@ public class AssistantBot extends Bot {
         try {
             toggleSacrificing(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get altar iconId");
+            Utils.consolePrint("Can't get altar id");
         }
     }
 
@@ -381,7 +381,7 @@ public class AssistantBot extends Bot {
         try {
             toggleKindlingBurns(Long.parseLong(input[0]));
         } catch (Exception e) {
-            Utils.consolePrint("Can't get forge iconId");
+            Utils.consolePrint("Can't get forge id");
         }
     }
 
@@ -727,27 +727,27 @@ public class AssistantBot extends Bot {
 
     private enum InputKey {
         w("Toggle automatic drinking of the liquid the user pointing at", ""),
-        wid("Toggle automatic drinking of liquid with provided iconId", "iconId"),
+        wid("Toggle automatic drinking of liquid with provided id", "id"),
         c("Toggle automatic casts of spells(if player has enough favor)", ""),
         p("Toggle automatic praying. The timeout between prayers can be configured separately.", ""),
         pt("Change the timeout between prayers", "timeout(in milliseconds)"),
-        pid("Toggle automatic praying on altar with provided iconId", "iconId"),
+        pid("Toggle automatic praying on altar with provided id", "id"),
         s("Toggle automatic sacrificing. The timeout between sacrifices can be configured separately.", ""),
         st("Change the timeout between sacrifices", "timeout(in milliseconds)"),
-        sid("Toggle automatic sacrifices at altar with provided iconId", "iconId"),
+        sid("Toggle automatic sacrifices at altar with provided id", "id"),
         kb("Toggle automatic burning of kindlings in player's inventory. " +
                 AssistantBot.class.getSimpleName() + " will combine the kindlings and burn them using selected forge. " +
                 "The timeout of burns can be configured separately", ""),
         kbt("Change the timeout between kingling burns", "timeout(in milliseconds)"),
-        kbid("Toggle automatic kindling burns at forge with provided iconId", "iconId"),
+        kbid("Toggle automatic kindling burns at forge with provided id", "id"),
         cwov("Toggle automatic casts of Wysdom of Vynora spell", ""),
         cleanup("Toggle automatic trash cleanings. The timeout between cleanings can be configured separately", ""),
         cleanupt("Change the timeout between trash cleanings", "timeout(in milliseconds)"),
-        cleanupid("Toggle automatic cleaning of items inside trash bin with provided iconId", "iconId"),
+        cleanupid("Toggle automatic cleaning of items inside trash bin with provided id", "id"),
         cmf("Change the currently casted spell to Morning fog. Doesn't have any effect if autocasts are off", ""),
         l("Toggle automatic lockpicking. The target chest should be beneath the user's mouse", ""),
         lt("Change the timeout between lockpickings", "timeout(in milliseconds)"),
-        lid("Toggle automatic lockpicking of target chest with provided iconId", "iconId"),
+        lid("Toggle automatic lockpicking of target chest with provided id", "id"),
         v("Toggle verbose mode. In verbose mode the " + AssistantBot.class.getSimpleName() + " will output additional info to the console", "");
 
         public String description;

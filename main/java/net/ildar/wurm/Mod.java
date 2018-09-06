@@ -65,7 +65,6 @@ public class Mod implements WurmClientMod, Initable {
         return true;
     }
 
-    //TODO check look and bot help messages
     private static void printConsoleCommandUsage(ConsoleCommand consoleCommand) {
         if (consoleCommand == ConsoleCommand.look) {
             Utils.consolePrint("Usage: " + ConsoleCommand.look.name() + " {" + getCardinalDirectionsList() + "}");
