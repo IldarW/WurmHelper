@@ -65,7 +65,16 @@ public class Mod implements WurmClientMod, Initable {
         return true;
     }
 
+    //TODO check look and bot help messages
     private static void printConsoleCommandUsage(ConsoleCommand consoleCommand) {
+        if (consoleCommand == ConsoleCommand.look) {
+            Utils.consolePrint("Usage: " + ConsoleCommand.look.name() + " {" + getCardinalDirectionsList() + "}");
+            return;
+        }
+        if (consoleCommand == ConsoleCommand.bot) {
+            Utils.consolePrint(Bot.getBotUsageString());
+            return;
+        }
         Utils.consolePrint("Usage: " + consoleCommand.name() + " " + consoleCommand.getUsage());
     }
 
@@ -86,6 +95,7 @@ public class Mod implements WurmClientMod, Initable {
     }
 
     private static void healPlayer() {
+        //todo add constant healing while player has cotton and wounds
         float damage = Mod.hud.getWorld().getPlayer().getDamage();
         if (damage == 0) {
             Utils.consolePrint("The player don't have any wounds");
@@ -233,6 +243,14 @@ public class Mod implements WurmClientMod, Initable {
             printConsoleCommandUsage(ConsoleCommand.look);
     }
 
+    private static String getCardinalDirectionsList() {
+        StringBuilder directions = new StringBuilder();
+        for(CardinalDirection direction : CardinalDirection.values())
+            directions.append(direction.name()).append("|");
+        directions.deleteCharAt(directions.length() - 1);
+        return directions.toString();
+    }
+
     private static void printAvailableConsoleCommands() {
         StringBuilder commands = new StringBuilder();
         for(ConsoleCommand consoleCommand : consoleCommandHandlers.keySet())
@@ -343,6 +361,7 @@ public class Mod implements WurmClientMod, Initable {
                 if (botInstance != null) {
                     botInstance.start();
                     Utils.consolePrint(botClass.getSimpleName() + " is on!");
+                    Bot.printBotDescription(botClass);
                 } else {
                     Utils.consolePrint("Internal error on bot activation");
                 }
@@ -506,7 +525,7 @@ public class Mod implements WurmClientMod, Initable {
         unknown(0),
         north(0),
         east(90),
-        sourt(180),
+        south(180),
         west(270);
 
         int angle;

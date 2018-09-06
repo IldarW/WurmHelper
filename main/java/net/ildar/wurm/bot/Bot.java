@@ -80,6 +80,7 @@ public abstract class Bot extends Thread {
                 "Mines rocks and smelts ores.", "m");
         registerBot(MeditationBot.class,
                 "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.", "md");
+        //todo farming bot and bot for leveling the ground
     }
 
     /**

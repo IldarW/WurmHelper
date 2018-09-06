@@ -14,7 +14,7 @@ import java.util.InputMismatchException;
 import java.util.List;
 
 public class AssistantBot extends Bot {
-    private Enchant spellToCast;
+    private Enchant spellToCast = Enchant.DISPEL;
     private boolean casting;
     private long statuetteId;
     private long bodyId;
@@ -301,7 +301,8 @@ public class AssistantBot extends Bot {
         registerEventProcessor(message -> message.contains("you will start cleaning."),
                 () -> successfullStartTrashCleaning = true);
         registerEventProcessor(message -> message.contains("You will start praying")
-                        || message.contains("You start to pray"),
+                        || message.contains("You start to pray")
+                        || message.contains("you will start praying"),
                 () -> successfullStartOfPraying = true);
         registerEventProcessor(message -> message.contains("you will start burning")
                         || message.contains("You fuel the"),
@@ -553,7 +554,6 @@ public class AssistantBot extends Bot {
                 } else
                     Utils.consolePrint("Spellcasts are on!");
                 statuetteId = statuette.getId();
-                spellToCast = Enchant.DISPEL;
             } catch (Exception e) {
                 Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
                 Utils.consolePrint(e.toString());

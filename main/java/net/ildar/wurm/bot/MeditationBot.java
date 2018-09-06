@@ -41,11 +41,17 @@ public class MeditationBot extends Bot {
         while(isActive()) {
             if (Math.abs(lastRepair - System.currentTimeMillis()) > repairTimeout) {
                 repairInitiated = false;
-                Mod.hud.sendAction(PlayerAction.REPAIR, carpetId);
                 int count = 0;
-                while(!repairInitiated && count++ < 100)
-                    sleep(200);
-                lastRepair = System.currentTimeMillis();
+                while(!repairInitiated && count++ < 30) {
+                    Mod.hud.sendAction(PlayerAction.REPAIR, carpetId);
+                    sleep(1000);
+                }
+                if (repairInitiated) {
+                    lastRepair = System.currentTimeMillis();
+                    Utils.consolePrint("Meditation rug was repaired!");
+                }
+                else
+                    Utils.consolePrint("Couldn't repair a meditation rug!");
             }
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
@@ -62,7 +68,8 @@ public class MeditationBot extends Bot {
     private void registerEventProcessors() {
         registerEventProcessor(message -> message.contains("You repair")
                 || message.contains("You start repairing")
-                || message.contains("doesn't need repairing"), () -> repairInitiated = true);
+                || message.contains("doesn't need repairing")
+                || message.contains("you will start repairing"), () -> repairInitiated = true);
     }
 
     private void handleRepairTimeoutChange(String []input){
