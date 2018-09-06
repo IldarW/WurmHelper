@@ -42,7 +42,6 @@ public class Mod implements WurmClientMod, Initable {
         consoleCommandHandlers.put(ConsoleCommand.mts, Mod::handleMtsCommand);
         consoleCommandHandlers.put(ConsoleCommand.info, Mod::handleInfoCommand);
         consoleCommandHandlers.put(ConsoleCommand.iteminfo, input -> printItemInformation());
-        consoleCommandHandlers.put(ConsoleCommand.heal, input -> healPlayer());
     }
 
     /**
@@ -91,40 +90,6 @@ public class Mod implements WurmClientMod, Initable {
         }
         printConsoleCommandUsage(command);
         Utils.consolePrint(command.description);
-    }
-
-    private static void healPlayer() {
-        //todo add constant healing while player has cotton and wounds
-        float damage = Mod.hud.getWorld().getPlayer().getDamage();
-        if (damage == 0) {
-            Utils.consolePrint("The player don't have any wounds");
-            return;
-        }
-        InventoryMetaItem cottonItem = Utils.getInventoryItem("cotton");
-        if (cottonItem == null) {
-            Utils.consolePrint("The player don't have a cotton!");
-            return;
-        }
-        List<InventoryMetaItem> inventoryItems = new ArrayList<>();
-        inventoryItems.add(Utils.getRootItem(hud.getInventoryWindow().getInventoryListComponent()));
-        Set<String> woundNames = new HashSet<>(Arrays.asList("Cut", "Bite", "Bruise", "Burn", "Hole", "Acid", "Infection"));
-        List<InventoryMetaItem> wounds = new ArrayList<>();
-        while(inventoryItems.size() > 0) {
-            InventoryMetaItem item = inventoryItems.get(0);
-            if (woundNames.contains(item.getBaseName()))
-                wounds.add(item);
-            if (item.getChildren() != null)
-                inventoryItems.addAll(item.getChildren());
-            inventoryItems.remove(item);
-        }
-        wounds.sort(Comparator.comparingDouble(InventoryMetaItem::getDamage).reversed());
-        int maxActionNumber = Utils.getMaxActionNumber();
-        int i = 0;
-        for(InventoryMetaItem wound : wounds) {
-            Mod.hud.getWorld().getServerConnection().sendAction(cottonItem.getId(), new long[]{wound.getId()}, PlayerAction.FIRSTAID);
-            if (++i >= maxActionNumber)
-            break;
-        }
     }
 
     private static void printItemInformation() {
@@ -491,8 +456,7 @@ public class Mod implements WurmClientMod, Initable {
                 "Move specified items to opened altar inventory. " +
                 "The amount of moved items depends on specified favor(with coefficient) you want to get from these items when you sacrifice them."),
         info("command", "Shows the description of specified console command."),
-        iteminfo("", "Prints information about selected items under mouse cursor."),
-        heal("", "Finds cotton in player's inventory and treats the wounds");
+        iteminfo("", "Prints information about selected items under mouse cursor.");
 
         private String usage;
         public String description;
