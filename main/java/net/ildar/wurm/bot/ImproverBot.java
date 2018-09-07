@@ -17,7 +17,7 @@ public class ImproverBot extends Bot {
     private float staminaThreshold;
     private boolean improveActionFinished;
     private boolean groundMode;
-    private ToolSkill groundModeToolSkill;
+    private ToolSkill toolSkill = ToolSkill.UNKNOWN;
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     public ImproverBot() {
@@ -26,25 +26,30 @@ public class ImproverBot extends Bot {
         registerInputHandler(InputKey.ls, input -> listAvailableSkills());
         registerInputHandler(InputKey.g, this::handleGroundModeChange);
         registerInputHandler(InputKey.ci, input -> changeInstrument());
+        registerInputHandler(InputKey.ss, this::handleSkillChange);
 
-        tools.add(new Tool(1201, "carving knife", true, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
-        tools.add(new Tool(741, "mallet", true, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
-        tools.add(new Tool(749, "file", true, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
-        tools.add(new Tool(602, "pelt", true, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
-        tools.add(new Tool(606, "log", false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
+        tools.add(new Tool(1201, "carving knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
+        tools.add(new Tool(741, "mallet", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY, ToolSkill.LEATHERWORKING))));
+        tools.add(new Tool(749, "file", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
+        tools.add(new Tool(602, "pelt", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
+        tools.add(new Tool(606, "log", false, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
 
-        tools.add(new Tool(1201, "stone chisel", true, new HashSet<>(Arrays.asList(ToolSkill.MASONRY))));
-        tools.add(new Tool(610, "shards", false, new HashSet<>(Arrays.asList(ToolSkill.MASONRY))));
+        tools.add(new Tool(1201, "stone chisel", true, false, new HashSet<>(Arrays.asList(ToolSkill.MASONRY))));
+        tools.add(new Tool(610, "shards", false, false, new HashSet<>(Arrays.asList(ToolSkill.MASONRY))));
 
-        tools.add(new Tool(808, "spatula", true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
-        tools.add(new Tool(802, "clay shaper", true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
-        tools.add(new Tool(540, "water", false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY, ToolSkill.TAILORING))));
-        tools.add(new Tool(591, "clay", false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
-        tools.add(new Tool(4, "hand", true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
+        tools.add(new Tool(808, "spatula", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
+        tools.add(new Tool(802, "clay shaper", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
+        tools.add(new Tool(540, "water", false, true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY, ToolSkill.CLOTH_TAILORING))));
+        tools.add(new Tool(591, "clay", false, true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
+        tools.add(new Tool(4, "hand", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
 
-        tools.add(new Tool(788, "needle", true, new HashSet<>(Arrays.asList(ToolSkill.TAILORING))));
-        tools.add(new Tool(748, "scissors", true, new HashSet<>(Arrays.asList(ToolSkill.TAILORING))));
-        tools.add(new Tool(620, "string of cloth", true, new HashSet<>(Arrays.asList(ToolSkill.TAILORING))));
+        tools.add(new Tool(788, "needle", true, false, new HashSet<>(Arrays.asList(ToolSkill.CLOTH_TAILORING, ToolSkill.LEATHERWORKING))));
+        tools.add(new Tool(748, "scissors", true, false, new HashSet<>(Arrays.asList(ToolSkill.CLOTH_TAILORING))));
+        tools.add(new Tool(620, "string of cloth", false, false, new HashSet<>(Arrays.asList(ToolSkill.CLOTH_TAILORING))));
+
+        tools.add(new Tool(766, "leather knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
+        tools.add(new Tool(754, "awl", true, false, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
+        tools.add(new Tool(602, "leather", false, true, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
     }
 
     @Override
@@ -106,8 +111,7 @@ public class ImproverBot extends Bot {
                     }
                     improveActionFinished = false;
                     Mod.hud.sendAction(PlayerAction.REPAIR, pickableUnit.getId());
-                    for (Tool tool : getToolsBySkill(groundModeToolSkill))
-                    {
+                    for (Tool tool : getToolsBySkill(toolSkill)) {
                         if (tool.itemId == 0 || !tool.fixed) {
                             boolean toolItemFound = assignItemForTool(tool);
                             if (!toolItemFound)
@@ -134,6 +138,8 @@ public class ImproverBot extends Bot {
     }
 
     private List<Tool> getToolsBySkill(ToolSkill toolSkill) {
+        if (toolSkill == null || toolSkill == ToolSkill.UNKNOWN)
+            return tools;
         List<Tool> toolsBySkill = new ArrayList<>();
         for(Tool tool : tools) {
             if (tool.toolSkills.contains(toolSkill))
@@ -145,7 +151,7 @@ public class ImproverBot extends Bot {
     private Tool findToolForImprove(InventoryMetaItem item) {
         if (item == null) return null;
         Tool returnTool = null;
-        for(Tool tool : tools)
+        for(Tool tool : getToolsBySkill(toolSkill))
             if (tool.improveIconId == item.getImproveIconId()) {
                 if (tool.itemId == 0) {
                     returnTool = tool;
@@ -165,7 +171,13 @@ public class ImproverBot extends Bot {
      * @return true on success
      */
     private boolean assignItemForTool(Tool tool) {
-        InventoryMetaItem toolItem = Utils.getInventoryItem(tool.name);
+        InventoryMetaItem toolItem = null;
+        if (tool.exactName) {
+            Optional<InventoryMetaItem> toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
+            if (toolOptionalItem.isPresent())
+                toolItem = toolOptionalItem.get();
+        } else
+            toolItem = Utils.getInventoryItem(tool.name);
         if (toolItem == null) {
             Utils.consolePrint("Can't find an item for a tool \"" + tool.name + "\"");
             return false;
@@ -188,7 +200,11 @@ public class ImproverBot extends Bot {
                         || message.contains("has some stains that must be washed away")
                         || message.contains("has an open seam that must be backstitched with an iron needle to improve")
                         || message.contains("has a seam that needs to be hidden by slipstitching with an iron needle")
-                        || message.contains("has some excess cloth that needs to be cut away with a scissors"),
+                        || message.contains("has some excess cloth that needs to be cut away with a scissors")
+                        || message.contains("has some excess leather that needs to be cut away with a leather knife")
+                        || message.contains("needs some holes punched with an awl")
+                        || message.contains("has some holes and must be tailored with an iron needle to improve")
+                        || message.contains("in order to smooth out a quirk"),
                 () -> improveActionFinished = true);
     }
 
@@ -221,25 +237,32 @@ public class ImproverBot extends Bot {
         }
     }
 
+    private void handleSkillChange(String[] input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(InputKey.ss);
+            return;
+        }
+        ToolSkill toolSkill = ToolSkill.getByAbbreviation(input[0]);
+        if (toolSkill == ToolSkill.UNKNOWN) {
+            Utils.consolePrint("Unknown skill abbreviation!");
+        } else {
+            this.toolSkill = toolSkill;
+            Utils.consolePrint("The skill was set to " + toolSkill.name());
+        }
+    }
+
     private void handleGroundModeChange(String input[]) {
-        groundMode = !groundMode;
         if (groundMode) {
-            if (input == null || input.length != 1) {
-                printInputKeyUsageString(InputKey.g);
-                groundMode = false;
-                return;
-            }
-            ToolSkill toolSkill = ToolSkill.getByAbbreviation(input[0]);
+            groundMode = false;
+            Utils.consolePrint("Ground mode is off!");
+        } else {
             if (toolSkill == ToolSkill.UNKNOWN) {
-                Utils.consolePrint("Unknown skill abbreviation!");
-                groundMode = false;
+                Utils.consolePrint("Choose the skill first with \"" + InputKey.ss.name() + "\" key");
                 return;
             }
-            groundModeToolSkill = toolSkill;
+            groundMode = true;
             Utils.consolePrint("Ground mode is on!");
         }
-        else
-            Utils.consolePrint("Ground mode is off!");
     }
 
     private void handleStaminaThresholdChange(String input[]) {
@@ -283,7 +306,8 @@ public class ImproverBot extends Bot {
                 "threshold(float value between 0 and 1)"),
         at("Add new inventory(under mouse cursor). Selected items in this inventory will be improved.", ""),
         ls("List available improving skills", ""),
-        g("Toggle the ground mode. Provide the skill abbreviation to use tools from that skill. You can list available skills using \"" + ls.name() + "\" key", "skill_abbreviation"),
+        ss("Set the skill. Only tools from that skill will be used. You can list available skills using \"" + ls.name() + "\" key", "skill_abbreviation"),
+        g("Toggle the ground mode. Set the skill first by \"" + ss.name() + "\" key", ""),
         ci("Change previously chosen instrument by tool selected in player's inventory", "");
         public String description;
 
@@ -300,13 +324,20 @@ public class ImproverBot extends Bot {
         String name;
         //items like water or stone will be searched in player's inventory on each use and will have this value set to false
         boolean fixed;
+        boolean exactName;
         Set<ToolSkill> toolSkills;
 
-        Tool(int improveIconId, String name, boolean fixed, Set<ToolSkill> toolSkills) {
+        Tool(int improveIconId, String name, boolean fixed, boolean exactName, Set<ToolSkill> toolSkills) {
             this.improveIconId = improveIconId;
             this.name = name;
             this.fixed = fixed;
+            this.exactName = exactName;
             this.toolSkills = toolSkills;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 
@@ -315,7 +346,8 @@ public class ImproverBot extends Bot {
         CARPENTRY("c"),
         MASONRY("m"),
         POTTERY("p"),
-        TAILORING("t");
+        CLOTH_TAILORING("ct"),
+        LEATHERWORKING("l");
 
         String abbreviation;
         ToolSkill(String abbreviation) {

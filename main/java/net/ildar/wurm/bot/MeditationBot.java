@@ -48,9 +48,7 @@ public class MeditationBot extends Bot {
                 }
                 if (repairInitiated) {
                     lastRepair = System.currentTimeMillis();
-                    Utils.consolePrint("Meditation rug was repaired!");
-                }
-                else
+                } else
                     Utils.consolePrint("Couldn't repair a meditation rug!");
             }
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();

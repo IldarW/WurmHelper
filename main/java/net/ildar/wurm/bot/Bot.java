@@ -263,6 +263,8 @@ public abstract class Bot extends Thread {
             return false;
         InputHandler inputHandler = getInputHandler(data[0]);
         if (inputHandler == null) {
+            Utils.consolePrint("Unknown key - " + data[0]);
+            printBotDescription(this.getClass());
             return false;
         }
         String[] handlerParameters = null;
