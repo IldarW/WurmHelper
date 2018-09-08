@@ -1,0 +1,246 @@
+package net.ildar.wurm.bot;
+
+import com.wurmonline.client.game.PlayerObj;
+import com.wurmonline.client.game.World;
+import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.gui.CreationWindow;
+import com.wurmonline.mesh.FieldData;
+import com.wurmonline.mesh.Tiles;
+import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.Mod;
+import net.ildar.wurm.Utils;
+import org.gotti.wurmunlimited.modloader.ReflectionUtil;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class FarmerBot extends Bot {
+    private float staminaThreshold;
+    private AreaAssistant areaAssistant = new AreaAssistant(this);
+    private boolean farmTending;
+    private InventoryMetaItem rakeItem;
+    private boolean harvesting;
+    private InventoryMetaItem scytheItem;
+    private boolean planting;
+    private String seedsName;
+    private boolean cultivating;
+    private InventoryMetaItem shovelItem;
+
+    public FarmerBot() {
+        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(InputKey.ft, input -> toggleFarmTending());
+        registerInputHandler(InputKey.h, input -> toggleHarvesting());
+        registerInputHandler(InputKey.p, this::handlePlantingChange);
+        registerInputHandler(InputKey.c, input -> toggleCultivating());
+
+        registerInputHandler(InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+    }
+
+    @Override
+    protected void work() throws Exception {
+        setStaminaThreshold(0.9f);
+        setTimeout(500);
+        int maxActions = Utils.getMaxActionNumber();
+        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
+        World world = Mod.hud.getWorld();
+        PlayerObj player = world.getPlayer();
+        Set<String> cultivatedTiles = new HashSet<>(Arrays.asList(
+                Tiles.Tile.TILE_STEPPE.tilename, Tiles.Tile.TILE_MOSS.tilename, Tiles.Tile.TILE_DIRT_PACKED.tilename));
+        while (isActive()) {
+            float stamina = player.getStamina();
+            float damage = player.getDamage();
+            float progress = ReflectionUtil.getPrivateField(progressBar,
+                    ReflectionUtil.getField(progressBar.getClass(), "progress"));
+            if ((stamina + damage) > staminaThreshold && progress == 0f) {
+                int checkedtiles[][] = Utils.getAreaCoordinates();
+                int initiatedActions = 0;
+                int tileIndex = -1;
+
+                List<InventoryMetaItem> seeds = null;
+                int usedSeeds = 0;
+                if (planting)
+                    seeds = Utils.getInventoryItems(seedsName);
+                while(++tileIndex < checkedtiles.length && initiatedActions < maxActions) {
+                    Tiles.Tile tileType = world.getNearTerrainBuffer().getTileType(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
+                    byte tileData = world.getNearTerrainBuffer().getData(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
+                    if (cultivating)
+                        if (!tileType.isTree() && !tileType.isBush() && (tileType.isGrass() || cultivatedTiles.contains(tileType.tilename))) {
+                            world.getServerConnection().sendAction(shovelItem.getId(),
+                                    new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
+                                    PlayerAction.CULTIVATE);
+                            initiatedActions++;
+                            continue;
+                    }
+                    if (farmTending)
+                        if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
+                            if (!com.wurmonline.mesh.FieldData.isTended(tileData)) {
+                                world.getServerConnection().sendAction(rakeItem.getId(),
+                                        new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
+                                        PlayerAction.FARM);
+                                initiatedActions++;
+                                continue;
+                    }
+                    if (harvesting)
+                        if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
+                            if (FieldData.getAgeName(tileData).equals("ripe")) {
+                                world.getServerConnection().sendAction(scytheItem.getId(),
+                                        new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
+                                        PlayerAction.HARVEST);
+                                initiatedActions++;
+                                continue;
+                    }
+                    if (planting)
+                        if (tileType == Tiles.Tile.TILE_DIRT) {
+                            if (seeds == null || seeds.size() == 0)
+                                Utils.consolePrint("The player don't have any seeds left to plant");
+                            else {
+                                world.getServerConnection().sendAction(seeds.get(usedSeeds++).getId(),
+                                        new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
+                                        PlayerAction.SOW);
+                                initiatedActions++;
+                                continue;
+                            }
+                    }
+                }
+                if (initiatedActions == 0)
+                    areaAssistant.areaNextPosition();
+            }
+            sleep(timeout);
+        }
+    }
+
+    private void toggleCultivating() {
+        if (!cultivating) {
+            shovelItem = Utils.getInventoryItem("shovel");
+            if (shovelItem == null) {
+                Utils.consolePrint("The player don't have a shovel!");
+                return;
+            }
+            Utils.consolePrint(this.getClass().getSimpleName() + " will use " + shovelItem.getDisplayName() + " with QL:" + shovelItem.getQuality() + " DMG:" + shovelItem.getDamage());
+            cultivating = true;
+            Utils.consolePrint("The cultivation is on");
+        } else {
+            cultivating = false;
+            Utils.consolePrint("The cultivation is off");
+        }
+    }
+
+    private void handlePlantingChange(String []input) {
+        if (!planting) {
+            if (input == null || input.length == 0) {
+                printInputKeyUsageString(InputKey.p);
+                return;
+            }
+            StringBuilder plantName = new StringBuilder(input[0]);
+            for (int i = 1; i < input.length; i++)
+                plantName.append(" ").append(input[i]);
+            this.seedsName = plantName.toString();
+            Utils.consolePrint(this.getClass().getSimpleName() + " will plant " + this.seedsName);
+            planting = true;
+        } else {
+            planting = false;
+            Utils.consolePrint("Planting is off");
+        }
+    }
+
+    private void toggleHarvesting() {
+        if (!harvesting) {
+            scytheItem = Utils.getInventoryItem("scythe");
+            if (scytheItem == null) {
+                Utils.consolePrint("The player don't have a scythe!");
+                return;
+            }
+            Utils.consolePrint(this.getClass().getSimpleName() + " will use " + scytheItem.getDisplayName() + " with QL:" + scytheItem.getQuality() + " DMG:" + scytheItem.getDamage());
+            harvesting = true;
+            Utils.consolePrint("The harvesting is on");
+        } else {
+            harvesting = false;
+            Utils.consolePrint("The harvesting is off");
+        }
+    }
+
+    private void toggleFarmTending() {
+        if (!farmTending) {
+            rakeItem = Utils.getInventoryItem("rake");
+            if (rakeItem == null) {
+                Utils.consolePrint("The player don't have a rake!");
+                return;
+            }
+            Utils.consolePrint(this.getClass().getSimpleName() + " will use " + rakeItem.getDisplayName() + " with QL:" + rakeItem.getQuality() + " DMG:" + rakeItem.getDamage());
+            farmTending = true;
+            Utils.consolePrint("The farm tending is on");
+        } else {
+            farmTending = false;
+            Utils.consolePrint("The farm tending is off");
+        }
+    }
+
+    private void handleStaminaThresholdChange(String input[]) {
+        if (input == null || input.length != 1)
+            printInputKeyUsageString(InputKey.s);
+        else {
+            try {
+                float threshold = Float.parseFloat(input[0]);
+                setStaminaThreshold(threshold);
+            } catch (Exception e) {
+                Utils.consolePrint("Wrong threshold value!");
+            }
+        }
+    }
+
+    private void setStaminaThreshold(float s) {
+        staminaThreshold = s;
+        Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
+    }
+
+    private void handleAreaModeChange(String []input) {
+        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
+        if (!successfullAreaModeChange)
+            printInputKeyUsageString(ForesterBot.InputKey.area);
+    }
+
+    private void handleAreaModeSpeedChange(String []input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
+            return;
+        }
+        float speed;
+        try {
+            speed = Float.parseFloat(input[0]);
+            if (speed < 0) {
+                Utils.consolePrint("Speed can not be negative");
+                return;
+            }
+            if (speed == 0) {
+                Utils.consolePrint("Speed can not be equal to 0");
+                return;
+            }
+            areaAssistant.setStepTimeout((long) (speed * 1000));
+            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
+        } catch (NumberFormatException e) {
+            Utils.consolePrint("Wrong speed value");
+        }
+    }
+
+    enum InputKey {
+        s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
+                "threshold(float value between 0 and 1)"),
+        ft("Toggle the farm tending", ""),
+        h("Toggle the harvesting", ""),
+        p("Toggle the planting. Provide the name of the seeds to plant", "seeds_name"),
+        c("Toggle the dirt cultivation", ""),
+        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
+        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+
+        public String description;
+        public String usage;
+        InputKey(String description, String usage) {
+            this.description = description;
+            this.usage = usage;
+        }
+    }
+}

@@ -72,7 +72,7 @@ public class ArcherBot extends Bot {
                         InventoryMetaItem bowstring = Utils.getInventoryItem("bow string");
                         if (bowstring != null) {
                             Mod.hud.getWorld().getServerConnection().sendAction(bowstring.getId(),
-                                    new long[]{bow.getId()}, new PlayerAction((short) 132, 65535));
+                                    new long[]{bow.getId()}, new PlayerAction((short) 132, PlayerAction.ANYTHING));
                         }
                 }
                 for (int i = 0; i < maxActions; i++)

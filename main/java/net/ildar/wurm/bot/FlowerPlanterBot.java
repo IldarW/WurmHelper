@@ -78,7 +78,7 @@ public class FlowerPlanterBot extends Bot {
                             if (type.tilename.equals("Dirt")) {
                                 Mod.hud.getWorld().getServerConnection().sendAction(flowerIds[sentactions],
                                         new long[]{Tiles.getTileId(checkedtiles[i][0], checkedtiles[i][1], 0)},
-                                        new PlayerAction((short)186, 65535));
+                                        new PlayerAction((short)186, PlayerAction.ANYTHING));
                                 ++sentactions;
                             }
                         }
@@ -91,7 +91,7 @@ public class FlowerPlanterBot extends Bot {
                             if (type.isGrass() && GrassData.getFlowerTypeName(data).contains("flowers")) {
                                 Mod.hud.getWorld().getServerConnection().sendAction(sickleId,
                                         new long[]{Tiles.getTileId(checkedtiles[i][0], checkedtiles[i][1], 0)},
-                                        new PlayerAction((short)187, 65535));
+                                        new PlayerAction((short)187, PlayerAction.ANYTHING));
                                 ++sentactions;
                             }
                         }

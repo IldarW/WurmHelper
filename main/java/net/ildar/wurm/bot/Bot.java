@@ -82,7 +82,9 @@ public abstract class Bot extends Thread {
                 "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.", "md");
         registerBot(HealingBot.class,
                 "Heals the player's wounds with cotton found in inventory", "h");
-        //todo farming bot and bot for leveling the ground
+        registerBot(FarmerBot.class,
+                "Tends the fields, plants the seeds, cultivates the ground, collects harvests", "f");
+        //todo bot for leveling the ground
     }
 
     /**

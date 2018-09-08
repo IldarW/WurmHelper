@@ -51,7 +51,8 @@ public class CrafterBot extends Bot {
     @SuppressWarnings("ConstantConditions")
     public void work() throws Exception{
         setStaminaThreshold(0.96f);
-        long lastCombineTime = System.currentTimeMillis();
+        long lastSourceCombineTime = 0;
+        long lastTargetCombineTime = 0;
 
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Method sendCreateAction = ReflectionUtil.getMethod(CreationWindow.class, "sendCreateAction");
@@ -64,7 +65,7 @@ public class CrafterBot extends Bot {
                 ReflectionUtil.getField(creationWindow.getClass(), "source"));
         CreationFrame target = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "target"));
-
+        registerEventProcessors();
         while (isActive()) {
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
@@ -133,19 +134,26 @@ public class CrafterBot extends Bot {
                             ReflectionUtil.getField(source.getClass(), "itemList"), items);
             }
 
-            if (combineTargets && (Math.abs(lastCombineTime - System.currentTimeMillis()) > combineTimeout)) {
-                lastCombineTime = System.currentTimeMillis();
+            if (combineTargets && (Math.abs(lastTargetCombineTime - System.currentTimeMillis()) > combineTimeout)) {
+                lastTargetCombineTime = System.currentTimeMillis();
                 List<InventoryMetaItem> targetItems = ReflectionUtil.getPrivateField(target,
                         ReflectionUtil.getField(target.getClass(), "itemList"));
-                long[] targets = new long[targetItems.size()];
-                for (int i = 0; i < targetItems.size(); i++)
-                    targets[i] = targetItems.get(i).getId();
+                long[] targets = Utils.getItemIds(targetItems);
                 creationWindow.sendCombineAction(targets[0], targets, target);
+                requestCreationList.invoke(creationWindow);
+            }
+
+            if (combineSources && (Math.abs(lastSourceCombineTime - System.currentTimeMillis()) > combineTimeout)) {
+                lastSourceCombineTime = System.currentTimeMillis();
+                List<InventoryMetaItem> sourceItems = ReflectionUtil.getPrivateField(source,
+                        ReflectionUtil.getField(target.getClass(), "itemList"));
+                long[] sources = Utils.getItemIds(sourceItems);
+                creationWindow.sendCombineAction(sources[0], sources, source);
+                requestCreationList.invoke(creationWindow);
             }
 
             if (source != null && target != null && (stamina+damage) > staminaThreshold && (creationWindow.getActionInUse() == 0 || withoutActionsInUse) && progress == 0f) {
                 sendCreateAction.invoke(creationWindow);
-                lastClick = System.currentTimeMillis();
             }
             if (source != null && target != null
                     && (stamina+damage) > staminaThreshold
@@ -157,6 +165,13 @@ public class CrafterBot extends Bot {
             }
             sleep(timeout);
         }
+    }
+
+    private void registerEventProcessors() {
+        registerEventProcessor(message -> message.contains("You create")
+                || message.contains("you will start creating")
+                || message.contains("You attach")
+                || message.contains("you will start continuing"), () -> lastClick = System.currentTimeMillis());
     }
 
     private void toggleActionNumberChecks() {

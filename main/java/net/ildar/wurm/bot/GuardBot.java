@@ -124,7 +124,7 @@ public class GuardBot extends Bot {
                 "Alarm will be raised if no valid messages was processed during that period",
                 "timeout(in milliseconds)"),
         a("Add new keyword", "keyword"),
-        cs("Set a path to a custom sound file for alarm. Use .wav files", "path"),
+        cs("Set a path to a custom sound file for alarm. Use .wav file", "path"),
         soundtest("Plays the alarm sound", "");
 
         public String description;

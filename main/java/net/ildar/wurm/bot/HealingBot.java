@@ -28,7 +28,7 @@ public class HealingBot extends Bot {
                 Utils.consolePrint("The player is fully healed");
                 return;
             }
-            InventoryMetaItem cottonItem = Utils.getInventoryItem("cotton");
+            InventoryMetaItem cottonItem = Utils.getInventoryItems("cotton").stream().filter(item -> item.getBaseName().equals("cotton")).findFirst().orElse(null);
             if (cottonItem == null) {
                 Utils.consolePrint("The player don't have a cotton!");
                 return;

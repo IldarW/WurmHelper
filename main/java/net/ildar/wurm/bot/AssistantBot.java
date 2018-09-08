@@ -67,7 +67,8 @@ public class AssistantBot extends Bot {
     public AssistantBot() {
         registerInputHandler(InputKey.w, input -> toggleDrinking(0));
         registerInputHandler(InputKey.wid, this::handleDrinkingTargetIdChange);
-        registerInputHandler(InputKey.c, input -> toggleCasting());
+        registerInputHandler(InputKey.ls, input -> showSpellList());
+        registerInputHandler(InputKey.c, this::handleAutocastingChange);
         registerInputHandler(InputKey.p, input -> togglePraying(0));
         registerInputHandler(InputKey.pt, this::handlePrayerTimeoutChange);
         registerInputHandler(InputKey.pid, this::handlePrayingAltarIdChange);
@@ -98,14 +99,14 @@ public class AssistantBot extends Bot {
                     successfullCasting = false;
                     successfullCastStart = false;
                     int counter = 0;
-                    while (!successfullCastStart && counter++ < 50 && favor > spellToCast.favorCap) {
+                    while (casting && !successfullCastStart && counter++ < 50 && favor > spellToCast.favorCap) {
                         if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
                         Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, spellToCast.playerAction);
                         favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
                         sleep(500);
                     }
                     counter = 0;
-                    while (!successfullCasting && counter++ < 100 && favor > spellToCast.favorCap) {
+                    while (casting && !successfullCasting && counter++ < 100 && favor > spellToCast.favorCap) {
                         if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
                         sleep(2000);
                     }
@@ -117,13 +118,13 @@ public class AssistantBot extends Bot {
                     successfullCastStart = false;
                     needWaitWov = false;
                     int counter = 0;
-                    while (!successfullCastStart && counter++ < 50 && !needWaitWov) {
+                    while (wovCasting && !successfullCastStart && counter++ < 50 && !needWaitWov) {
                         if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
                         Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, PlayerAction.WISDOM_OF_VYNORA);
                         sleep(500);
                     }
                     counter = 0;
-                    while (!successfullCasting && counter++ < 100 && !needWaitWov) {
+                    while (wovCasting && !successfullCasting && counter++ < 100 && !needWaitWov) {
                         if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
                         sleep(2000);
                     }
@@ -139,13 +140,13 @@ public class AssistantBot extends Bot {
                     successfullDrinking = false;
                     successfullDrinkingStart = false;
                     int counter = 0;
-                    while (!successfullDrinkingStart && counter++ < 50) {
+                    while (drinking && !successfullDrinkingStart && counter++ < 50) {
                         if (verbose) Utils.consolePrint("successfullDrinkingStart counter=" + counter);
-                        Mod.hud.sendAction(new PlayerAction((short) 183, 65535), waterId);
+                        Mod.hud.sendAction(new PlayerAction((short) 183, PlayerAction.ANYTHING), waterId);
                         sleep(500);
                     }
                     counter = 0;
-                    while (!successfullDrinking && counter++ < 100) {
+                    while (drinking && !successfullDrinking && counter++ < 100) {
                         if (verbose) Utils.consolePrint("successfullDrinking counter=" + counter);
                         sleep(2000);
                     }
@@ -165,15 +166,15 @@ public class AssistantBot extends Bot {
                 successfullStartOfLockpicking = false;
                 lockpickingResult = -1;
                 int counter = 0;
-                while (!successfullStartOfLockpicking && counter++ < 50 && !noLock) {
+                while (lockpicking && !successfullStartOfLockpicking && counter++ < 50 && !noLock) {
                     if (verbose) Utils.consolePrint("successfullStartOfLockpicking counter=" + counter);
                     Mod.hud.getWorld().getServerConnection().sendAction(lockpickId,
-                            new long[]{chestId}, new PlayerAction((short) 101, 65535));
+                            new long[]{chestId}, new PlayerAction((short) 101, PlayerAction.ANYTHING));
                     sleep(500);
                 }
                 if (counter >= 50) continue;
                 counter = 0;
-                while (lockpickingResult == -1 && counter++ < 100 && !noLock) {
+                while (lockpicking && lockpickingResult == -1 && counter++ < 100 && !noLock) {
                     if (verbose) Utils.consolePrint("lockpickingResult counter=" + counter);
                     sleep(2000);
                 }
@@ -188,10 +189,10 @@ public class AssistantBot extends Bot {
                     }
                     successfullLocking = false;
                     counter = 0;
-                    while (!successfullLocking && counter++ < 50) {
+                    while (lockpicking && !successfullLocking && counter++ < 50) {
                         if (verbose) Utils.consolePrint("successfullLocking lockingcounter=" + counter);
                         Mod.hud.getWorld().getServerConnection().sendAction(padlockId,
-                                new long[]{chestId}, new PlayerAction((short) 161, 65535));
+                                new long[]{chestId}, new PlayerAction((short) 161, PlayerAction.ANYTHING));
                         sleep(500);
                     }
                 }
@@ -205,9 +206,9 @@ public class AssistantBot extends Bot {
                     lastTrashCleaning = System.currentTimeMillis();
                     successfullStartTrashCleaning = false;
                     int counter = 0;
-                    while (!successfullStartTrashCleaning && counter++ < 30) {
+                    while (trashCleaning && !successfullStartTrashCleaning && counter++ < 30) {
                         if (verbose) Utils.consolePrint("successfullStartTrashCleaning counter=" + counter);
-                        Mod.hud.sendAction(new PlayerAction((short) 954, 65535), trashBinId);
+                        Mod.hud.sendAction(new PlayerAction((short) 954, PlayerAction.ANYTHING), trashBinId);
                         sleep(1000);
                     }
                     successfullStartTrashCleaning = true;
@@ -219,7 +220,7 @@ public class AssistantBot extends Bot {
                     lastPrayer = System.currentTimeMillis();
                     successfullStartOfPraying = false;
                     int counter = 0;
-                    while (!successfullStartOfPraying && counter++ < 50) {
+                    while (praying && !successfullStartOfPraying && counter++ < 50) {
                         if (verbose) Utils.consolePrint("successfullStartOfPraying counter=" + counter);
                         Mod.hud.sendAction(PlayerAction.PRAY, altarId);
                         sleep(1000);
@@ -233,7 +234,7 @@ public class AssistantBot extends Bot {
                     lastSacrifice = System.currentTimeMillis();
                     successfullStartOfSacrificing = false;
                     int counter = 0;
-                    while (!successfullStartOfSacrificing && counter++ < 50) {
+                    while (sacrificing && !successfullStartOfSacrificing && counter++ < 50) {
                         if (verbose) Utils.consolePrint("successfullStartOfSacrificing counter=" + counter);
                         Mod.hud.sendAction(PlayerAction.SACRIFICE, sacrificeAltarId);
                         sleep(1000);
@@ -257,10 +258,10 @@ public class AssistantBot extends Bot {
                                 targetIds[0], targetIds, PlayerAction.COMBINE);
                         successfullStartOfBurning = false;
                         int counter = 0;
-                        while (!successfullStartOfBurning && counter++ < 50) {
+                        while (kindlingBurning && !successfullStartOfBurning && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullStartOfBurning counter=" + counter);
                             Mod.hud.getWorld().getServerConnection().sendAction(
-                                    biggestKindling.getId(), new long[]{forgeId}, new PlayerAction((short) 117, 65535));
+                                    biggestKindling.getId(), new long[]{forgeId}, new PlayerAction((short) 117, PlayerAction.ANYTHING));
                             sleep(300);
                         }
                         successfullStartOfBurning = true;
@@ -538,7 +539,13 @@ public class AssistantBot extends Bot {
 
     }
 
-    private void toggleCasting() {
+    private void showSpellList() {
+        Utils.consolePrint("Spell abbreviation");
+        for(Enchant enchant : Enchant.values())
+            Utils.consolePrint(enchant.name() + " " + enchant.abbreviation);
+    }
+
+    private void handleAutocastingChange(String [] input) {
         casting = !casting;
         if (casting) {
             try {
@@ -554,6 +561,12 @@ public class AssistantBot extends Bot {
                 } else
                     Utils.consolePrint("Spellcasts are on!");
                 statuetteId = statuette.getId();
+                Enchant enchant = Enchant.DISPEL;
+                if (input != null && input.length > 0) {
+                    enchant = Enchant.getByAbbreviation(input[0]);
+                }
+                spellToCast = enchant;
+                Utils.consolePrint("The spell " + spellToCast.name() + " will be casted");
             } catch (Exception e) {
                 Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
                 Utils.consolePrint(e.toString());
@@ -728,7 +741,9 @@ public class AssistantBot extends Bot {
     private enum InputKey {
         w("Toggle automatic drinking of the liquid the user pointing at", ""),
         wid("Toggle automatic drinking of liquid with provided id", "id"),
-        c("Toggle automatic casts of spells(if player has enough favor)", ""),
+        ls("Show the list of available spells for autocasting", ""),
+        c("Toggle automatic casts of spells(if player has enough favor). Provide an optional spell abbreviation to change the default Dispel spell. " +
+                "You can see the list of available spell with \"" + ls.name() + "\" key", "[spell_abbreviation]"),
         p("Toggle automatic praying. The timeout between prayers can be configured separately.", ""),
         pt("Change the timeout between prayers", "timeout(in milliseconds)"),
         pid("Toggle automatic praying on altar with provided id", "id"),
@@ -759,15 +774,24 @@ public class AssistantBot extends Bot {
     }
 
     enum Enchant{
-        BLESS(10, PlayerAction.BLESS),
-        MORNINGFOG(5, PlayerAction.MORNING_FOG),
-        DISPEL(10, PlayerAction.DISPEL);
+        BLESS(10, PlayerAction.BLESS, "b"),
+        MORNINGFOG(5, PlayerAction.MORNING_FOG, "mf"),
+        DISPEL(10, PlayerAction.DISPEL, "d"),
+        LIGHT_TOKEN(5, PlayerAction.LIGHT_TOKEN, "lt");
 
         int favorCap;
         PlayerAction playerAction;
-        Enchant(int favorCap, PlayerAction playerAction) {
+        String abbreviation;
+        Enchant(int favorCap, PlayerAction playerAction, String abbreviation) {
             this.favorCap = favorCap;
             this.playerAction = playerAction;
+            this.abbreviation = abbreviation;
+        }
+        static Enchant getByAbbreviation(String abbreviation) {
+            for(Enchant enchant : values())
+                if (enchant.abbreviation.equals(abbreviation))
+                    return enchant;
+            return DISPEL;
         }
     }
 }

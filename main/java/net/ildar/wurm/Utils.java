@@ -42,9 +42,15 @@ public class Utils {
      * Print the message to the console
      */
     public static void consolePrint(String message) {
-        HeadsUpDisplay hud = Mod.hud;
-        if (hud != null)
-            hud.consoleOutput(message);
+        try {
+            blockingQueue.take();
+            HeadsUpDisplay hud = Mod.hud;
+            if (hud != null)
+                hud.consoleOutput(message);
+            blockingQueue.put(1);
+        } catch (InterruptedException e) {
+            blockingQueue.offer(1);
+        }
     }
 
     /**
@@ -399,7 +405,7 @@ public class Utils {
     }
 
     public static long[] getItemIds(List<InventoryMetaItem> container) {
-        if (container == null || container.size() == 0)
+        if (container == null)
             return null;
         long[] ids = new long[container.size()];
         for (int i = 0; i < container.size(); i++) {

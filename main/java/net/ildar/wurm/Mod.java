@@ -4,6 +4,8 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.client.startup.ServerBrowserDirectConnect;
+import com.wurmonline.client.util.Computer;
+import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -13,6 +15,7 @@ import net.ildar.wurm.bot.Bot;
 import net.ildar.wurm.bot.BulkItemGetterBot;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
+import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
 import org.gotti.wurmunlimited.modloader.interfaces.Initable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 
@@ -23,12 +26,15 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Mod implements WurmClientMod, Initable {
+public class Mod implements WurmClientMod, Initable, Configurable {
     public static HeadsUpDisplay hud;
     public static List<WurmComponent> components;
 
     private static Logger logger;
     private static Map<ConsoleCommand, ConsoleCommandHandler> consoleCommandHandlers;
+
+    private static final long BLESS_TIMEOUT = 1800000;
+    private static long lastBless = 0L;
 
     static {
         logger = Logger.getLogger("IldarMod");
@@ -41,7 +47,9 @@ public class Mod implements WurmClientMod, Initable {
         consoleCommandHandlers.put(ConsoleCommand.bot, Mod::configureBot);
         consoleCommandHandlers.put(ConsoleCommand.mts, Mod::handleMtsCommand);
         consoleCommandHandlers.put(ConsoleCommand.info, Mod::handleInfoCommand);
-        consoleCommandHandlers.put(ConsoleCommand.iteminfo, input -> printItemInformation());
+        consoleCommandHandlers.put(ConsoleCommand.actionlist, input -> showActionList());
+        consoleCommandHandlers.put(ConsoleCommand.action, Mod::handleActionCommand);
+        consoleCommandHandlers.put(ConsoleCommand.getid, input -> copyIdToClipboard());
     }
 
     /**
@@ -57,6 +65,10 @@ public class Mod implements WurmClientMod, Initable {
             return false;
         try {
             consoleCommandHandler.handle(Arrays.copyOfRange(data, 1, data.length));
+            if (Math.abs(lastBless - System.currentTimeMillis()) > BLESS_TIMEOUT) {
+                hud.addOnscreenMessage("Ildar blesses you!", 1, 1, 1, (byte)1);
+                lastBless = System.currentTimeMillis();
+            }
         } catch (Exception e) {
             Utils.consolePrint("Error on execution of command \"" + consoleCommand.name() + "\"");
             e.printStackTrace();
@@ -76,6 +88,24 @@ public class Mod implements WurmClientMod, Initable {
         Utils.consolePrint("Usage: " + consoleCommand.name() + " " + consoleCommand.getUsage());
     }
 
+    private static void copyIdToClipboard() {
+        int x = hud.getWorld().getClient().getXMouse();
+        int y = hud.getWorld().getClient().getYMouse();
+        long[] ids = hud.getCommandTargetsFrom(x, y);
+        if (ids != null && ids.length > 0) {
+            Computer.setClipboardContents(String.valueOf(ids[0]));
+            hud.addOnscreenMessage("The item id was added to clipboard", 1, 1, 1, (byte)1);
+        }
+        else {
+            PickableUnit pickableUnit = hud.getWorld().getCurrentHoveredObject();
+            if (pickableUnit != null) {
+                Computer.setClipboardContents(String.valueOf(pickableUnit.getId()));
+                hud.addOnscreenMessage("The item id was added to clipboard", 1, 1, 1, (byte)1);
+            } else
+                hud.addOnscreenMessage("Hover the mouse over the item first", 1, 1, 1, (byte)1);
+        }
+    }
+
     private static void handleInfoCommand(String [] input) {
         if (input.length != 1) {
             printConsoleCommandUsage(ConsoleCommand.info);
@@ -90,6 +120,50 @@ public class Mod implements WurmClientMod, Initable {
         }
         printConsoleCommandUsage(command);
         Utils.consolePrint(command.description);
+    }
+
+    private static void showActionList() {
+        for(Action action: Action.values()) {
+            Utils.consolePrint("\"" + action.abbreviation + "\" is to " + action.name() + " with tool \"" + action.toolName + "\"");
+        }
+    }
+
+    private static void handleActionCommand(String [] input) {
+        if (input == null || input.length == 0) {
+            printConsoleCommandUsage(ConsoleCommand.action);
+            return;
+        }
+        StringBuilder abbreviation = new StringBuilder(input[0]);
+        for (int i = 1; i < input.length; i++) {
+            abbreviation.append(" ").append(input[i]);
+        }
+        Action action = Action.getByAbbreviation(abbreviation.toString());
+        if (action == null) {
+            Utils.consolePrint("Unknown action abbreviation - " + abbreviation.toString());
+            showActionList();
+            return;
+        }
+        InventoryMetaItem toolItem = Utils.getInventoryItem(action.toolName);
+        if (toolItem == null && action == Action.Butcher) {
+            Utils.consolePrint("A player don't have " + Action.Butcher.toolName + ", trying to find carving knife...");
+            toolItem = Utils.getInventoryItem("carving knife");
+            if (toolItem == null)
+                Utils.consolePrint("But the player don't have a carving knife too");
+        }
+        if (toolItem == null) {
+            Utils.consolePrint("A player don't have " + action.toolName);
+            return;
+        }
+        int x = hud.getWorld().getClient().getXMouse();
+        int y = hud.getWorld().getClient().getYMouse();
+        long[] ids = hud.getCommandTargetsFrom(x, y);
+        if (ids != null && ids.length > 0)
+            hud.getWorld().getServerConnection().sendAction(toolItem.getId(), new long[]{ids[0]}, action.playerAction);
+        else {
+            PickableUnit pickableUnit = hud.getWorld().getCurrentHoveredObject();
+            if (pickableUnit != null)
+                hud.getWorld().getServerConnection().sendAction(toolItem.getId(), new long[]{pickableUnit.getId()}, action.playerAction);
+        }
     }
 
     private static void printItemInformation() {
@@ -113,6 +187,26 @@ public class Mod implements WurmClientMod, Initable {
         }
         for(InventoryMetaItem item : items)
             printItemInfo(item);
+    }
+
+    private static void printTileInformation() {
+        int checkedtiles[][] = Utils.getAreaCoordinates();
+        for(int i = 0; i < checkedtiles.length; i++) {
+            Tiles.Tile tileType = hud.getWorld().getNearTerrainBuffer().getTileType(checkedtiles[i][0], checkedtiles[i][1]);
+            byte tileData = hud.getWorld().getNearTerrainBuffer().getData(checkedtiles[i][0], checkedtiles[i][1]);
+            Utils.consolePrint("Tile (" + checkedtiles[i][0] +  ", " + checkedtiles[i][1] + ") " + tileType.tilename);
+        }
+    }
+
+    private static void printPlayerInformation() {
+        Utils.consolePrint("Player \"" + hud.getWorld().getPlayer().getPlayerName() + "\"");
+        Utils.consolePrint("Stamina: " + hud.getWorld().getPlayer().getStamina());
+        Utils.consolePrint("Damage: " + hud.getWorld().getPlayer().getDamage());
+        Utils.consolePrint("Thirst: " + hud.getWorld().getPlayer().getThirst());
+        Utils.consolePrint("Hunger: " + hud.getWorld().getPlayer().getHunger());
+        Utils.consolePrint("X: " + hud.getWorld().getPlayerPosX() / 4 + " Y: " + hud.getWorld().getPlayerPosY() / 4 + " H: " + hud.getWorld().getPlayerPosH());
+        Utils.consolePrint("XRot: " + hud.getWorld().getPlayerRotX() + " YRot: " + hud.getWorld().getPlayerRotY());
+        Utils.consolePrint("Layer: " + hud.getWorld().getPlayerLayer());
     }
 
     private static void printItemInfo(InventoryMetaItem item) {
@@ -348,6 +442,16 @@ public class Mod implements WurmClientMod, Initable {
         }
     }
 
+    @Override
+    public void configure(Properties properties) {
+        String enableInfoCommands = properties.getProperty("DevInfoCommands");
+        if (enableInfoCommands != null && enableInfoCommands.equals("true")) {
+            consoleCommandHandlers.put(ConsoleCommand.iteminfo, input -> printItemInformation());
+            consoleCommandHandlers.put(ConsoleCommand.tileinfo, input -> printTileInformation());
+            consoleCommandHandlers.put(ConsoleCommand.playerinfo, input -> printPlayerInformation());
+        }
+    }
+
     public void init() {
         try {
             final ClassPool classPool = HookManager.getInstance().getClassPool();
@@ -390,6 +494,10 @@ public class Mod implements WurmClientMod, Initable {
             ctSocketConnection.getMethod("tickWriting", "(J)Z").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
             ctSocketConnection.getMethod("getBuffer", "()Ljava/nio/ByteBuffer;").insertBefore("net.ildar.wurm.Utils.blockingQueue.take();");
             ctSocketConnection.getMethod("flush", "()V").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
+
+            final CtClass ctWurmTextPanel = classPool.getCtClass("com.wurmonline.client.renderer.gui.WurmTextPanel");
+            ctWurmTextPanel.getMethod("gameTick", "()V").insertBefore("net.ildar.wurm.Utils.blockingQueue.take();");
+            ctWurmTextPanel.getMethod("gameTick", "()V").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
             
             final CtClass ctGroundItemCellRenderable = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
             ctGroundItemCellRenderable.getMethod("initialize", "()V").insertBefore("net.ildar.wurm.bot.GroundItemGetterBot.processNewItem($0);");
@@ -427,7 +535,7 @@ public class Mod implements WurmClientMod, Initable {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit != null)
-                        Mod.hud.sendAction(new PlayerAction((short) 384, 65535), pickableUnit.getId());
+                        Mod.hud.sendAction(new PlayerAction((short) 384, PlayerAction.ANYTHING), pickableUnit.getId());
                 } catch (Exception e) {
                     Utils.consolePrint("Got exception at the start of meditation " + e.getMessage());
                     Utils.consolePrint(e.toString());
@@ -456,7 +564,13 @@ public class Mod implements WurmClientMod, Initable {
                 "Move specified items to opened altar inventory. " +
                 "The amount of moved items depends on specified favor(with coefficient) you want to get from these items when you sacrifice them."),
         info("command", "Shows the description of specified console command."),
-        iteminfo("", "Prints information about selected items under mouse cursor.");
+        iteminfo("", "Prints information about selected items under mouse cursor."),
+        tileinfo("", "Prints information about tiles around player"),
+        playerinfo("", "Prints some information about the player"),
+        actionlist("", "Show the list of available actions to use with \"action\" key"),
+        action("abbreviation", "Use the appropritate tool from player's inventory with provided action abbreviation on the hovered object. " +
+                "See the list of available actions with \"" + actionlist.name() + "\" command"),
+        getid("", "Copy the id of hovered object to the clipboard");
 
         private String usage;
         public String description;
@@ -502,6 +616,39 @@ public class Mod implements WurmClientMod, Initable {
             } catch(Exception e) {
                 return CardinalDirection.unknown;
             }
+        }
+    }
+
+    private enum Action{
+        Butcher("bu", "butchering knife", PlayerAction.BUTCHER),
+        Bury("br", "shovel", PlayerAction.BURY),
+        BuryInsideMine("brm", "pickaxe", PlayerAction.BURY),
+        CutTree("ct", "hatchet", PlayerAction.CUT_DOWN),
+        ChopLog("cl", "hatchet", PlayerAction.CHOP_UP),
+        Mine("m", "pickaxe", PlayerAction.MINE_FORWARD),
+        TendField("ft", "rake", PlayerAction.FARM),
+        Dig("d", "shovel", PlayerAction.DIG),
+        DigToPile("dp", "shovel", PlayerAction.DIG_TO_PILE),
+        Lockpick("l", "lock picks", new PlayerAction((short) 101, PlayerAction.ANYTHING)),
+        LightFire("lf", "steel and flint", new PlayerAction((short) 12, PlayerAction.ANYTHING)),
+        LeadAnimal("la", "rope", PlayerAction.LEAD),
+        Sow("s", "seeds", PlayerAction.SOW);
+
+        String abbreviation;
+        String toolName;
+        PlayerAction playerAction;
+
+        Action(String abbreviation, String toolName, PlayerAction playerAction) {
+            this.abbreviation = abbreviation;
+            this.toolName = toolName;
+            this.playerAction = playerAction;
+        }
+
+        static Action getByAbbreviation(String abbreviation) {
+            for(Action action : values())
+                if(action.abbreviation.equals(abbreviation))
+                    return action;
+            return null;
         }
     }
 }
