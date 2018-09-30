@@ -35,6 +35,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
 
     private static final long BLESS_TIMEOUT = 1800000;
     private static long lastBless = 0L;
+    private static boolean noBlessings = false;
 
     static {
         logger = Logger.getLogger("IldarMod");
@@ -68,7 +69,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             return false;
         try {
             consoleCommandHandler.handle(Arrays.copyOfRange(data, 1, data.length));
-            if (Math.abs(lastBless - System.currentTimeMillis()) > BLESS_TIMEOUT) {
+            if (!noBlessings && Math.abs(lastBless - System.currentTimeMillis()) > BLESS_TIMEOUT) {
                 hud.addOnscreenMessage("Ildar blesses you!", 1, 1, 1, (byte)1);
                 lastBless = System.currentTimeMillis();
             }
@@ -194,10 +195,9 @@ public class Mod implements WurmClientMod, Initable, Configurable {
 
     private static void printTileInformation() {
         int checkedtiles[][] = Utils.getAreaCoordinates();
-        for(int i = 0; i < checkedtiles.length; i++) {
-            Tiles.Tile tileType = hud.getWorld().getNearTerrainBuffer().getTileType(checkedtiles[i][0], checkedtiles[i][1]);
-            byte tileData = hud.getWorld().getNearTerrainBuffer().getData(checkedtiles[i][0], checkedtiles[i][1]);
-            Utils.consolePrint("Tile (" + checkedtiles[i][0] +  ", " + checkedtiles[i][1] + ") " + tileType.tilename);
+        for (int[] checkedtile : checkedtiles) {
+            Tiles.Tile tileType = hud.getWorld().getNearTerrainBuffer().getTileType(checkedtile[0], checkedtile[1]);
+            Utils.consolePrint("Tile (" + checkedtile[0] + ", " + checkedtile[1] + ") " + tileType.tilename);
         }
     }
 
@@ -457,6 +457,9 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             consoleCommandHandlers.put(ConsoleCommand.tileinfo, input -> printTileInformation());
             consoleCommandHandlers.put(ConsoleCommand.playerinfo, input -> printPlayerInformation());
         }
+        String noBlessings = properties.getProperty("NoBlessings");
+        if (noBlessings != null && noBlessings.equals("true"))
+            Mod.noBlessings = true;
     }
 
     public void init() {
