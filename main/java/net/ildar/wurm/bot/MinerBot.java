@@ -29,7 +29,7 @@ public class MinerBot extends Bot {
     private int clicks = 2;
     private boolean shardsCombining;
     private String shards = "rock shards";
-    private String fuel = "kindling";
+    private String  fuel = "kindling";
     private long fuellingTimeout = 300000;
     private long lastFuelling;
     private boolean moving;
@@ -78,8 +78,91 @@ public class MinerBot extends Bot {
                 + " DMG:" + pickaxe.getDamage());
         registerEventProcessors();
         while (isActive()) {
+            if (shardsCombining) {
+                List<ItemListWindow> piles = new ArrayList<>();
+                for (WurmComponent wurmComponent : Mod.components)
+                    if (wurmComponent instanceof ItemListWindow
+                            && !(wurmComponent instanceof InventoryWindow)) {
+                        if (Utils.getRootItem(ReflectionUtil.getPrivateField(wurmComponent,
+                                ReflectionUtil.getField(wurmComponent.getClass(), "component"))).getBaseName().toLowerCase().contains("pile of"))
+                            piles.add((ItemListWindow) wurmComponent);
+                    }
+
+                ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
+                Map<Long, GroundItemCellRenderable> groundItems = ReflectionUtil.getPrivateField(sscc,
+                        ReflectionUtil.getField(sscc.getClass(), "groundItems"));
+                int tileX = Mod.hud.getWorld().getPlayerCurrentTileX();
+                int tileY = Mod.hud.getWorld().getPlayerCurrentTileY();
+                List<Long> closePileIds = new ArrayList<>();
+                for (Map.Entry<Long, GroundItemCellRenderable> entry : groundItems.entrySet()) {
+                    GroundItemCellRenderable groundItem = entry.getValue();
+                    GroundItemData groundItemData = ReflectionUtil.getPrivateField(groundItem,
+                            ReflectionUtil.getField(groundItem.getClass(), "item"));
+                    int itemX = (int) (groundItemData.getX()/4);
+                    int itemY = (int) (groundItemData.getY()/4);
+                    if (itemX == tileX && itemY == tileY && groundItem.getHoverName().toLowerCase().contains("pile of ")) {
+                        closePileIds.add(groundItem.getId());
+                        if (piles.stream().noneMatch(pile -> {
+                            try {
+                                InventoryListComponent ilc = ReflectionUtil.getPrivateField(pile,
+                                        ReflectionUtil.getField(pile.getClass(), "component"));
+                                InventoryMetaItem rootItem = Utils.getRootItem(ilc);
+                                if (rootItem != null)
+                                    return rootItem.getId() == groundItem.getId();
+                            } catch (IllegalAccessException | NoSuchFieldException e) {
+                                e.printStackTrace();
+                            }
+                            return false;
+                        })) {
+                            if (verbose)
+                                Utils.consolePrint("Opening " + groundItem.getHoverName() + " " + groundItem.getId());
+                            Mod.hud.sendAction(PlayerAction.OPEN, groundItem.getId());
+                        }
+                    }
+                }
+                float freeSpace = Utils.getMaxWeight() - Utils.getTotalWeight();
+                List<InventoryMetaItem> itemsToTake = new ArrayList<>();
+                for (ItemListWindow wurmComponent : piles) {
+                    InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
+                            ReflectionUtil.getField(wurmComponent.getClass(), "component"));
+                    InventoryMetaItem rootItem = Utils.getRootItem(ilc);
+                    if (!closePileIds.contains(rootItem.getId())) {
+                        Mod.hud.sendAction(PlayerAction.CLOSE, rootItem.getId());
+                        continue;
+                    }
+                    List<InventoryMetaItem> componentItems = Utils.getInventoryItems(ilc, shards);
+                    if (componentItems != null && componentItems.size() > 0)
+                        for (InventoryMetaItem item : componentItems)
+                            if (item.getRarity() == 0
+                                    && (item.getWeight() < freeSpace - 20
+                                    || (itemsToTake.size() > 0 && item.getWeight() < freeSpace))) {
+                                itemsToTake.add(item);
+                                freeSpace -= item.getWeight();
+                                if (freeSpace < 20) break;
+                            }
+                    if (freeSpace < 20) break;
+
+                }
+                if (itemsToTake.size() > 1 && freeSpace < 20) {
+                    if (verbose) Utils.consolePrint("Taking " + itemsToTake.stream().map(InventoryMetaItem::getId).collect(Collectors.toList()));
+                    for (InventoryMetaItem item : itemsToTake)
+                        Mod.hud.sendAction(PlayerAction.TAKE, item.getId());
+                }
+                List<InventoryMetaItem> invShards = Utils.getInventoryItems(shards);
+                if (invShards.size() > 1) {
+                    long ids[] = new long[invShards.size()];
+                    for (int i = 0; i < invShards.size(); i++)
+                        ids[i] = invShards.get(i).getId();
+                    if (verbose) Utils.consolePrint("Combining " + Arrays.toString(ids));
+                    Mod.hud.getWorld().getServerConnection().sendAction(
+                            ids[0], ids, PlayerAction.COMBINE);
+                } else if (invShards.size() == 1) {
+                    Mod.hud.sendAction(PlayerAction.DROP, invShards.get(0).getId());
+                }
+            }
+
             if (Mod.hud.getWorld().getPlayerLayer() >= 0) {
-                sleep(1000);
+                sleep(timeout);
                 continue;
             }
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
@@ -181,7 +264,10 @@ public class MinerBot extends Bot {
                     Utils.stabilizePlayer();
                 }
                 if (smelting) {
-                    List<InventoryMetaItem> lumps = Utils.getInventoryItems(smeltingOptions.smelter, "lump");
+                    List<InventoryMetaItem> lumps = Utils.getInventoryItems(smeltingOptions.smelter, "lump")
+                            .stream()
+                            .filter(item -> item.getRarity() == 0)
+                            .collect(Collectors.toList());
                     if (lumps.size() > 0) {
                         for (int i = smeltingOptions.containers.size() - 1; i >= 0; i--) {
                             List<Long> moveList = new ArrayList<>();
@@ -201,9 +287,7 @@ public class MinerBot extends Bot {
                     }
                     List<InventoryMetaItem> ores = Utils.getInventoryItems(smeltingOptions.pile, "ore");
                     if (ores.size() > 0) {
-                        long[] oreIds = new long[ores.size()];
-                        for (int i = 0; i < ores.size(); i++)
-                            oreIds[i] = ores.get(i).getId();
+                        long[] oreIds = Utils.getItemIds(ores);
                         Mod.hud.getWorld().getServerConnection()
                                 .sendMoveSomeItems(Utils.getRootItem(smeltingOptions.smelter).getId(), oreIds);
                     }
@@ -218,77 +302,6 @@ public class MinerBot extends Bot {
                         else
                             Utils.consolePrint("No fuel in inventory!");
                     }
-                }
-            }
-            if (shardsCombining) {
-                List<ItemListWindow> piles = new ArrayList<>();
-                for (WurmComponent wurmComponent : Mod.components)
-                    if (wurmComponent instanceof ItemListWindow
-                            && !(wurmComponent instanceof InventoryWindow))
-                        piles.add((ItemListWindow) wurmComponent);
-
-                ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
-                Map<Long, GroundItemCellRenderable> groundItems = ReflectionUtil.getPrivateField(sscc,
-                        ReflectionUtil.getField(sscc.getClass(), "groundItems"));
-                int tileX = Mod.hud.getWorld().getPlayerCurrentTileX();
-                int tileY = Mod.hud.getWorld().getPlayerCurrentTileY();
-                for (Map.Entry<Long, GroundItemCellRenderable> entry : groundItems.entrySet()) {
-                    GroundItemCellRenderable groundItem = entry.getValue();
-                    GroundItemData groundItemData = ReflectionUtil.getPrivateField(groundItem,
-                            ReflectionUtil.getField(groundItem.getClass(), "item"));
-                    float itemX = groundItemData.getX();
-                    float itemY = groundItemData.getY();
-                    if (((int)itemX/4) == tileX && ((int)itemY/4) == tileY &&  (groundItem.getHoverName().toLowerCase().contains("pile of "))) {
-                        if (piles.stream().noneMatch(pile -> {
-                            try {
-                                InventoryListComponent ilc = ReflectionUtil.getPrivateField(pile,
-                                        ReflectionUtil.getField(pile.getClass(), "component"));
-                                InventoryMetaItem rootItem = Utils.getRootItem(ilc);
-                                if (rootItem != null)
-                                    return rootItem.getId() == groundItem.getId();
-                            } catch (IllegalAccessException | NoSuchFieldException e) {
-                                e.printStackTrace();
-                            }
-                            return false;
-                        })) {
-                            if (verbose) Utils.consolePrint("Opening " + groundItem.getHoverName() + " " + groundItem.getId());
-                            Mod.hud.sendAction(PlayerAction.OPEN, groundItem.getId());
-                        }
-                    }
-                }
-                float freeSpace = Utils.getMaxWeight() - Utils.getTotalWeight();
-                List<InventoryMetaItem> itemsToTake = new ArrayList<>();
-                for (ItemListWindow wurmComponent : piles) {
-                    InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
-                            ReflectionUtil.getField(wurmComponent.getClass(), "component"));
-                    List<InventoryMetaItem> componentItems = Utils.getInventoryItems(ilc, shards);
-                    if (componentItems != null && componentItems.size() > 0)
-                        for (InventoryMetaItem item : componentItems)
-                            if (item.getRarity() == 0
-                                    && (item.getWeight() < freeSpace - 20
-                                    || (itemsToTake.size() > 0 && item.getWeight() < freeSpace))) {
-                                itemsToTake.add(item);
-                                freeSpace -= item.getWeight();
-                                if (freeSpace < 20) break;
-                            }
-                    if (freeSpace < 20) break;
-
-                }
-                if (itemsToTake.size() > 1 && freeSpace < 20) {
-                    if (verbose) Utils.consolePrint("Taking " + itemsToTake.stream().map(InventoryMetaItem::getId).collect(Collectors.toList()));
-                    for (InventoryMetaItem item : itemsToTake)
-                        Mod.hud.sendAction(PlayerAction.TAKE, item.getId());
-                }
-                List<InventoryMetaItem> invShards = Utils.getInventoryItems(shards);
-                if (invShards.size() > 1) {
-                    long ids[] = new long[invShards.size()];
-                    for (int i = 0; i < invShards.size(); i++)
-                        ids[i] = invShards.get(i).getId();
-                    if (verbose) Utils.consolePrint("Combining " + Arrays.toString(ids));
-                    Mod.hud.getWorld().getServerConnection().sendAction(
-                            ids[0], ids, PlayerAction.COMBINE);
-                } else if (invShards.size() == 1) {
-                    Mod.hud.sendAction(PlayerAction.DROP, invShards.get(0).getId());
                 }
             }
             sleep(timeout);
@@ -350,6 +363,7 @@ public class MinerBot extends Bot {
             long id = Long.parseLong(input[0]);
             float q = Float.parseFloat(input[1]);
             smeltingOptions.containers.add(new Pair<>(id,  q));
+            smeltingOptions.containers.sort(Comparator.comparingDouble(Pair::getValue));
             Utils.consolePrint("Added a new target with id - " + id +
                     " and minimum quality - " + String.format("%.2f", q));
         } catch(NumberFormatException e) {
@@ -667,11 +681,11 @@ public class MinerBot extends Bot {
         o("Toggle the mining of ore tiles. Enabled by default", ""),
         m("Toggle the automatic moving forward when bot have no work", ""),
         sm("Toggle the smelting of ores in selected pile", ""),
-        at("Add the target for lumps with provided minimum quality", "min_quality(0-100)"),
-        ati("Add the target inventory for lumps with provided minimum quality", "min_quality(0-100)"),
+        at("Add the target(under the mouse cursor) for lumps with provided minimum quality", "min_quality(0-100)"),
+        ati("Add the target inventory(under the mouse cursor) for lumps with provided minimum quality", "min_quality(0-100)"),
         atid("Add the target with provided id for lumps with provided minimum quality", "id min_quality(0-100)"),
-        sp("Set a pile for smelting ores", ""),
-        ssm("Set a smelter for smelting ores", ""),
+        sp("Set a pile(under the mouse cursor) for smelting ores", ""),
+        ssm("Set a smelter(under the mouse cursor) for smelting ores", ""),
         sft("Set a smelter fuelling timeout for smelting ores", "timeout(in milliseconds)"),
         sfn("Set a name for the fuel for smelting ores", "name"),
         v("Toggle the verbose mode. While verbose bot will show additional info in console", "");

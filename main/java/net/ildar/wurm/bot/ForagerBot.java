@@ -325,7 +325,7 @@ public class ForagerBot extends Bot {
                 Utils.consolePrint("Speed can not be equal to 0");
                 return;
             }
-            areaAssistant.setStepTimeout((long) (speed * 1000));
+            areaAssistant.setStepTimeout((long) (1000 / speed));
             Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
         } catch (NumberFormatException e) {
             Utils.consolePrint("Wrong speed value");

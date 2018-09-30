@@ -11,10 +11,7 @@ import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class FarmerBot extends Bot {
     private float staminaThreshold;
@@ -27,6 +24,9 @@ public class FarmerBot extends Bot {
     private String seedsName;
     private boolean cultivating;
     private InventoryMetaItem shovelItem;
+    private boolean dropping;
+    private boolean repairing = true;
+    private List<String> dropNamesList;
 
     public FarmerBot() {
         registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
@@ -34,6 +34,9 @@ public class FarmerBot extends Bot {
         registerInputHandler(InputKey.h, input -> toggleHarvesting());
         registerInputHandler(InputKey.p, this::handlePlantingChange);
         registerInputHandler(InputKey.c, input -> toggleCultivating());
+        registerInputHandler(InputKey.d, input -> toggleDropping());
+        registerInputHandler(InputKey.and, this::handleDropNameAdding);
+        registerInputHandler(InputKey.r, input -> toggleRepairing());
 
         registerInputHandler(InputKey.area, this::handleAreaModeChange);
         registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
@@ -68,6 +71,7 @@ public class FarmerBot extends Bot {
                     Tiles.Tile tileType = world.getNearTerrainBuffer().getTileType(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
                     byte tileData = world.getNearTerrainBuffer().getData(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
                     if (cultivating)
+                        checkToolDamage(shovelItem);
                         if (!tileType.isTree() && !tileType.isBush() && (tileType.isGrass() || cultivatedTiles.contains(tileType.tilename))) {
                             world.getServerConnection().sendAction(shovelItem.getId(),
                                     new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
@@ -75,7 +79,10 @@ public class FarmerBot extends Bot {
                             initiatedActions++;
                             continue;
                     }
+                    if (repairing && rakeItem.getDamage() > 10)
+                        Mod.hud.sendAction(PlayerAction.REPAIR, shovelItem.getId());
                     if (farmTending)
+                        checkToolDamage(rakeItem);
                         if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
                             if (!com.wurmonline.mesh.FieldData.isTended(tileData)) {
                                 world.getServerConnection().sendAction(rakeItem.getId(),
@@ -85,6 +92,7 @@ public class FarmerBot extends Bot {
                                 continue;
                     }
                     if (harvesting)
+                        checkToolDamage(scytheItem);
                         if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
                             if (FieldData.getAgeName(tileData).equals("ripe")) {
                                 world.getServerConnection().sendAction(scytheItem.getId(),
@@ -98,6 +106,8 @@ public class FarmerBot extends Bot {
                             if (seeds == null || seeds.size() == 0)
                                 Utils.consolePrint("The player don't have any seeds left to plant");
                             else {
+                                if (usedSeeds > seeds.size() - 2)
+                                    continue;
                                 world.getServerConnection().sendAction(seeds.get(usedSeeds++).getId(),
                                         new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
                                         PlayerAction.SOW);
@@ -109,8 +119,45 @@ public class FarmerBot extends Bot {
                 if (initiatedActions == 0)
                     areaAssistant.areaNextPosition();
             }
+            if (dropping) {
+                List<InventoryMetaItem> droplist = new ArrayList<>();
+                for(String dropName : dropNamesList)
+                    droplist.addAll(Utils.getInventoryItems(dropName));
+                if (droplist.size() > 0)
+                    Mod.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
+            }
             sleep(timeout);
         }
+    }
+
+    private void checkToolDamage(InventoryMetaItem toolItem) {
+        if (repairing && toolItem.getDamage() > 10)
+            Mod.hud.sendAction(PlayerAction.REPAIR, toolItem.getId());
+    }
+
+    private void handleDropNameAdding(String []input) {
+        if (!dropping) {
+            Utils.consolePrint("The dropping is off. Can't add new item name to drop");
+            return;
+        }
+        if (input == null || input.length == 0) {
+            printInputKeyUsageString(InputKey.and);
+            return;
+        }
+        StringBuilder name = new StringBuilder(input[0]);
+        for (int i = 1; i < input.length; i++) {
+            name.append(" ").append(input[i]);
+        }
+        dropNamesList.add(name.toString());
+        Utils.consolePrint("New name of item to drop was added - \"" + name.toString() + "\"");
+    }
+    private void toggleDropping() {
+        dropping = !dropping;
+        if (dropping) {
+            Utils.consolePrint("The dropping of harvested items is on");
+            dropNamesList = new ArrayList<>();
+        } else
+            Utils.consolePrint("The dropping of harvested items is off");
     }
 
     private void toggleCultivating() {
@@ -179,6 +226,11 @@ public class FarmerBot extends Bot {
         }
     }
 
+    private void toggleRepairing() {
+        repairing = !repairing;
+        Utils.consolePrint("The tool repairing is " + (repairing?"on":"off"));
+    }
+
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(InputKey.s);
@@ -219,7 +271,7 @@ public class FarmerBot extends Bot {
                 Utils.consolePrint("Speed can not be equal to 0");
                 return;
             }
-            areaAssistant.setStepTimeout((long) (speed * 1000));
+            areaAssistant.setStepTimeout((long) (1000 / speed));
             Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
         } catch (NumberFormatException e) {
             Utils.consolePrint("Wrong speed value");
@@ -229,10 +281,13 @@ public class FarmerBot extends Bot {
     enum InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
+        r("Toggle the tool repairing", ""),
         ft("Toggle the farm tending", ""),
         h("Toggle the harvesting", ""),
         p("Toggle the planting. Provide the name of the seeds to plant", "seeds_name"),
         c("Toggle the dirt cultivation", ""),
+        and("Add new item name to drop on the ground", ""),
+        d("Toggle the dropping of harvested items. Add item names to drop by \"" + and.name() + "\" key", ""),
         area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
         area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
 

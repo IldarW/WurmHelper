@@ -12,6 +12,7 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.Comparator;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AssistantBot extends Bot {
     private Enchant spellToCast = Enchant.DISPEL;
@@ -82,7 +83,6 @@ public class AssistantBot extends Bot {
         registerInputHandler(InputKey.cleanup, input -> toggleTrashCleaning(0));
         registerInputHandler(InputKey.cleanupt, this::handleTrashCleaningTimeoutChange);
         registerInputHandler(InputKey.cleanupid, this::handleTrashCleaningTargetIdChange);
-        registerInputHandler(InputKey.cmf, input -> spellToCast = Enchant.MORNINGFOG);
         registerInputHandler(InputKey.l, input -> toggleLockpicking(0));
         registerInputHandler(InputKey.lt, this::handleLockpickingTimeoutChange);
         registerInputHandler(InputKey.lid, this::handleLockpickingTargetIdChange);
@@ -246,7 +246,10 @@ public class AssistantBot extends Bot {
             if (kindlingBurning) {
                 if (Math.abs(lastBurning - System.currentTimeMillis()) > kindlingBurningTimeout) {
                     lastBurning = System.currentTimeMillis();
-                    List<InventoryMetaItem> kindlings = Utils.getInventoryItems("kindling");
+                    List<InventoryMetaItem> kindlings = Utils.getInventoryItems("kindling")
+                            .stream()
+                            .filter(item -> item.getRarity() == 0)
+                            .collect(Collectors.toList());
                     if (kindlings.size() > 1) {
                         kindlings.sort(Comparator.comparingDouble(InventoryMetaItem::getWeight));
                         InventoryMetaItem biggestKindling = kindlings.get(kindlings.size() - 1);
@@ -278,7 +281,8 @@ public class AssistantBot extends Bot {
                         || message.contains("you will start casting"),
                 () -> successfullCastStart = true);
         registerEventProcessor(message -> message.contains("You cast ")
-                        || message.contains("You fail to channel the "),
+                        || message.contains("You fail to channel the ")
+                        || message.contains("You must not move "),
                 () -> successfullCasting = true);
         registerEventProcessor(message -> message.contains("until you can cast Wisdom of Vynora again."),
                 () -> needWaitWov = true);
@@ -583,7 +587,7 @@ public class AssistantBot extends Bot {
                 try {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
-                    if (pickableUnit == null || !pickableUnit.getHoverName().contains("altar")) {
+                    if (pickableUnit == null || !pickableUnit.getHoverName().toLowerCase().contains("altar")) {
                         Utils.consolePrint("Select an altar!");
                         praying = false;
                         return;
@@ -594,11 +598,11 @@ public class AssistantBot extends Bot {
                     praying = false;
                     return;
                 }
-                this.altarId = altarId;
-                lastPrayer = 0;
-                Utils.consolePrint(this.getClass().getSimpleName() + " praying is on!");
-                changePrayerTimeout(1230000);
             }
+            this.altarId = altarId;
+            lastPrayer = 0;
+            Utils.consolePrint(this.getClass().getSimpleName() + " praying is on!");
+            changePrayerTimeout(1230000);
         } else
             Utils.consolePrint("Praying is off!");
 
@@ -759,7 +763,6 @@ public class AssistantBot extends Bot {
         cleanup("Toggle automatic trash cleanings. The timeout between cleanings can be configured separately", ""),
         cleanupt("Change the timeout between trash cleanings", "timeout(in milliseconds)"),
         cleanupid("Toggle automatic cleaning of items inside trash bin with provided id", "id"),
-        cmf("Change the currently casted spell to Morning fog. Doesn't have any effect if autocasts are off", ""),
         l("Toggle automatic lockpicking. The target chest should be beneath the user's mouse", ""),
         lt("Change the timeout between lockpickings", "timeout(in milliseconds)"),
         lid("Toggle automatic lockpicking of target chest with provided id", "id"),

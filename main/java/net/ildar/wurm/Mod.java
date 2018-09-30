@@ -50,6 +50,9 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         consoleCommandHandlers.put(ConsoleCommand.actionlist, input -> showActionList());
         consoleCommandHandlers.put(ConsoleCommand.action, Mod::handleActionCommand);
         consoleCommandHandlers.put(ConsoleCommand.getid, input -> copyIdToClipboard());
+        consoleCommandHandlers.put(ConsoleCommand.mtcenter, input -> Utils.moveToCenter());
+        consoleCommandHandlers.put(ConsoleCommand.mtcorner, input -> Utils.moveToNearestCorner());
+        consoleCommandHandlers.put(ConsoleCommand.stabilizelook, input -> Utils.stabilizeLook());
     }
 
     /**
@@ -94,15 +97,15 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         long[] ids = hud.getCommandTargetsFrom(x, y);
         if (ids != null && ids.length > 0) {
             Computer.setClipboardContents(String.valueOf(ids[0]));
-            hud.addOnscreenMessage("The item id was added to clipboard", 1, 1, 1, (byte)1);
+            Utils.showOnScreenMessage("The item id was added to clipboard");
         }
         else {
             PickableUnit pickableUnit = hud.getWorld().getCurrentHoveredObject();
             if (pickableUnit != null) {
                 Computer.setClipboardContents(String.valueOf(pickableUnit.getId()));
-                hud.addOnscreenMessage("The item id was added to clipboard", 1, 1, 1, (byte)1);
+                Utils.showOnScreenMessage("The item id was added to clipboard");
             } else
-                hud.addOnscreenMessage("Hover the mouse over the item first", 1, 1, 1, (byte)1);
+                Utils.showOnScreenMessage("Hover the mouse over the item first");
         }
     }
 
@@ -322,7 +325,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
     private static void moveToSacrifice(String itemName, float favorLevel, float coefficient) {
         WurmComponent inventoryComponent = Utils.getTargetComponent(c -> c instanceof ItemListWindow || c instanceof InventoryWindow);
         if (inventoryComponent == null) {
-            Utils.consolePrint("Didn't find an opened altar");
+            Utils.consolePrint("Didn't find an inventory under the mouse cursor");
             return;
         }
         InventoryListComponent ilc;
@@ -368,6 +371,10 @@ public class Mod implements WurmClientMod, Initable, Configurable {
                     return;
                 }
                 if (!rootItem.getBaseName().contains("altar of")) continue;
+                if (rootItem.getChildren() != null && rootItem.getChildren().size() > 0) {
+                    Utils.showOnScreenMessage("An altar is not empty!");
+                    return;
+                }
                 Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(rootItem.getId(), Utils.getItemIds(itemsToMove));
                 Mod.hud.sendAction(PlayerAction.SACRIFICE, rootItem.getId());
                 return;
@@ -559,6 +566,9 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         combine("", "Combines selected items in your inventory."),
         move("(float)distance", "Moves your character in current direction for specified distance(in meters, 1 tile has 4 meters on each side)."),
         stabilize("", "Moves your character to the very center of the tile + turns the sight towards nearest cardinal direction."),
+        mtcenter("", "Moves your character to the center of the tile"),
+        mtcorner("", "Moves your character to the nearest tile corner"),
+        stabilizelook("", "Turns the sight towards nearest cardinal direction"),
         bot("abbreviation", "Activates/configures the bot with provided abbreviation."),
         mts("item_name favor_level [coefficient]",
                 "Move specified items to opened altar inventory. " +

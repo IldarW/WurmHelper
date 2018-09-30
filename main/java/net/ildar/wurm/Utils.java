@@ -53,6 +53,14 @@ public class Utils {
         }
     }
 
+    public static void showOnScreenMessage(String message) {
+        showOnScreenMessage(message, 1, 1, 1);
+    }
+    public static void showOnScreenMessage(String message, float r, float g, float b) {
+        Mod.hud.addOnscreenMessage(message, r, g, b, (byte)1);
+        consolePrint(message);
+    }
+
     /**
      * Turn player by specified angle
      * @param dxRot angle in degrees
@@ -93,15 +101,52 @@ public class Utils {
     public static void movePlayer(float d) {
         try{
             float x = Mod.hud.getWorld().getPlayerPosX();
+            float y = Mod.hud.getWorld().getPlayerPosY();
             float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
-            float y = Mod.hud.getWorld().getPlayerPosY();
             float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
             float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
+            movePlayer(x+dx, y+dy);
+        } catch (Exception e) {
+            consolePrint("Unexpected error while moving - " + e.getMessage());
+            consolePrint( e.toString());
+        }
+    }
+
+    public static void movePlayerBySteps(float d, int steps, long duration) throws InterruptedException{
+        try{
+            float x = Mod.hud.getWorld().getPlayerPosX();
+            float y = Mod.hud.getWorld().getPlayerPosY();
+            float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
+            float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
+            float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
+            movePlayerBySteps(x+dx, y+dy, steps, duration);
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Exception e) {
+            consolePrint("Unexpected error while moving - " + e.getMessage());
+            consolePrint( e.toString());
+        }
+    }
+
+    public static void movePlayerBySteps(float x, float y, int steps, long duration) throws InterruptedException{
+        float curX = Mod.hud.getWorld().getPlayerPosX();
+        float curY = Mod.hud.getWorld().getPlayerPosY();
+        float xStep = (x - curX) / steps;
+        float yStep = (y - curY) / steps;
+        for (int stepIndex = 0; stepIndex < steps; stepIndex++) {
+            movePlayer(curX + xStep * (stepIndex + 1), curY + yStep * (stepIndex + 1));
+            Thread.sleep(duration / steps);
+        }
+    }
+
+    public static void movePlayer(float x, float y) {
+        try{
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x+dx);
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y+dy);
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
             consolePrint( e.toString());
@@ -112,6 +157,14 @@ public class Utils {
      * Place the player at the center of the tile and turn the look towards nearest cardinal direction
      */
     public static void stabilizePlayer() {
+        moveToCenter();
+        stabilizeLook();
+    }
+
+    /**
+     * Turns the look towards nearest cardinal direction
+     */
+    public static void stabilizeLook() {
         try{
             float xRot = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
@@ -120,6 +173,13 @@ public class Utils {
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yRotUsed"), (float)0.0);
+        } catch (Exception e) {
+            consolePrint("Unexpected error while turning - " + e.getMessage());
+        }
+    }
+
+    public static void moveToCenter() {
+        try{
             float x = Mod.hud.getWorld().getPlayerPosX();
             float y = Mod.hud.getWorld().getPlayerPosY();
             x = (float)(Math.floor((double)x/4)*4 + 2);
@@ -130,7 +190,22 @@ public class Utils {
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
 
         } catch (Exception e) {
-            consolePrint("Unexpected error while turning - " + e.getMessage());
+            consolePrint("Unexpected error while moving - " + e.getMessage());
+        }
+    }
+
+    public static void moveToNearestCorner() {
+        try {
+            float x = Mod.hud.getWorld().getPlayerPosX();
+            float y = Mod.hud.getWorld().getPlayerPosY();
+            x = Math.round(x / 4) * 4;
+            y = Math.round(y / 4) * 4;
+            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
+            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
+        } catch(Exception e) {
+            consolePrint("Error on moving to the corner");
         }
     }
 
@@ -205,7 +280,6 @@ public class Utils {
         try {
             List<InventoryMetaItem> items = getSelectedItems(ilc, true, true);
             if (items == null || items.size() == 0) {
-                consolePrint("No items in your inventory? Whaaat?!");
                 return null;
             }
             for (InventoryMetaItem invItem : items) {
@@ -228,7 +302,6 @@ public class Utils {
         try {
             List<InventoryMetaItem> items = getSelectedItems(ilc, true, true);
             if (items == null || items.size() == 0) {
-                consolePrint("No items in your inventory? Whaaat?!");
                 return targets;
             }
             for (InventoryMetaItem invItem : items) {

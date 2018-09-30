@@ -1,6 +1,5 @@
 package net.ildar.wurm.bot;
 
-import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
@@ -84,7 +83,10 @@ public abstract class Bot extends Thread {
                 "Heals the player's wounds with cotton found in inventory", "h");
         registerBot(FarmerBot.class,
                 "Tends the fields, plants the seeds, cultivates the ground, collects harvests", "f");
-        //todo bot for leveling the ground
+        registerBot(DiggerBot.class,
+                "Does the dirty job for you", "d");
+        registerBot(PileCollector.class,
+                "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
     }
 
     /**

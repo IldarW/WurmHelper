@@ -1,6 +1,7 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.effects.Heal;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
 import net.ildar.wurm.Mod;
@@ -10,6 +11,11 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.*;
 
 public class HealingBot extends Bot {
+    private float minDamage = 0;
+
+    public HealingBot() {
+        registerInputHandler(InputKey.md, this::handleMinimumDamageChange);
+    }
 
     @Override
     protected void work() throws Exception{
@@ -59,6 +65,31 @@ public class HealingBot extends Bot {
                     break;
             }
             sleep(timeout);
+        }
+    }
+
+    private void handleMinimumDamageChange(String[] input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(InputKey.md);
+            return;
+        }
+        try {
+            minDamage = Float.parseFloat(input[0]);
+            Utils.consolePrint(String.format("The wound must have damage greater than %.2f in order to be treated", minDamage));
+        } catch (NumberFormatException e) {
+            Utils.consolePrint("Wrong value!");
+        }
+    }
+
+
+    private enum InputKey {
+        md("Set the minimum damage of the wound to be treated", "min_damage");
+
+        public String description;
+        public String usage;
+        InputKey(String description, String usage) {
+            this.description = description;
+            this.usage = usage;
         }
     }
 }

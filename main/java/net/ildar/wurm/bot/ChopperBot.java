@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class ChopperBot extends Bot {
     private static float distance = 4;
+    private AreaAssistant areaAssistant = new AreaAssistant(this);
     private float staminaThreshold;
     private int clicks;
 
@@ -22,12 +23,17 @@ public class ChopperBot extends Bot {
         registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
         registerInputHandler(InputKey.d, this::handleDistanceChange);
         registerInputHandler(InputKey.c, this::handleClicksChange);
+        registerInputHandler(InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+
+        areaAssistant.setMoveAheadDistance(1);
+        areaAssistant.setMoveRightDistance(1);
     }
 
     @Override
     public void work() throws Exception{
         setStaminaThreshold(0.96f);
-        setClicks(2);
+        setClicks(Utils.getMaxActionNumber());
         InventoryMetaItem hatchet = Utils.getInventoryItem("hatchet");
         long hatchetId;
         if (hatchet == null) {
@@ -52,7 +58,8 @@ public class ChopperBot extends Bot {
                         ReflectionUtil.getField(sscc.getClass(), "groundItems"));
                 float x = Mod.hud.getWorld().getPlayerPosX();
                 float y = Mod.hud.getWorld().getPlayerPosY();
-                if (groundItems.size() > 0)
+                boolean didSomething = false;
+                if (groundItems.size() > 0) {
                     try {
                         for (Map.Entry<Long, GroundItemCellRenderable> entry : groundItems.entrySet()) {
                             GroundItemData groundItemData = ReflectionUtil.getPrivateField(entry.getValue(),
@@ -63,12 +70,18 @@ public class ChopperBot extends Bot {
                                 if (groundItemData.getName().contains("felled tree")) {
                                     for (int i = 0; i < clicks; i++)
                                         Mod.hud.getWorld().getServerConnection().sendAction(hatchetId, new long[]{groundItemData.getId()}, PlayerAction.CHOP_UP);
+                                    didSomething = true;
                                     break;
-                            }
+                                }
                         }
                     } catch (ConcurrentModificationException e) {
                         Utils.consolePrint("Got concurrent modification exception!");
                     }
+                }
+                if (!didSomething) {
+                    areaAssistant.areaNextPosition();
+                    continue;
+                }
             }
             sleep(timeout);
         }
@@ -123,12 +136,43 @@ public class ChopperBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " will do " + clicks + " chops each time");
     }
 
+    private void handleAreaModeChange(String []input) {
+        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
+        if (!successfullAreaModeChange)
+            printInputKeyUsageString(ForesterBot.InputKey.area);
+    }
+
+    private void handleAreaModeSpeedChange(String []input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
+            return;
+        }
+        float speed;
+        try {
+            speed = Float.parseFloat(input[0]);
+            if (speed < 0) {
+                Utils.consolePrint("Speed can not be negative");
+                return;
+            }
+            if (speed == 0) {
+                Utils.consolePrint("Speed can not be equal to 0");
+                return;
+            }
+            areaAssistant.setStepTimeout((long) (1000 / speed));
+            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
+        } catch (NumberFormatException e) {
+            Utils.consolePrint("Wrong speed value");
+        }
+    }
+
     private enum InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         d("Set the distance the bot should look around player in search for a felled tree",
                 "distance(in meters)"),
-        c("Set the amount of chops the bot will do each time", "c(integer value)");
+        c("Set the amount of chops the bot will do each time", "c(integer value)"),
+        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
+        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
 
         public String description;
         public String usage;

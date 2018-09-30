@@ -4,9 +4,10 @@ import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
 public class AreaAssistant {
-    private final int MOVES_IN_STEP = 5;//each step(tile) is divided to this number of moves
-    private final int STEP_NUMBER = 3;//in tiles
+    private final int STEPS_IN_MOVE = 5;//each moving is divided to this number of steps for each tile
 
+    private int moveAheadDistance = 3;//in tiles
+    private int moveRightDistance = 3;//in tiles
     private long stepTimeout = 1000;
 
     private Bot bot;
@@ -19,7 +20,7 @@ public class AreaAssistant {
 
     private boolean turnedRight = false;
 
-    public AreaAssistant(Bot bot) {
+    AreaAssistant(Bot bot) {
         this.bot = bot;
     }
     public void areaNextPosition() throws InterruptedException{
@@ -30,13 +31,11 @@ public class AreaAssistant {
             stopAreaTour();
             return;
         }
+        turnPlayer();
         if (movedAhead < height - 1) {
-            for (int steps = 0; steps < STEP_NUMBER; steps++) {
+            for (int tiles = 0; tiles < moveAheadDistance; tiles++) {
                 if (movedAhead >= height - 1) break;
-                for(int moves = 0; moves < MOVES_IN_STEP; moves++) {
-                    Utils.movePlayer(4.0f / MOVES_IN_STEP);
-                    Thread.sleep(stepTimeout / MOVES_IN_STEP);
-                }
+                Utils.movePlayerBySteps(4, STEPS_IN_MOVE, stepTimeout);
                 movedAhead++;
             }
         } else if (movedToRight < width - 1) {
@@ -45,12 +44,9 @@ public class AreaAssistant {
             else
                 Utils.turnPlayer(90);
             Thread.sleep(300);
-            for (int steps = 0; steps < STEP_NUMBER; steps++) {
+            for (int tiles = 0; tiles < moveRightDistance; tiles++) {
                 if (movedToRight >= width - 1) break;
-                for(int moves = 0; moves < MOVES_IN_STEP; moves++) {
-                    Utils.movePlayer(4.0f / MOVES_IN_STEP);
-                    Thread.sleep(stepTimeout / MOVES_IN_STEP);
-                }
+                Utils.movePlayerBySteps(4, STEPS_IN_MOVE, stepTimeout);
                 movedToRight++;
             }
             if (turnedRight)
@@ -62,6 +58,14 @@ public class AreaAssistant {
         } else
             stopAreaTour();
         Utils.stabilizePlayer();
+    }
+
+    private void turnPlayer(){
+        if (turnedRight) {
+            Utils.turnPlayer(((startDirection+2)%4) * 90, 0);
+        } else {
+            Utils.turnPlayer(startDirection * 90, 0);
+        }
     }
 
     private void recalculateBiases() {
@@ -90,7 +94,7 @@ public class AreaAssistant {
     }
 
     private void stopAreaTour() {
-        Mod.hud.addOnscreenMessage("Area tour is ended", 1, 1, 1, (byte)1);
+        Utils.showOnScreenMessage("Area tour is ended");
         height = 0;
         width = 0;
         movedAhead = 0;
@@ -113,6 +117,14 @@ public class AreaAssistant {
         startDirection = Math.round(Mod.hud.getWorld().getPlayerRotX() / 90);
     }
 
+    public void setMoveAheadDistance(int moveAheadDistance) {
+        this.moveAheadDistance = moveAheadDistance;
+    }
+
+    public void setMoveRightDistance(int moveRightDistance) {
+        this.moveRightDistance = moveRightDistance;
+    }
+
     /**
      * @return true on success
      */
@@ -121,7 +133,7 @@ public class AreaAssistant {
             stopAreaTour();
             return true;
         } else  {
-            if (input.length == 2) {
+            if (input != null && input.length == 2) {
                 try {
                     startAreaTour(Integer.parseInt(input[0]), Integer.parseInt(input[1]));
                     Utils.consolePrint("Activated area mode for " + bot.getClass().getSimpleName());

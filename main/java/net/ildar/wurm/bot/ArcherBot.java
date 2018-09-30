@@ -87,7 +87,7 @@ public class ArcherBot extends Bot {
                         if (entry.getValue().getId() == mobId) mobAlive = true;
                 if (!mobAlive){
                     Utils.consolePrint("Mob dead or too far away!");
-                    Mod.hud.addOnscreenMessage("Deactivating archerbot!", 1f, 1f, 1f, (byte)1);
+                    Utils.showOnScreenMessage("Deactivating archerbot!");
                     deactivate();
                 }
             }

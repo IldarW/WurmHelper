@@ -9,8 +9,10 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CrafterBot extends Bot {
     private float staminaThreshold;
@@ -22,13 +24,14 @@ public class CrafterBot extends Bot {
     private int targetY;
     private int sourceX;
     private int sourceY;
-    private boolean noSort;
+    private boolean noSort = true;
     private boolean combineTargets;
     private boolean combineSources;
     private long combineTimeout;
     private boolean craftUnfinishedItemMode;
     private boolean withoutActionsInUse;
     private long lastClick;
+    private boolean singleSourceItemMode;
 
     public CrafterBot() {
         registerInputHandler(InputKey.r, input -> toggleRepairInstrument());
@@ -45,6 +48,7 @@ public class CrafterBot extends Bot {
         registerInputHandler(InputKey.ssid, this::handleSourceItemIdChange);
         registerInputHandler(InputKey.an, this::handleActionNumberChange);
         registerInputHandler(InputKey.noan, input -> toggleActionNumberChecks());
+        registerInputHandler(InputKey.s1s, input -> toggleSingleSourceItemMode());
     }
 
     @Override
@@ -106,18 +110,29 @@ public class CrafterBot extends Bot {
                 }
             }
             if (targetName != null && targetName.length() > 0) {
-                List<InventoryMetaItem> targetItems = Utils.getInventoryItems(targetName);
+                List<InventoryMetaItem> targetItems = Utils.getInventoryItems(targetName).stream().filter(item -> item.getBaseName().equals(targetName)).collect(Collectors.toList());
                 if (!noSort)
                     targetItems.sort(weightComparator);
                 ReflectionUtil.setPrivateField(target,
                         ReflectionUtil.getField(target.getClass(), "itemList"), targetItems);
+                if (targetItems.size() > 0)
+                    target.setTexture(targetItems.get(0));
             }
             if (sourceName != null && sourceName.length() > 0) {
-                List<InventoryMetaItem> sourceItems = Utils.getInventoryItems(sourceName);
+                List<InventoryMetaItem> sourceItems = Utils.getInventoryItems(sourceName).stream().filter(item -> item.getBaseName().equals(sourceName)).collect(Collectors.toList());
                 if (!noSort)
                     sourceItems.sort(weightComparator);
-                ReflectionUtil.setPrivateField(source,
-                        ReflectionUtil.getField(source.getClass(), "itemList"), sourceItems);
+                if (singleSourceItemMode && sourceItems != null && sourceItems.size() > 0) {
+                    List<InventoryMetaItem> singleSourceItemList = new ArrayList<>();
+                    singleSourceItemList.add(sourceItems.get(0));
+                    ReflectionUtil.setPrivateField(source,
+                            ReflectionUtil.getField(source.getClass(), "itemList"), singleSourceItemList);
+                } else {
+                    ReflectionUtil.setPrivateField(source,
+                            ReflectionUtil.getField(source.getClass(), "itemList"), sourceItems);
+                }
+                if (sourceItems.size() > 0)
+                    source.setTexture(sourceItems.get(0));
             }
 
             if (targetX != 0 && targetY != 0) {
@@ -138,18 +153,22 @@ public class CrafterBot extends Bot {
                 lastTargetCombineTime = System.currentTimeMillis();
                 List<InventoryMetaItem> targetItems = ReflectionUtil.getPrivateField(target,
                         ReflectionUtil.getField(target.getClass(), "itemList"));
-                long[] targets = Utils.getItemIds(targetItems);
-                creationWindow.sendCombineAction(targets[0], targets, target);
-                requestCreationList.invoke(creationWindow);
+                if (targetItems != null && targetItems.size() > 1) {
+                    long[] targets = Utils.getItemIds(targetItems);
+                    creationWindow.sendCombineAction(targets[0], targets, target);
+                    requestCreationList.invoke(creationWindow);
+                }
             }
 
             if (combineSources && (Math.abs(lastSourceCombineTime - System.currentTimeMillis()) > combineTimeout)) {
                 lastSourceCombineTime = System.currentTimeMillis();
                 List<InventoryMetaItem> sourceItems = ReflectionUtil.getPrivateField(source,
                         ReflectionUtil.getField(target.getClass(), "itemList"));
-                long[] sources = Utils.getItemIds(sourceItems);
-                creationWindow.sendCombineAction(sources[0], sources, source);
-                requestCreationList.invoke(creationWindow);
+                if (sourceItems != null && sourceItems.size() > 1) {
+                    long[] sources = Utils.getItemIds(sourceItems);
+                    creationWindow.sendCombineAction(sources[0], sources, source);
+                    requestCreationList.invoke(creationWindow);
+                }
             }
 
             if (source != null && target != null && (stamina+damage) > staminaThreshold && (creationWindow.getActionInUse() == 0 || withoutActionsInUse) && progress == 0f) {
@@ -182,6 +201,11 @@ public class CrafterBot extends Bot {
             Utils.consolePrint(this.getClass().getSimpleName() + " will check action queue");
 
         }
+    }
+
+    private void toggleSingleSourceItemMode() {
+        singleSourceItemMode = !singleSourceItemMode;
+        Utils.consolePrint("Single source item mode is " + (singleSourceItemMode?"on":"off"));
     }
 
     private void handleActionNumberChange(String input[]) {
@@ -381,7 +405,8 @@ public class CrafterBot extends Bot {
         ssid("Set an item with provided id to the source slot(on the left side of crafting window)", "id"),
         an("Set an action number. The number of crafting operations the player will do on each click on continue/create button", "number"),
         noan("Toggles the check for action queue state before the start of each crafting operation. " +
-                "By default " + CrafterBot.class.getSimpleName() + " will check action queue and start crafting operations only when it is empty", "");
+                "By default " + CrafterBot.class.getSimpleName() + " will check action queue and start crafting operations only when it is empty", ""),
+        s1s("Toggles the setting of single item to source slot of crafting window", "");
 
         public String description;
         public String usage;
