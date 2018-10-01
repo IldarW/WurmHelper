@@ -70,7 +70,7 @@ public class FarmerBot extends Bot {
                 while(++tileIndex < checkedtiles.length && initiatedActions < maxActions) {
                     Tiles.Tile tileType = world.getNearTerrainBuffer().getTileType(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
                     byte tileData = world.getNearTerrainBuffer().getData(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
-                    if (cultivating)
+                    if (cultivating) {
                         checkToolDamage(shovelItem);
                         if (!tileType.isTree() && !tileType.isBush() && (tileType.isGrass() || cultivatedTiles.contains(tileType.tilename))) {
                             world.getServerConnection().sendAction(shovelItem.getId(),
@@ -78,10 +78,9 @@ public class FarmerBot extends Bot {
                                     PlayerAction.CULTIVATE);
                             initiatedActions++;
                             continue;
+                        }
                     }
-                    if (repairing && rakeItem.getDamage() > 10)
-                        Mod.hud.sendAction(PlayerAction.REPAIR, shovelItem.getId());
-                    if (farmTending)
+                    if (farmTending){
                         checkToolDamage(rakeItem);
                         if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
                             if (!com.wurmonline.mesh.FieldData.isTended(tileData)) {
@@ -90,8 +89,9 @@ public class FarmerBot extends Bot {
                                         PlayerAction.FARM);
                                 initiatedActions++;
                                 continue;
+                            }
                     }
-                    if (harvesting)
+                    if (harvesting) {
                         checkToolDamage(scytheItem);
                         if (tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD || tileType == com.wurmonline.mesh.Tiles.Tile.TILE_FIELD2)
                             if (FieldData.getAgeName(tileData).equals("ripe")) {
@@ -100,8 +100,9 @@ public class FarmerBot extends Bot {
                                         PlayerAction.HARVEST);
                                 initiatedActions++;
                                 continue;
+                            }
                     }
-                    if (planting)
+                    if (planting) {
                         if (tileType == Tiles.Tile.TILE_DIRT) {
                             if (seeds == null || seeds.size() == 0)
                                 Utils.consolePrint("The player don't have any seeds left to plant");
@@ -114,6 +115,7 @@ public class FarmerBot extends Bot {
                                 initiatedActions++;
                                 continue;
                             }
+                        }
                     }
                 }
                 if (initiatedActions == 0)

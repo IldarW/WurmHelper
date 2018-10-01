@@ -188,7 +188,9 @@ public abstract class Bot extends Thread {
         try {
             work();
         } catch (InterruptedException ignored) {
-        } catch (Exception e) {
+        } catch(NullPointerException e) {
+            e.printStackTrace();
+        } catch(Exception e) {
             Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
             Utils.consolePrint( e.toString());
         }
