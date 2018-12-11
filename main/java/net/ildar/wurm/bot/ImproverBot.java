@@ -4,6 +4,7 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
+import com.wurmonline.shared.util.MaterialUtilities;
 import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
@@ -97,6 +98,13 @@ public class ImproverBot extends Bot {
                             if (!toolItemFound)
                                 continue;
                         }
+                        if(MaterialUtilities.isMetal(itemToImprove.getMaterialId())){
+                            if(itemToImprove.getTemperature()<5) {
+                                Utils.consolePrint("Item \"" + itemToImprove.getBaseName() + "\" isn't hot enough");
+                                continue;
+                            }
+                        }
+
                         if (itemToImprove.getDamage() > 0)
                             Mod.hud.sendAction(PlayerAction.REPAIR, itemToImprove.getId());
                         improveActionFinished = false;
@@ -185,6 +193,13 @@ public class ImproverBot extends Bot {
         if (toolItem == null) {
             Utils.consolePrint("Can't find an item for a tool \"" + tool.name + "\"");
             return false;
+        }
+        //check lump heat
+        if(MaterialUtilities.isMetal(toolItem.getMaterialId()) && toolItem.getBaseName().contains("lump")){
+            if(toolItem.getTemperature()<5) {
+                Utils.consolePrint("The \"" + toolItem.getDisplayName() + "\" isn't hot enough");
+                return false;
+            }
         }
         tool.itemId = toolItem.getId();
         if (tool.fixed)
