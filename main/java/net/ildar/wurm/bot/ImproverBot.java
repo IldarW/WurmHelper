@@ -31,7 +31,7 @@ public class ImproverBot extends Bot {
         tools.add(new Tool(1201, "carving knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
         tools.add(new Tool(741, "mallet", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY, ToolSkill.LEATHERWORKING))));
         tools.add(new Tool(749, "file", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
-        tools.add(new Tool(602, "pelt", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
+        tools.add(new Tool(602, "pelt", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY, ToolSkill.BLACKSMITHING))));
         tools.add(new Tool(606, "log", false, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
 
         tools.add(new Tool(1201, "stone chisel", true, false, new HashSet<>(Arrays.asList(ToolSkill.MASONRY))));
@@ -39,7 +39,7 @@ public class ImproverBot extends Bot {
 
         tools.add(new Tool(808, "spatula", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
         tools.add(new Tool(802, "clay shaper", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
-        tools.add(new Tool(540, "water", false, true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY, ToolSkill.CLOTH_TAILORING))));
+        tools.add(new Tool(540, "water", false, true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY, ToolSkill.CLOTH_TAILORING, ToolSkill.BLACKSMITHING))));
         tools.add(new Tool(591, "clay", false, true, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
         tools.add(new Tool(4, "hand", true, false, new HashSet<>(Arrays.asList(ToolSkill.POTTERY))));
 
@@ -50,6 +50,10 @@ public class ImproverBot extends Bot {
         tools.add(new Tool(766, "leather knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
         tools.add(new Tool(754, "awl", true, false, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
         tools.add(new Tool(602, "leather", false, true, new HashSet<>(Arrays.asList(ToolSkill.LEATHERWORKING))));
+
+        tools.add(new Tool(742, "hammer", true, true, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));
+        tools.add(new Tool(633, "lump", false, true, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));
+        tools.add(new Tool(803, "whetstone", true, true, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));
     }
 
     @Override
@@ -348,6 +352,7 @@ public class ImproverBot extends Bot {
         MASONRY("m"),
         POTTERY("p"),
         CLOTH_TAILORING("ct"),
+        BLACKSMITHING("b"),
         LEATHERWORKING("l");
 
         String abbreviation;
