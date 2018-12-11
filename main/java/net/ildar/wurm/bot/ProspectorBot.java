@@ -51,6 +51,8 @@ public class ProspectorBot extends Bot {
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if ((stamina+damage) > staminaThreshold && progress == 0f) {
+                if (pickaxe.getDamage() > 10)
+                    Mod.hud.sendAction(PlayerAction.REPAIR, pickaxeId);
                 for(int i = 0; i < clicks; i++)
                     Mod.hud.getWorld().getServerConnection().sendAction(pickaxeId, new long[]{caveWallId}, PlayerAction.PROSPECT);
             }
