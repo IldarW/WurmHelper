@@ -165,6 +165,12 @@ public class ImproverBot extends Bot {
         Tool returnTool = null;
         for(Tool tool : getToolsBySkill(toolSkill))
             if (tool.improveIconId == item.getImproveIconId()) {
+                //leather/pelt fix
+                boolean peltFix = (MaterialUtilities.isLeather(item.getMaterialId()) && tool.name.contains("pelt"))||
+                        (!MaterialUtilities.isLeather(item.getMaterialId()) && tool.name.contains("leather"));
+                if(item.getImproveIconId()==602 && peltFix)
+                    continue;
+
                 if (tool.itemId == 0) {
                     returnTool = tool;
                     continue;
