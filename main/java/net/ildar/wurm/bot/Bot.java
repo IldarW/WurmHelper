@@ -89,6 +89,8 @@ public abstract class Bot extends Thread {
                 "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
         registerBot(FisherBot.class,
                 "Catches and cuts fish", "fsh");
+		registerBot(ProspectorBot.class,
+                "Prospect selected tile", "pr");
     }
 
     /**
