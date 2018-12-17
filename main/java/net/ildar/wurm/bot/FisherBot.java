@@ -1,8 +1,9 @@
 package net.ildar.wurm.bot;
 
+import com.wurmonline.client.game.World;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
-import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.CreationWindow;
+import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
@@ -49,17 +50,12 @@ public class FisherBot extends Bot
         }
         Utils.consolePrint(this.getClass().getSimpleName() + " will use " + fishingRod.getBaseName());
 
-        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(), ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
-        if (pickableUnit == null)
-        {
-            Utils.consolePrint("Select water tile");
-            deactivate();
-            return;
-        }
-        Utils.consolePrint(this.getClass().getSimpleName() + " will prospect " + pickableUnit.getHoverName());
-
-        long fishingRodId = fishingRod.getId();
-        long waterTileId = pickableUnit.getId();
+        World world = Mod.hud.getWorld();
+        long tileId = Tiles.getTileId(
+                world.getPlayerCurrentTileX(),
+                world.getPlayerCurrentTileY(),
+                0
+        );
 
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
@@ -71,15 +67,15 @@ public class FisherBot extends Bot
             {
                 Mod.hud.sendAction(
                         PlayerAction.REPAIR,
-                        fishingRodId
+                        fishingRod.getId()
                 );
             }
 
             if (progress == 0f)
             {
-                Mod.hud.getWorld().getServerConnection().sendAction(
-                        fishingRodId,
-                        new long[]{waterTileId},
+                world.getServerConnection().sendAction(
+                        fishingRod.getId(),
+                        new long[]{tileId},
                         PlayerAction.FISH
                 );
             }
