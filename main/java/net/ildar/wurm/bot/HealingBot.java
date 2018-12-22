@@ -10,6 +10,7 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.*;
 
 public class HealingBot extends Bot {
+    private final Set<String> WOUND_NAMES = new HashSet<>(Arrays.asList("Cut", "Bite", "Bruise", "Burn", "Hole", "Acid", "Infection"));
     private float minDamage = 0;
 
     public HealingBot() {
@@ -40,12 +41,12 @@ public class HealingBot extends Bot {
             }
             List<InventoryMetaItem> inventoryItems = new ArrayList<>();
             inventoryItems.add(Utils.getRootItem(Mod.hud.getInventoryWindow().getInventoryListComponent()));
-            Set<String> woundNames = new HashSet<>(Arrays.asList("Cut", "Bite", "Bruise", "Burn", "Hole", "Acid", "Infection"));
             List<InventoryMetaItem> wounds = new ArrayList<>();
             while (inventoryItems.size() > 0) {
                 InventoryMetaItem item = inventoryItems.get(0);
-                if (woundNames.contains(item.getBaseName())
-                        && !item.getDisplayName().contains("bandaged"))
+                if (WOUND_NAMES.contains(item.getBaseName())
+                        && !item.getDisplayName().contains("bandaged")
+                        && item.getDamage() > minDamage)
                     wounds.add(item);
                 if (item.getChildren() != null)
                     inventoryItems.addAll(item.getChildren());
