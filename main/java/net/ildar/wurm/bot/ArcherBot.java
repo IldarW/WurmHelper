@@ -56,7 +56,7 @@ public class ArcherBot extends Bot {
         }
         Utils.consolePrint(this.getClass().getSimpleName() + " will shoot at " + pickableUnit.getHoverName());
         long mobId = pickableUnit.getId();
-        boolean isArcheryTarget=pickableUnit.getHoverName().contains("target");
+        boolean isArcheryTarget=pickableUnit.getHoverName().contains("archery target");
 
         int maxActions = Utils.getMaxActionNumber();
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
