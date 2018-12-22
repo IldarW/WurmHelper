@@ -94,9 +94,9 @@ public abstract class Bot extends Thread {
     }
 
     /**
-     * The bot implementation should register his input handlers with {@link #registerInputHandler(Enum, InputHandler)}
+     * The bot implementation should register his input handlers with {@link #registerInputHandler(InputKey, InputHandler)}
      */
-    private Map<Enum, InputHandler> inputHandlers = new HashMap<>();
+    private Map<InputKey, InputHandler> inputHandlers = new HashMap<>();
 
     /**
      * Store all registered event processor filters here to unregister them on bot deactivation to prevent memory leaks
@@ -180,9 +180,9 @@ public abstract class Bot extends Thread {
 
     public Bot() {
         //register standard input handlers
-        registerInputHandler(InputKey.t, this::handleTimeoutChange);
-        registerInputHandler(InputKey.off, inputs -> deactivate());
-        registerInputHandler(InputKey.info, this::handleInfoCommand);
+        registerInputHandler(InputKeyBase.t, this::handleTimeoutChange);
+        registerInputHandler(InputKeyBase.off, inputs -> deactivate());
+        registerInputHandler(InputKeyBase.info, this::handleInfoCommand);
     }
 
     protected abstract void work() throws Exception;
@@ -235,7 +235,7 @@ public abstract class Bot extends Thread {
                 .append(getAbbreviation())
                 .append(" {");
         boolean firstInputKeyString = true;
-        List<String> sortedInputKeys = inputHandlers.keySet().stream().map(Enum::name).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
+        List<String> sortedInputKeys = inputHandlers.keySet().stream().map(InputKey::getName).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
         for(String inputKey : sortedInputKeys) {
             if (firstInputKeyString)
                 firstInputKeyString = false;
@@ -247,20 +247,8 @@ public abstract class Bot extends Thread {
         return output.toString();
     }
 
-    private String getEnumStringField(Enum enumValue, String fieldName) {
-        Class declaringClass = enumValue.getDeclaringClass();
-        try {
-            return (String) declaringClass.getField(fieldName).get(enumValue);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    void printInputKeyUsageString(Enum inputKey) {
-        String usage = getEnumStringField(inputKey, "usage");
-        if (usage != null)
-            Utils.consolePrint("Usage: " + Mod.ConsoleCommand.bot.name() + " " + getAbbreviation() + " " + inputKey.name() + " " + usage);
+    void printInputKeyUsageString(InputKey inputKey) {
+        Utils.consolePrint("Usage: " + Mod.ConsoleCommand.bot.name() + " " + getAbbreviation() + " " + inputKey.getName() + " " + inputKey.getUsage());
     }
 
     /**
@@ -286,23 +274,21 @@ public abstract class Bot extends Thread {
 
     private void handleInfoCommand(String input[]) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.info);
+            printInputKeyUsageString(InputKeyBase.info);
             return;
         }
-        Enum inputKey = getInputKey(input[0]);
+        InputKey inputKey = getInputKey(input[0]);
         if (inputKey == null) {
             Utils.consolePrint("Unknown key");
             Utils.consolePrint(getUsageString());
             return;
         }
-        String description = getEnumStringField(inputKey, "description");
-        if (description != null)
-            Utils.consolePrint(description);
+        Utils.consolePrint(inputKey.getDescription());
     }
 
     private void handleTimeoutChange(String []input){
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.t);
+            printInputKeyUsageString(InputKeyBase.t);
             return;
         }
         try {
@@ -325,22 +311,22 @@ public abstract class Bot extends Thread {
     /**
      * The enumeration type of the key must have a usage and description string fields for each item
      */
-    void registerInputHandler(Enum key, InputHandler inputHandler) {
-        Enum oldKey = getInputKey(key.name());
+    void registerInputHandler(InputKey key, InputHandler inputHandler) {
+        InputKey oldKey = getInputKey(key.getName());
         if (oldKey != null)
             inputHandlers.remove(oldKey);
         inputHandlers.put(key, inputHandler);
     }
 
-    private Enum getInputKey(String key) {
-        for(Enum enumKey : inputHandlers.keySet())
-            if (enumKey.name().equals(key))
-                return enumKey;
+    private InputKey getInputKey(String key) {
+        for(InputKey inputKey : inputHandlers.keySet())
+            if (inputKey.getName().equals(key))
+                return inputKey;
         return null;
     }
 
     private InputHandler getInputHandler(String key) {
-        Enum inputKey = getInputKey(key);
+        InputKey inputKey = getInputKey(key);
         if (inputKey == null) return null;
         return inputHandlers.get(inputKey);
     }
@@ -355,7 +341,7 @@ public abstract class Bot extends Thread {
             Chat.unregisterEventProcessor(filter);
     }
 
-    private enum InputKey {
+    private enum InputKeyBase implements InputKey {
         t("Set the timeout for bot. The bot will wait for specified time(in milliseconds) after each iteration/update",
                 "timeout(in milliseconds)"),
         off("Deactivate the bot",
@@ -363,11 +349,26 @@ public abstract class Bot extends Thread {
         info("Get information about configuration key",
                 "key");
 
-        public String description;
-        public String usage;
-        InputKey(String description, String usage) {
+        private String description;
+        private String usage;
+        InputKeyBase(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
         }
     }
 
@@ -385,5 +386,11 @@ public abstract class Bot extends Thread {
 
     protected interface InputHandler{
         void handle(String []inputData);
+    }
+
+    interface InputKey {
+        String getName();
+        String getDescription();
+        String getUsage();
     }
 }

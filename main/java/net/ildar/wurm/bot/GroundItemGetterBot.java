@@ -17,8 +17,8 @@ public class GroundItemGetterBot extends Bot {
     private static float distance = 4;
 
     public GroundItemGetterBot() {
-        registerInputHandler(InputKey.a, this::handleNewItemNameAddition);
-        registerInputHandler(InputKey.d, this::handleDistanceChange);
+        registerInputHandler(GroundItemGetterBot.InputKey.a, this::handleNewItemNameAddition);
+        registerInputHandler(GroundItemGetterBot.InputKey.d, this::handleDistanceChange);
     }
     @Override
     public void work() throws Exception{
@@ -78,7 +78,7 @@ public class GroundItemGetterBot extends Bot {
 
     private void handleNewItemNameAddition(String []input) {
         if (input == null || input.length < 1) {
-            printInputKeyUsageString(InputKey.a);
+            printInputKeyUsageString(GroundItemGetterBot.InputKey.a);
             return;
         }
         StringBuilder newitem = new StringBuilder(input[0]);
@@ -89,7 +89,7 @@ public class GroundItemGetterBot extends Bot {
 
     private void handleDistanceChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.d);
+            printInputKeyUsageString(GroundItemGetterBot.InputKey.d);
             return;
         }
         try {
@@ -107,7 +107,7 @@ public class GroundItemGetterBot extends Bot {
         Utils.consolePrint("Current item set in " + this.getClass().getSimpleName() + " - " + itemNames.toString());
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         d("Set the distance the bot should look around player in search for items",
                 "distance(in meters, 1 tile is 4 meters)"),
         a("Add new item name to search list", "item_name");
@@ -117,6 +117,21 @@ public class GroundItemGetterBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 

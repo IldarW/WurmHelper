@@ -40,25 +40,25 @@ public class MinerBot extends Bot {
     private Random random = new Random();
 
     public MinerBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.c, this::handleClicksChange);
-        registerInputHandler(InputKey.sc, input -> toggleShardsCombining());
-        registerInputHandler(InputKey.scn, this::hangleCombiningShardsNameChange);
-        registerInputHandler(InputKey.fixed, input -> setFixedMiningMode());
-        registerInputHandler(InputKey.st, input -> setSelectedTileMiningMode());
-        registerInputHandler(InputKey.area, input -> setAreaMiningMode());
-        registerInputHandler(InputKey.ft, input -> setFrontTileMiningMode());
-        registerInputHandler(InputKey.o, input -> toggleOreMining());
-        registerInputHandler(InputKey.m, input -> toggleMoving());
-        registerInputHandler(InputKey.sm, input -> toggleSmelting());
-        registerInputHandler(InputKey.at, this::handleTargetAddition);
-        registerInputHandler(InputKey.ati, this::handleTargetInventoryAddition);
-        registerInputHandler(InputKey.atid, this::handleTargetIdAddition);
-        registerInputHandler(InputKey.sp, input -> setPile());
-        registerInputHandler(InputKey.ssm, input -> setSmelter());
-        registerInputHandler(InputKey.sft, this::handleFuellingTimeoutChange);
-        registerInputHandler(InputKey.sfn, this::handleFuelNameChange);
-        registerInputHandler(InputKey.v, input -> toggleVerboseMode());
+        registerInputHandler(MinerBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(MinerBot.InputKey.c, this::handleClicksChange);
+        registerInputHandler(MinerBot.InputKey.sc, input -> toggleShardsCombining());
+        registerInputHandler(MinerBot.InputKey.scn, this::hangleCombiningShardsNameChange);
+        registerInputHandler(MinerBot.InputKey.fixed, input -> setFixedMiningMode());
+        registerInputHandler(MinerBot.InputKey.st, input -> setSelectedTileMiningMode());
+        registerInputHandler(MinerBot.InputKey.area, input -> setAreaMiningMode());
+        registerInputHandler(MinerBot.InputKey.ft, input -> setFrontTileMiningMode());
+        registerInputHandler(MinerBot.InputKey.o, input -> toggleOreMining());
+        registerInputHandler(MinerBot.InputKey.m, input -> toggleMoving());
+        registerInputHandler(MinerBot.InputKey.sm, input -> toggleSmelting());
+        registerInputHandler(MinerBot.InputKey.at, this::handleTargetAddition);
+        registerInputHandler(MinerBot.InputKey.ati, this::handleTargetInventoryAddition);
+        registerInputHandler(MinerBot.InputKey.atid, this::handleTargetIdAddition);
+        registerInputHandler(MinerBot.InputKey.sp, input -> setPile());
+        registerInputHandler(MinerBot.InputKey.ssm, input -> setSmelter());
+        registerInputHandler(MinerBot.InputKey.sft, this::handleFuellingTimeoutChange);
+        registerInputHandler(MinerBot.InputKey.sfn, this::handleFuelNameChange);
+        registerInputHandler(MinerBot.InputKey.v, input -> toggleVerboseMode());
 
     }
 
@@ -319,7 +319,7 @@ public class MinerBot extends Bot {
 
     private void handleFuellingTimeoutChange(String [] input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.sft);
+            printInputKeyUsageString(MinerBot.InputKey.sft);
             return;
         }
         try {
@@ -332,7 +332,7 @@ public class MinerBot extends Bot {
 
     private void handleFuelNameChange(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.sfn);
+            printInputKeyUsageString(MinerBot.InputKey.sfn);
             return;
         }
         StringBuilder fuelname = new StringBuilder(input[0]);
@@ -344,7 +344,7 @@ public class MinerBot extends Bot {
 
     private void handleTargetAddition(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.at);
+            printInputKeyUsageString(MinerBot.InputKey.at);
             return;
         }
         try {
@@ -356,7 +356,7 @@ public class MinerBot extends Bot {
 
     private void handleTargetIdAddition(String []input) {
         if (input == null || input.length != 2) {
-            printInputKeyUsageString(InputKey.atid);
+            printInputKeyUsageString(MinerBot.InputKey.atid);
             return;
         }
         try {
@@ -373,7 +373,7 @@ public class MinerBot extends Bot {
 
     private void handleTargetInventoryAddition(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.ati);
+            printInputKeyUsageString(MinerBot.InputKey.ati);
             return;
         }
         try {
@@ -430,7 +430,7 @@ public class MinerBot extends Bot {
 
     private void handleClicksChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.c);
+            printInputKeyUsageString(MinerBot.InputKey.c);
             return;
         }
         try {
@@ -446,7 +446,7 @@ public class MinerBot extends Bot {
 
     private void hangleCombiningShardsNameChange(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.scn);
+            printInputKeyUsageString(MinerBot.InputKey.scn);
             return;
         }
         if (!shardsCombining) {
@@ -571,7 +571,7 @@ public class MinerBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(MinerBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -668,7 +668,7 @@ public class MinerBot extends Bot {
         FixedTile
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         c("Change the amount of clicks bot will do each time", "n(integer value)"),
@@ -697,5 +697,19 @@ public class MinerBot extends Bot {
             this.usage = usage;
         }
 
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
+        }
     }
 }

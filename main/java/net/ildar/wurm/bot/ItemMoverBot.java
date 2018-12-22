@@ -80,15 +80,15 @@ public class ItemMoverBot extends Bot {
     }
 
     public ItemMoverBot() {
-        registerInputHandler(InputKey.st, input -> setTargetItem());
-        registerInputHandler(InputKey.stid, this::handleTargetIdChange);
-        registerInputHandler(InputKey.str, input -> setTargetContainerRoot());
-        registerInputHandler(InputKey.stc, this::handleContainerAddition);
-        registerInputHandler(InputKey.stcn, this::handleItemNumberInsideContainerChange);
-        registerInputHandler(InputKey.a, this::handleNewItemName);
-        registerInputHandler(InputKey.sw, this::handleMaximumItemWeightChange);
-        registerInputHandler(InputKey.r, input -> toggleRareItemsMoving());
-        registerInputHandler(InputKey.fl, input -> toggleFirstLevelItemMoving());
+        registerInputHandler(ItemMoverBot.InputKey.st, input -> setTargetItem());
+        registerInputHandler(ItemMoverBot.InputKey.stid, this::handleTargetIdChange);
+        registerInputHandler(ItemMoverBot.InputKey.str, input -> setTargetContainerRoot());
+        registerInputHandler(ItemMoverBot.InputKey.stc, this::handleContainerAddition);
+        registerInputHandler(ItemMoverBot.InputKey.stcn, this::handleItemNumberInsideContainerChange);
+        registerInputHandler(ItemMoverBot.InputKey.a, this::handleNewItemName);
+        registerInputHandler(ItemMoverBot.InputKey.sw, this::handleMaximumItemWeightChange);
+        registerInputHandler(ItemMoverBot.InputKey.r, input -> toggleRareItemsMoving());
+        registerInputHandler(ItemMoverBot.InputKey.fl, input -> toggleFirstLevelItemMoving());
     }
 
     private void toggleFirstLevelItemMoving() {
@@ -101,7 +101,7 @@ public class ItemMoverBot extends Bot {
 
     private void handleTargetIdChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.stid);
+            printInputKeyUsageString(ItemMoverBot.InputKey.stid);
             return;
         }
         try {
@@ -123,7 +123,7 @@ public class ItemMoverBot extends Bot {
 
     private void handleMaximumItemWeightChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.sw);
+            printInputKeyUsageString(ItemMoverBot.InputKey.sw);
             return;
         }
 
@@ -146,7 +146,7 @@ public class ItemMoverBot extends Bot {
 
     private void handleNewItemName(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.a);
+            printInputKeyUsageString(ItemMoverBot.InputKey.a);
             return;
         }
         StringBuilder newItem = new StringBuilder(input[0]);
@@ -158,7 +158,7 @@ public class ItemMoverBot extends Bot {
 
     private void handleItemNumberInsideContainerChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.stcn);
+            printInputKeyUsageString(ItemMoverBot.InputKey.stcn);
             return;
         }
         try {
@@ -171,7 +171,7 @@ public class ItemMoverBot extends Bot {
 
     private void handleContainerAddition(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.stc);
+            printInputKeyUsageString(ItemMoverBot.InputKey.stc);
             return;
         }
         StringBuilder newContainer = new StringBuilder(input[0]);
@@ -247,7 +247,7 @@ public class ItemMoverBot extends Bot {
         Utils.consolePrint("Current item set - " + itemNames.toString());
     }
 
-    private enum InputKey{
+    private enum InputKey implements Bot.InputKey {
         st("Set the target item(under mouse pointer). Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", ""),
         stid("Set the id of target item. Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", ""),
         str("Set the target container(under mouse pointer). Items from your inventory will be moved to the root directory of that container.", ""),
@@ -268,6 +268,21 @@ public class ItemMoverBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 

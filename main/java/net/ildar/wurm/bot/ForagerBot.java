@@ -54,20 +54,20 @@ public class ForagerBot extends Bot {
     private boolean verbose = false;
 
     public ForagerBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.g, input -> toggleGrassGathering());
-        registerInputHandler(InputKey.f, input -> toggleForaging());
-        registerInputHandler(InputKey.ftl, input -> showForagingTypes());
-        registerInputHandler(InputKey.ft, this::handleForagingTypeChange);
-        registerInputHandler(InputKey.b, input -> toggleBotanizing());
-        registerInputHandler(InputKey.btl, input -> showBotanizingTypes());
-        registerInputHandler(InputKey.bt, this::handleBotanizingTypeChange);
-        registerInputHandler(InputKey.d, input -> toggleDropping());
-        registerInputHandler(InputKey.v, input -> toggleVerboseMode());
-        registerInputHandler(InputKey.scn, this::handleContainerNameChange);
-        registerInputHandler(InputKey.na, this::handleMaxActionsChange);
-        registerInputHandler(InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ForagerBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ForagerBot.InputKey.g, input -> toggleGrassGathering());
+        registerInputHandler(ForagerBot.InputKey.f, input -> toggleForaging());
+        registerInputHandler(ForagerBot.InputKey.ftl, input -> showForagingTypes());
+        registerInputHandler(ForagerBot.InputKey.ft, this::handleForagingTypeChange);
+        registerInputHandler(ForagerBot.InputKey.b, input -> toggleBotanizing());
+        registerInputHandler(ForagerBot.InputKey.btl, input -> showBotanizingTypes());
+        registerInputHandler(ForagerBot.InputKey.bt, this::handleBotanizingTypeChange);
+        registerInputHandler(ForagerBot.InputKey.d, input -> toggleDropping());
+        registerInputHandler(ForagerBot.InputKey.v, input -> toggleVerboseMode());
+        registerInputHandler(ForagerBot.InputKey.scn, this::handleContainerNameChange);
+        registerInputHandler(ForagerBot.InputKey.na, this::handleMaxActionsChange);
+        registerInputHandler(ForagerBot.InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(ForagerBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
 
     }
 
@@ -266,13 +266,13 @@ public class ForagerBot extends Bot {
 
     private void handleForagingTypeChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.ft);
+            printInputKeyUsageString(ForagerBot.InputKey.ft);
             return;
         }
         ForageType forageType = ForageType.getByAbbreviation(input[0]);
         if (forageType == ForageType.Unknown) {
             Utils.consolePrint("Unknown foraging type. Use " +
-                    "\"" + InputKey.ftl.name() + "\" key to see available types");
+                    "\"" + ForagerBot.InputKey.ftl.name() + "\" key to see available types");
             return;
         }
         this.forageType = forageType;
@@ -291,13 +291,13 @@ public class ForagerBot extends Bot {
 
     private void handleBotanizingTypeChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.bt);
+            printInputKeyUsageString(ForagerBot.InputKey.bt);
             return;
         }
         BotanizeType botanizeType = BotanizeType.getByAbbreviation(input[0]);
         if (botanizeType == BotanizeType.Unknown) {
             Utils.consolePrint("Unknown botanizing type. Use " +
-                    "\"" + InputKey.ftl.name() + "\" key to see available types");
+                    "\"" + ForagerBot.InputKey.ftl.name() + "\" key to see available types");
             return;
         }
         this.botanizeType = botanizeType;
@@ -306,12 +306,12 @@ public class ForagerBot extends Bot {
     private void handleAreaModeChange(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
-            printInputKeyUsageString(InputKey.area);
+            printInputKeyUsageString(ForagerBot.InputKey.area);
     }
 
     private void handleAreaModeSpeedChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.area_speed);
+            printInputKeyUsageString(ForagerBot.InputKey.area_speed);
             return;
         }
         float speed;
@@ -334,7 +334,7 @@ public class ForagerBot extends Bot {
 
     private void handleMaxActionsChange(String [] input) {
         if (input.length != 1 ){
-            printInputKeyUsageString(InputKey.na);
+            printInputKeyUsageString(ForagerBot.InputKey.na);
             return;
         }
         try {
@@ -347,7 +347,7 @@ public class ForagerBot extends Bot {
 
     private void handleContainerNameChange(String []input) {
         if (input.length != 1 ){
-            printInputKeyUsageString(InputKey.scn);
+            printInputKeyUsageString(ForagerBot.InputKey.scn);
             return;
         }
         containerName = input[0];
@@ -471,7 +471,7 @@ public class ForagerBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(ForagerBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -487,7 +487,7 @@ public class ForagerBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         g("Toggle the grass gathering", ""),
@@ -511,6 +511,21 @@ public class ForagerBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 

@@ -1,7 +1,7 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
-import com.wurmonline.client.renderer.gui.*;
+import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.GrassData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
@@ -10,18 +10,15 @@ import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 public class FlowerPlanterBot extends Bot {
-    enum BotState{PLANT, PICK, CULTIVATE};
     private float staminaThreshold;
     private long sickleId;
     private long shovelId;
-    private BotState state;
 
     public FlowerPlanterBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(FlowerPlanterBot.InputKey.s, this::handleStaminaThresholdChange);
     }
 
     @Override
@@ -52,7 +49,7 @@ public class FlowerPlanterBot extends Bot {
             return;
         }
 
-        state = BotState.PLANT;
+        BotState state = BotState.PLANT;
         while (isActive()) {
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
@@ -74,7 +71,6 @@ public class FlowerPlanterBot extends Bot {
                         }
                         for(int i = 0; i < 9 && sentactions < maxActions; i++) {
                             Tiles.Tile type = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(checkedtiles[i][0], checkedtiles[i][1]);
-                            byte data = Mod.hud.getWorld().getNearTerrainBuffer().getData(checkedtiles[i][0], checkedtiles[i][1]);
                             if (type.tilename.equals("Dirt")) {
                                 Mod.hud.getWorld().getServerConnection().sendAction(flowerIds[sentactions],
                                         new long[]{Tiles.getTileId(checkedtiles[i][0], checkedtiles[i][1], 0)},
@@ -119,7 +115,7 @@ public class FlowerPlanterBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(FlowerPlanterBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -135,7 +131,13 @@ public class FlowerPlanterBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private enum InputKey {
+    enum BotState{
+        PLANT,
+        PICK,
+        CULTIVATE
+    }
+
+    private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)");
 
@@ -144,6 +146,21 @@ public class FlowerPlanterBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

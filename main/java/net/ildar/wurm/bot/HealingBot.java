@@ -1,7 +1,6 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
-import com.wurmonline.client.renderer.effects.Heal;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
 import net.ildar.wurm.Mod;
@@ -14,7 +13,7 @@ public class HealingBot extends Bot {
     private float minDamage = 0;
 
     public HealingBot() {
-        registerInputHandler(InputKey.md, this::handleMinimumDamageChange);
+        registerInputHandler(HealingBot.InputKey.md, this::handleMinimumDamageChange);
     }
 
     @Override
@@ -70,7 +69,7 @@ public class HealingBot extends Bot {
 
     private void handleMinimumDamageChange(String[] input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.md);
+            printInputKeyUsageString(HealingBot.InputKey.md);
             return;
         }
         try {
@@ -82,7 +81,7 @@ public class HealingBot extends Bot {
     }
 
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         md("Set the minimum damage of the wound to be treated", "min_damage");
 
         public String description;
@@ -90,6 +89,21 @@ public class HealingBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

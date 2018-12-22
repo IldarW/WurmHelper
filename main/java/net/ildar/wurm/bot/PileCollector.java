@@ -24,9 +24,9 @@ public class PileCollector extends Bot {
     private String targetItemName = "dirt";
 
     public PileCollector() {
-        registerInputHandler(InputKey.stn, this::handleTargetChange);
-        registerInputHandler(InputKey.st, this::handleTargetInventoryChange);
-        registerInputHandler(InputKey.stcc, this::handleContainerCapacityChange);
+        registerInputHandler(PileCollector.InputKey.stn, this::handleTargetChange);
+        registerInputHandler(PileCollector.InputKey.st, this::handleTargetInventoryChange);
+        registerInputHandler(PileCollector.InputKey.stcc, this::handleContainerCapacityChange);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class PileCollector extends Bot {
 
     private void handleTargetChange(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.stn);
+            printInputKeyUsageString(PileCollector.InputKey.stn);
             return;
         }
         StringBuilder targetName = new StringBuilder(input[0]);
@@ -141,7 +141,7 @@ public class PileCollector extends Bot {
 
     private void handleContainerCapacityChange(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.stcc);
+            printInputKeyUsageString(PileCollector.InputKey.stcc);
             return;
         }
         try {
@@ -152,7 +152,7 @@ public class PileCollector extends Bot {
         }
     }
 
-    private enum InputKey{
+    private enum InputKey implements Bot.InputKey {
         stn("Set the name for target items. Default name is \"dirt\"", "name"),
         st("Set the target bulk inventory to put items to. Provide an optional name of containers inside inventory. Default is \"large crate\"", "[name]"),
         stcc("Set the capacity for target container. Default value is 300", "capacity(integer value)");
@@ -162,6 +162,21 @@ public class PileCollector extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

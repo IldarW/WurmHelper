@@ -15,9 +15,9 @@ public class MeditationBot extends Bot {
     private boolean repairInitiated;
 
     public MeditationBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.c, this::handleClicksChange);
-        registerInputHandler(InputKey.rt, this::handleRepairTimeoutChange);
+        registerInputHandler(MeditationBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(MeditationBot.InputKey.c, this::handleClicksChange);
+        registerInputHandler(MeditationBot.InputKey.rt, this::handleRepairTimeoutChange);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class MeditationBot extends Bot {
 
     private void handleRepairTimeoutChange(String []input){
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.rt);
+            printInputKeyUsageString(MeditationBot.InputKey.rt);
             return;
         }
         try {
@@ -94,7 +94,7 @@ public class MeditationBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(MeditationBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -112,7 +112,7 @@ public class MeditationBot extends Bot {
 
     private void handleClicksChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.c);
+            printInputKeyUsageString(MeditationBot.InputKey.c);
         else {
             try {
                 int clicks = Integer.parseInt(input[0]);
@@ -128,7 +128,7 @@ public class MeditationBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " will do " + clicks + " actions each time");
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         c("Set the amount of actions the bot will do each time", "c(integer value)"),
@@ -139,6 +139,21 @@ public class MeditationBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

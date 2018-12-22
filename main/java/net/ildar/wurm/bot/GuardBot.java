@@ -17,10 +17,10 @@ public class GuardBot extends Bot {
     private long alarmTimeout;
 
     public GuardBot() {
-        registerInputHandler(InputKey.a, this::handleKeywordAddition);
-        registerInputHandler(InputKey.at, this::handleAlarmTimeoutChange);
-        registerInputHandler(InputKey.soundtest, input -> playSound());
-        registerInputHandler(InputKey.cs, this::handleSoundFileChange);
+        registerInputHandler(GuardBot.InputKey.a, this::handleKeywordAddition);
+        registerInputHandler(GuardBot.InputKey.at, this::handleAlarmTimeoutChange);
+        registerInputHandler(GuardBot.InputKey.soundtest, input -> playSound());
+        registerInputHandler(GuardBot.InputKey.cs, this::handleSoundFileChange);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class GuardBot extends Bot {
 
     private void handleAlarmTimeoutChange(String[] input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.at);
+            printInputKeyUsageString(GuardBot.InputKey.at);
             return;
         }
         try {
@@ -78,7 +78,7 @@ public class GuardBot extends Bot {
 
     private void handleKeywordAddition(String []input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.a);
+            printInputKeyUsageString(GuardBot.InputKey.a);
             return;
         }
         StringBuilder keyword = new StringBuilder(input[0]);
@@ -108,7 +108,7 @@ public class GuardBot extends Bot {
 
     private void handleSoundFileChange(String [] input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.cs);
+            printInputKeyUsageString(GuardBot.InputKey.cs);
             return;
         }
         StringBuilder path = new StringBuilder(input[0]);
@@ -119,7 +119,7 @@ public class GuardBot extends Bot {
         Utils.consolePrint("Alarm sound is now \"" + customSound + "\"");
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         at("Set the alarm timeout. " +
                 "Alarm will be raised if no valid messages was processed during that period",
                 "timeout(in milliseconds)"),
@@ -132,6 +132,21 @@ public class GuardBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

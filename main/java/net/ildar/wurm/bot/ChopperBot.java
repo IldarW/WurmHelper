@@ -20,11 +20,11 @@ public class ChopperBot extends Bot {
     private int clicks;
 
     public ChopperBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.d, this::handleDistanceChange);
-        registerInputHandler(InputKey.c, this::handleClicksChange);
-        registerInputHandler(InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ChopperBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ChopperBot.InputKey.d, this::handleDistanceChange);
+        registerInputHandler(ChopperBot.InputKey.c, this::handleClicksChange);
+        registerInputHandler(ChopperBot.InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(ChopperBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
@@ -89,7 +89,7 @@ public class ChopperBot extends Bot {
 
     private void handleDistanceChange(String input[]) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.d);
+            printInputKeyUsageString(ChopperBot.InputKey.d);
             return;
         }
         try {
@@ -102,7 +102,7 @@ public class ChopperBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(ChopperBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -120,7 +120,7 @@ public class ChopperBot extends Bot {
 
     private void handleClicksChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.c);
+            printInputKeyUsageString(ChopperBot.InputKey.c);
         else {
             try {
                 int clicks = Integer.parseInt(input[0]);
@@ -139,12 +139,12 @@ public class ChopperBot extends Bot {
     private void handleAreaModeChange(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
-            printInputKeyUsageString(ForesterBot.InputKey.area);
+            printInputKeyUsageString(ChopperBot.InputKey.area);
     }
 
     private void handleAreaModeSpeedChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
+            printInputKeyUsageString(ChopperBot.InputKey.area_speed);
             return;
         }
         float speed;
@@ -165,7 +165,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         d("Set the distance the bot should look around player in search for a felled tree",
@@ -179,6 +179,21 @@ public class ChopperBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

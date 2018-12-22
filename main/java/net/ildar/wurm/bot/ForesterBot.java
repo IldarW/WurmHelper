@@ -39,17 +39,17 @@ public class ForesterBot extends Bot {
     private static int toHarvest;
 
     public ForesterBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.ca, input -> toggleAllTreesCutting());
-        registerInputHandler(InputKey.cs, input -> toggleShriveledTreesChopping());
-        registerInputHandler(InputKey.df, input -> toggleDeforestation());
-        registerInputHandler(InputKey.h, input -> toggleHarvesting());
-        registerInputHandler(InputKey.p, input -> togglePlanting());
-        registerInputHandler(InputKey.scn, this::handleContainerNameChange);
-        registerInputHandler(InputKey.na, this::handleMaxActionsChange);
-        registerInputHandler(InputKey.aim, this::handleAddingItemToMove);
-        registerInputHandler(InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ForesterBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ForesterBot.InputKey.ca, input -> toggleAllTreesCutting());
+        registerInputHandler(ForesterBot.InputKey.cs, input -> toggleShriveledTreesChopping());
+        registerInputHandler(ForesterBot.InputKey.df, input -> toggleDeforestation());
+        registerInputHandler(ForesterBot.InputKey.h, input -> toggleHarvesting());
+        registerInputHandler(ForesterBot.InputKey.p, input -> togglePlanting());
+        registerInputHandler(ForesterBot.InputKey.scn, this::handleContainerNameChange);
+        registerInputHandler(ForesterBot.InputKey.na, this::handleMaxActionsChange);
+        registerInputHandler(ForesterBot.InputKey.aim, this::handleAddingItemToMove);
+        registerInputHandler(ForesterBot.InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(ForesterBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
     }
 
     @Override
@@ -243,12 +243,12 @@ public class ForesterBot extends Bot {
     private void handleAreaModeChange(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
-            printInputKeyUsageString(InputKey.area);
+            printInputKeyUsageString(ForesterBot.InputKey.area);
     }
 
     private void handleAreaModeSpeedChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.area_speed);
+            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
             return;
         }
         float speed;
@@ -271,7 +271,7 @@ public class ForesterBot extends Bot {
 
     private void handleAddingItemToMove(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.aim);
+            printInputKeyUsageString(ForesterBot.InputKey.aim);
             return;
         }
         itemNamesToMove.add(input[0]);
@@ -280,7 +280,7 @@ public class ForesterBot extends Bot {
 
     private void handleMaxActionsChange(String [] input) {
         if (input.length != 1 ){
-            printInputKeyUsageString(InputKey.na);
+            printInputKeyUsageString(ForesterBot.InputKey.na);
             return;
         }
         try {
@@ -293,7 +293,7 @@ public class ForesterBot extends Bot {
 
     private void handleContainerNameChange(String []input) {
         if (input.length != 1 ){
-            printInputKeyUsageString(InputKey.scn);
+            printInputKeyUsageString(ForesterBot.InputKey.scn);
             return;
         }
         containerName = input[0];
@@ -380,7 +380,7 @@ public class ForesterBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(ForesterBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -395,7 +395,7 @@ public class ForesterBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         ca("Toggle the cutting of sprouts from all trees", ""),
@@ -414,6 +414,21 @@ public class ForesterBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 

@@ -46,30 +46,16 @@ public class BulkItemGetterBot extends Bot {
     }
 
     public BulkItemGetterBot() {
-        registerInputHandler(InputKey.as, input -> addSource());
-        registerInputHandler(InputKey.at, input -> addTarget());
-        registerInputHandler(InputKey.asid, this::handleSourceIdAdding);
-        registerInputHandler(InputKey.atid, this::handleTargetIdAdding);
-        registerInputHandler(InputKey.ssxy, input -> addFixedPointSource());
-    }
-
-    private enum InputKey {
-        as("Add the source(item in bulk storage) the user is currenly pointing to", ""),
-        at("Add the target item the user is currently pointing to", ""),
-        asid("Add the source(item in bulk storage) with provided id", "id"),
-        atid("Add the target item with provided id", "id"),
-        ssxy("Add source item from fixed point on screen", ""),;
-        public String description;
-        public String usage;
-        InputKey(String description, String usage) {
-            this.description = description;
-            this.usage = usage;
-        }
+        registerInputHandler(BulkItemGetterBot.InputKey.as, input -> addSource());
+        registerInputHandler(BulkItemGetterBot.InputKey.at, input -> addTarget());
+        registerInputHandler(BulkItemGetterBot.InputKey.asid, this::handleSourceIdAdding);
+        registerInputHandler(BulkItemGetterBot.InputKey.atid, this::handleTargetIdAdding);
+        registerInputHandler(BulkItemGetterBot.InputKey.ssxy, input -> addFixedPointSource());
     }
 
     private void handleSourceIdAdding(String input[]) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.asid);
+            printInputKeyUsageString(BulkItemGetterBot.InputKey.asid);
             return;
         }
         try {
@@ -84,7 +70,7 @@ public class BulkItemGetterBot extends Bot {
 
     private void handleTargetIdAdding(String input[]) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.atid);
+            printInputKeyUsageString(BulkItemGetterBot.InputKey.atid);
             return;
         }
         try {
@@ -141,6 +127,35 @@ public class BulkItemGetterBot extends Bot {
         sourceItem.fixedPoint = true;
         sources.add(sourceItem);
         Utils.consolePrint("Added new source from the point (" + sourceItem.x + ", " + sourceItem.y + ")");
+    }
+
+    private enum InputKey implements Bot.InputKey {
+        as("Add the source(item in bulk storage) the user is currenly pointing to", ""),
+        at("Add the target item the user is currently pointing to", ""),
+        asid("Add the source(item in bulk storage) with provided id", "id"),
+        atid("Add the target item with provided id", "id"),
+        ssxy("Add source item from fixed point on screen", ""),;
+        public String description;
+        public String usage;
+        InputKey(String description, String usage) {
+            this.description = description;
+            this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
+        }
     }
 
     static class SourceItem {

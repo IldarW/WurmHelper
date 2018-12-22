@@ -13,23 +13,9 @@ public class FisherBot extends Bot
 {
     private boolean repairInstrument;
 
-    private enum InputKey
-    {
-        r("Toggle the source item repairing(on the left side of crafting window). " +
-                "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", "");
-
-        public String description;
-        public String usage;
-
-        InputKey(String description, String usage) {
-            this.description = description;
-            this.usage = usage;
-        }
-    }
-
     public FisherBot()
     {
-        registerInputHandler(InputKey.r, input -> toggleRepairInstrument());
+        registerInputHandler(FisherBot.InputKey.r, input -> toggleRepairInstrument());
 
         repairInstrument = true;
     }
@@ -92,4 +78,31 @@ public class FisherBot extends Bot
             Utils.consolePrint("Rod auto repairing is off!");
     }
 
+    private enum InputKey implements Bot.InputKey {
+        r("Toggle the source item repairing(on the left side of crafting window). " +
+                "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", "");
+
+        public String description;
+        public String usage;
+
+        InputKey(String description, String usage) {
+            this.description = description;
+            this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
+        }
+    }
 }

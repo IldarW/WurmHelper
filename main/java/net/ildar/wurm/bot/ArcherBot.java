@@ -5,7 +5,6 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.gui.CreationWindow;
-import com.wurmonline.client.renderer.gui.MindLogicCalculator;
 import com.wurmonline.client.renderer.gui.PaperDollInventory;
 import com.wurmonline.client.renderer.gui.PaperDollSlot;
 import com.wurmonline.shared.constants.PlayerAction;
@@ -22,8 +21,8 @@ public class ArcherBot extends Bot {
     private InventoryMetaItem bow;
 
     public ArcherBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.string, input -> handleAutoStringChange());
+        registerInputHandler(ArcherBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ArcherBot.InputKey.string, input -> handleAutoStringChange());
     }
 
     @Override
@@ -102,7 +101,7 @@ public class ArcherBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(ArcherBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -123,7 +122,7 @@ public class ArcherBot extends Bot {
         stringBreaks = true;
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         string("String the current bow with a string",
@@ -133,6 +132,21 @@ public class ArcherBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

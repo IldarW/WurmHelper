@@ -9,7 +9,6 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,21 +33,21 @@ public class CrafterBot extends Bot {
     private boolean singleSourceItemMode;
 
     public CrafterBot() {
-        registerInputHandler(InputKey.r, input -> toggleRepairInstrument());
-        registerInputHandler(InputKey.st, this::handleTargetNameChange);
-        registerInputHandler(InputKey.stxy, input -> setTargetXY());
-        registerInputHandler(InputKey.ss, this::handleSourceNameChange);
-        registerInputHandler(InputKey.ssxy, input -> setSourceXY());
-        registerInputHandler(InputKey.nosort, input -> toggleSorting());
-        registerInputHandler(InputKey.ct, input -> toggleTargetsCombining());
-        registerInputHandler(InputKey.cs, input -> toggleSourcesCombining());
-        registerInputHandler(InputKey.ctimeout, this::handleCombineTimeoutChange);
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.u, input -> toggleUnfinishedMode());
-        registerInputHandler(InputKey.ssid, this::handleSourceItemIdChange);
-        registerInputHandler(InputKey.an, this::handleActionNumberChange);
-        registerInputHandler(InputKey.noan, input -> toggleActionNumberChecks());
-        registerInputHandler(InputKey.s1s, input -> toggleSingleSourceItemMode());
+        registerInputHandler(CrafterBot.InputKey.r, input -> toggleRepairInstrument());
+        registerInputHandler(CrafterBot.InputKey.st, this::handleTargetNameChange);
+        registerInputHandler(CrafterBot.InputKey.stxy, input -> setTargetXY());
+        registerInputHandler(CrafterBot.InputKey.ss, this::handleSourceNameChange);
+        registerInputHandler(CrafterBot.InputKey.ssxy, input -> setSourceXY());
+        registerInputHandler(CrafterBot.InputKey.nosort, input -> toggleSorting());
+        registerInputHandler(CrafterBot.InputKey.ct, input -> toggleTargetsCombining());
+        registerInputHandler(CrafterBot.InputKey.cs, input -> toggleSourcesCombining());
+        registerInputHandler(CrafterBot.InputKey.ctimeout, this::handleCombineTimeoutChange);
+        registerInputHandler(CrafterBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(CrafterBot.InputKey.u, input -> toggleUnfinishedMode());
+        registerInputHandler(CrafterBot.InputKey.ssid, this::handleSourceItemIdChange);
+        registerInputHandler(CrafterBot.InputKey.an, this::handleActionNumberChange);
+        registerInputHandler(CrafterBot.InputKey.noan, input -> toggleActionNumberChecks());
+        registerInputHandler(CrafterBot.InputKey.s1s, input -> toggleSingleSourceItemMode());
     }
 
     @Override
@@ -210,7 +209,7 @@ public class CrafterBot extends Bot {
 
     private void handleActionNumberChange(String input[]) {
         if(input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.an);
+            printInputKeyUsageString(CrafterBot.InputKey.an);
             return;
         }
 
@@ -226,7 +225,7 @@ public class CrafterBot extends Bot {
 
     private void handleSourceItemIdChange(String input[]) {
         if(input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.ssid);
+            printInputKeyUsageString(CrafterBot.InputKey.ssid);
             return;
         }
         try {
@@ -265,7 +264,7 @@ public class CrafterBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(CrafterBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -283,7 +282,7 @@ public class CrafterBot extends Bot {
 
     private void handleCombineTimeoutChange(String input[]) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.ctimeout);
+            printInputKeyUsageString(CrafterBot.InputKey.ctimeout);
             return;
         }
         try {
@@ -328,7 +327,7 @@ public class CrafterBot extends Bot {
 
     private void handleTargetNameChange(String input[]) {
         if(input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.st);
+            printInputKeyUsageString(CrafterBot.InputKey.st);
             return;
         }
         StringBuilder target = new StringBuilder(input[0]);
@@ -339,7 +338,7 @@ public class CrafterBot extends Bot {
 
     private void handleSourceNameChange(String input[]) {
         if(input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.ss);
+            printInputKeyUsageString(CrafterBot.InputKey.ss);
             return;
         }
         StringBuilder source = new StringBuilder(input[0]);
@@ -386,7 +385,7 @@ public class CrafterBot extends Bot {
         Utils.consolePrint("The source was set to X - " + sourceX + " Y - " + sourceY);
     }
 
-    private enum InputKey {
+    private enum InputKey implements Bot.InputKey {
         r("Toggle the source item repairing(on the left side of crafting window). " +
                 "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", ""),
         st("Set the target item name. " + CrafterBot.class.getSimpleName()+ " will place item with provided name from your inventory to the target slot(on the right side of crafting window)",
@@ -413,6 +412,21 @@ public class CrafterBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

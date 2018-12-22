@@ -31,18 +31,18 @@ public class FarmerBot extends Bot {
     private int dropLimit;
 
     public FarmerBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.ft, input -> toggleFarmTending());
-        registerInputHandler(InputKey.h, input -> toggleHarvesting());
-        registerInputHandler(InputKey.p, this::handlePlantingChange);
-        registerInputHandler(InputKey.c, input -> toggleCultivating());
-        registerInputHandler(InputKey.d, input -> toggleDropping());
-        registerInputHandler(InputKey.and, this::handleDropNameAdding);
-        registerInputHandler(InputKey.r, input -> toggleRepairing());
-        registerInputHandler(InputKey.dl, this::handleDropLimitChange);
+        registerInputHandler(FarmerBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(FarmerBot.InputKey.ft, input -> toggleFarmTending());
+        registerInputHandler(FarmerBot.InputKey.h, input -> toggleHarvesting());
+        registerInputHandler(FarmerBot.InputKey.p, this::handlePlantingChange);
+        registerInputHandler(FarmerBot.InputKey.c, input -> toggleCultivating());
+        registerInputHandler(FarmerBot.InputKey.d, input -> toggleDropping());
+        registerInputHandler(FarmerBot.InputKey.and, this::handleDropNameAdding);
+        registerInputHandler(FarmerBot.InputKey.r, input -> toggleRepairing());
+        registerInputHandler(FarmerBot.InputKey.dl, this::handleDropLimitChange);
 
-        registerInputHandler(InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(FarmerBot.InputKey.area, this::handleAreaModeChange);
+        registerInputHandler(FarmerBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class FarmerBot extends Bot {
             return;
         }
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(InputKey.and);
+            printInputKeyUsageString(FarmerBot.InputKey.and);
             return;
         }
         StringBuilder name = new StringBuilder(input[0]);
@@ -193,7 +193,7 @@ public class FarmerBot extends Bot {
     private void handlePlantingChange(String []input) {
         if (!planting) {
             if (input == null || input.length == 0) {
-                printInputKeyUsageString(InputKey.p);
+                printInputKeyUsageString(FarmerBot.InputKey.p);
                 return;
             }
             StringBuilder plantName = new StringBuilder(input[0]);
@@ -247,7 +247,7 @@ public class FarmerBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(FarmerBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -266,12 +266,12 @@ public class FarmerBot extends Bot {
     private void handleAreaModeChange(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
-            printInputKeyUsageString(ForesterBot.InputKey.area);
+            printInputKeyUsageString(FarmerBot.InputKey.area);
     }
 
     private void handleDropLimitChange(String[] input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.dl);
+            printInputKeyUsageString(FarmerBot.InputKey.dl);
             return;
         }
         try{
@@ -284,7 +284,7 @@ public class FarmerBot extends Bot {
 
     private void handleAreaModeSpeedChange(String []input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
+            printInputKeyUsageString(FarmerBot.InputKey.area_speed);
             return;
         }
         float speed;
@@ -305,7 +305,7 @@ public class FarmerBot extends Bot {
         }
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         r("Toggle the tool repairing", ""),
@@ -324,6 +324,21 @@ public class FarmerBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }

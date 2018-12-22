@@ -22,12 +22,12 @@ public class ImproverBot extends Bot {
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     public ImproverBot() {
-        registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(InputKey.at, input -> addTarget());
-        registerInputHandler(InputKey.ls, input -> listAvailableSkills());
-        registerInputHandler(InputKey.g, this::handleGroundModeChange);
-        registerInputHandler(InputKey.ci, input -> changeInstrument());
-        registerInputHandler(InputKey.ss, this::handleSkillChange);
+        registerInputHandler(ImproverBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ImproverBot.InputKey.at, input -> addTarget());
+        registerInputHandler(ImproverBot.InputKey.ls, input -> listAvailableSkills());
+        registerInputHandler(ImproverBot.InputKey.g, this::handleGroundModeChange);
+        registerInputHandler(ImproverBot.InputKey.ci, input -> changeInstrument());
+        registerInputHandler(ImproverBot.InputKey.ss, this::handleSkillChange);
 
         tools.add(new Tool(1201, "carving knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
         tools.add(new Tool(741, "mallet", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY, ToolSkill.LEATHERWORKING))));
@@ -265,7 +265,7 @@ public class ImproverBot extends Bot {
 
     private void handleSkillChange(String[] input) {
         if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.ss);
+            printInputKeyUsageString(ImproverBot.InputKey.ss);
             return;
         }
         ToolSkill toolSkill = ToolSkill.getByAbbreviation(input[0]);
@@ -283,7 +283,7 @@ public class ImproverBot extends Bot {
             Utils.consolePrint("Ground mode is off!");
         } else {
             if (toolSkill == ToolSkill.UNKNOWN) {
-                Utils.consolePrint("Choose the skill first with \"" + InputKey.ss.name() + "\" key");
+                Utils.consolePrint("Choose the skill first with \"" + ImproverBot.InputKey.ss.name() + "\" key");
                 return;
             }
             groundMode = true;
@@ -293,7 +293,7 @@ public class ImproverBot extends Bot {
 
     private void handleStaminaThresholdChange(String input[]) {
         if (input == null || input.length != 1)
-            printInputKeyUsageString(InputKey.s);
+            printInputKeyUsageString(ImproverBot.InputKey.s);
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
@@ -327,7 +327,7 @@ public class ImproverBot extends Bot {
         Utils.consolePrint("A new inventory was added");
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         at("Add new inventory(under mouse cursor). Selected items in this inventory will be improved.", ""),
@@ -341,6 +341,21 @@ public class ImproverBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 

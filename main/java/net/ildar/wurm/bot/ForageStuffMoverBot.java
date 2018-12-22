@@ -14,9 +14,9 @@ public class ForageStuffMoverBot extends Bot {
     private boolean notMoveRocks;
 
     public ForageStuffMoverBot() {
-        registerInputHandler(InputKey.at, input -> addTarget());
-        registerInputHandler(InputKey.r, input -> toggleMovingRareItems());
-        registerInputHandler(InputKey.mr, input -> toggleMovingRocks());
+        registerInputHandler(ForageStuffMoverBot.InputKey.at, input -> addTarget());
+        registerInputHandler(ForageStuffMoverBot.InputKey.r, input -> toggleMovingRareItems());
+        registerInputHandler(ForageStuffMoverBot.InputKey.mr, input -> toggleMovingRocks());
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ForageStuffMoverBot extends Bot {
         Utils.consolePrint("Rocks will be " + (notMoveRocks?"NOT":"") + " moved");
     }
 
-    enum InputKey {
+    enum InputKey implements Bot.InputKey {
         at("Add new target item. Foragable and botanizable items will be moved to that destination", ""),
         r("Toggle moving of rare items", ""),
         mr("Toggle moving of rocks", "");
@@ -74,6 +74,21 @@ public class ForageStuffMoverBot extends Bot {
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
         }
     }
 }
