@@ -27,6 +27,7 @@ public class FarmerBot extends Bot {
     private boolean dropping;
     private boolean repairing = true;
     private List<String> dropNamesList;
+    private int dropLimit;
 
     public FarmerBot() {
         registerInputHandler(InputKey.s, this::handleStaminaThresholdChange);
@@ -37,6 +38,7 @@ public class FarmerBot extends Bot {
         registerInputHandler(InputKey.d, input -> toggleDropping());
         registerInputHandler(InputKey.and, this::handleDropNameAdding);
         registerInputHandler(InputKey.r, input -> toggleRepairing());
+        registerInputHandler(InputKey.dl, this::handleDropLimitChange);
 
         registerInputHandler(InputKey.area, this::handleAreaModeChange);
         registerInputHandler(InputKey.area_speed, this::handleAreaModeSpeedChange);
@@ -125,8 +127,12 @@ public class FarmerBot extends Bot {
                 List<InventoryMetaItem> droplist = new ArrayList<>();
                 for(String dropName : dropNamesList)
                     droplist.addAll(Utils.getInventoryItems(dropName));
-                if (droplist.size() > 0)
+                if (droplist.size() > 0) {
+                    if (dropLimit != 0 && droplist.size() > dropLimit) {
+                        droplist = droplist.subList(dropLimit, droplist.size());
+                    }
                     Mod.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
+                }
             }
             sleep(timeout);
         }
@@ -257,6 +263,19 @@ public class FarmerBot extends Bot {
             printInputKeyUsageString(ForesterBot.InputKey.area);
     }
 
+    private void handleDropLimitChange(String[] input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(InputKey.dl);
+            return;
+        }
+        try{
+            dropLimit = Integer.parseInt(input[0]);
+            Utils.consolePrint("New drop limit is " + dropLimit);
+        } catch (NumberFormatException e) {
+            Utils.consolePrint("Wrong drop limit value!");
+        }
+    }
+
     private void handleAreaModeSpeedChange(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForesterBot.InputKey.area_speed);
@@ -290,6 +309,7 @@ public class FarmerBot extends Bot {
         c("Toggle the dirt cultivation", ""),
         and("Add new item name to drop on the ground", ""),
         d("Toggle the dropping of harvested items. Add item names to drop by \"" + and.name() + "\" key", ""),
+        dl("Set the drop limit, configured number of harvests won't be dropped", "number"),
         area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
         area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
 
