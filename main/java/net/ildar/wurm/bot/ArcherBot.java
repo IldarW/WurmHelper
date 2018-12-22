@@ -56,6 +56,7 @@ public class ArcherBot extends Bot {
         }
         Utils.consolePrint(this.getClass().getSimpleName() + " will shoot at " + pickableUnit.getHoverName());
         long mobId = pickableUnit.getId();
+        boolean isArcheryTarget=pickableUnit.getHoverName().contains("archery target");
 
         int maxActions = Utils.getMaxActionNumber();
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
@@ -72,20 +73,20 @@ public class ArcherBot extends Bot {
                         InventoryMetaItem bowstring = Utils.getInventoryItem("bow string");
                         if (bowstring != null) {
                             Mod.hud.getWorld().getServerConnection().sendAction(bowstring.getId(),
-                                    new long[]{bow.getId()}, new PlayerAction((short) 132, PlayerAction.ANYTHING));
+                                    new long[]{bow.getId()}, new PlayerAction((short) 132, PlayerAction.ANYTHING));//change bowstring
                         }
                 }
                 for (int i = 0; i < maxActions; i++)
-                    Mod.hud.getWorld().getServerConnection().sendAction(bow.getId(), new long[]{mobId}, PlayerAction.SHOOT);
+                    Mod.hud.getWorld().getServerConnection().sendAction(bow.getId(), new long[]{mobId}, (!isArcheryTarget ? PlayerAction.SHOOT : new PlayerAction((short) 134, PlayerAction.ANYTHING)));
 
                 ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
                 Map<Long, CreatureCellRenderable> creatures = ReflectionUtil.getPrivateField(sscc,
                         ReflectionUtil.getField(sscc.getClass(), "creatures"));
                 boolean mobAlive = false;
-                if (creatures!=null)
+                if (creatures!=null && !isArcheryTarget)
                     for(Map.Entry<Long, CreatureCellRenderable> entry:creatures.entrySet())
                         if (entry.getValue().getId() == mobId) mobAlive = true;
-                if (!mobAlive){
+                if (!mobAlive && !isArcheryTarget){
                     Utils.consolePrint("Mob dead or too far away!");
                     Utils.showOnScreenMessage("Deactivating archerbot!");
                     deactivate();
