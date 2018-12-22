@@ -12,6 +12,7 @@ import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FarmerBot extends Bot {
     private float staminaThreshold;
@@ -128,10 +129,15 @@ public class FarmerBot extends Bot {
                 for(String dropName : dropNamesList)
                     droplist.addAll(Utils.getInventoryItems(dropName));
                 if (droplist.size() > 0) {
-                    if (dropLimit != 0 && droplist.size() > dropLimit) {
-                        droplist = droplist.subList(dropLimit, droplist.size());
+                    if (dropLimit != 0) {
+                        if (droplist.size() > dropLimit) {
+                            droplist = droplist.subList(dropLimit, droplist.size());
+                        } else
+                            droplist = new ArrayList<>();
                     }
-                    Mod.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
+                    droplist = droplist.stream().filter(item -> item.getRarity() == 0).collect(Collectors.toList());
+                    if (droplist.size() > 0)
+                        Mod.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
                 }
             }
             sleep(timeout);
