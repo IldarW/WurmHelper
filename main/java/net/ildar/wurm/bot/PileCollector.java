@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PileCollector extends Bot {
-    private float distance = 4;
+    private final float MAX_DISTANCE = 4;
     private Set<Long> openedPiles = new HashSet<>();
     private InventoryListComponent targetLc;
     private String containerName = "large crate";
@@ -46,7 +46,7 @@ public class PileCollector extends Bot {
                                 ReflectionUtil.getField(groundItem.getClass(), "item"));
                         float itemX = groundItemData.getX();
                         float itemY = groundItemData.getY();
-                        if ((Math.sqrt(Math.pow(itemX - x, 2) + Math.pow(itemY - y, 2)) <= distance)) {
+                        if ((Math.sqrt(Math.pow(itemX - x, 2) + Math.pow(itemY - y, 2)) <= MAX_DISTANCE)) {
                             if (groundItemData.getName().toLowerCase().contains("pile of ") && !openedPiles.contains(groundItemData.getId()))
                                 Mod.hud.sendAction(PlayerAction.OPEN, groundItemData.getId());
                             else if (groundItemData.getName().contains(targetItemName))
