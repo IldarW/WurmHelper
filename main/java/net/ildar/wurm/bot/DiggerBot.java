@@ -554,8 +554,8 @@ public class DiggerBot extends Bot{
         area("Toggle the area processing mode. Works only when digging a tile(see \"" + dtile.name() + "\" key)", "tiles_ahead tiles_to_the_right"),
         area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

@@ -335,9 +335,9 @@ public class ImproverBot extends Bot {
         ss("Set the skill. Only tools from that skill will be used. You can list available skills using \"" + ls.name() + "\" key", "skill_abbreviation"),
         g("Toggle the ground mode. Set the skill first by \"" + ss.name() + "\" key", ""),
         ci("Change previously chosen instrument by tool selected in player's inventory", "");
-        public String description;
 
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

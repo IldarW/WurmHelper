@@ -407,8 +407,8 @@ public class CrafterBot extends Bot {
                 "By default " + CrafterBot.class.getSimpleName() + " will check action queue and start crafting operations only when it is empty", ""),
         s1s("Toggles the setting of single item to source slot of crafting window", "");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

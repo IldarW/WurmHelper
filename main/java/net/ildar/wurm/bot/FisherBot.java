@@ -82,8 +82,8 @@ public class FisherBot extends Bot
         r("Toggle the source item repairing(on the left side of crafting window). " +
                 "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", "");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
 
         InputKey(String description, String usage) {
             this.description = description;

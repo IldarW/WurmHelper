@@ -32,7 +32,7 @@ public class ProspectorBot extends Bot {
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + pickaxe.getBaseName());
         }
         PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));;
+                ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
         if (pickableUnit == null) {
             Utils.consolePrint("Select cave wall!");
             deactivate();
@@ -102,8 +102,8 @@ public class ProspectorBot extends Bot {
                 "threshold(float value between 0 and 1)"),
         c("Change the amount of clicks bot will do each time", "n(integer value)");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

@@ -157,8 +157,8 @@ public class PileCollector extends Bot {
         st("Set the target bulk inventory to put items to. Provide an optional name of containers inside inventory. Default is \"large crate\"", "[name]"),
         stcc("Set the capacity for target container. Default value is 300", "capacity(integer value)");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

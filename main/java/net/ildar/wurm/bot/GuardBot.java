@@ -127,8 +127,8 @@ public class GuardBot extends Bot {
         cs("Set a path to a custom sound file for alarm. Use .wav file", "path"),
         soundtest("Plays the alarm sound", "");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

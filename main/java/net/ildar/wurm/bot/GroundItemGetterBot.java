@@ -112,8 +112,8 @@ public class GroundItemGetterBot extends Bot {
                 "distance(in meters, 1 tile is 4 meters)"),
         a("Add new item name to search list", "item_name");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

@@ -134,8 +134,8 @@ public class MeditationBot extends Bot {
         c("Set the amount of actions the bot will do each time", "c(integer value)"),
         rt("Set the meditation rug repair timeout", "timeout(in milliseconds)");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

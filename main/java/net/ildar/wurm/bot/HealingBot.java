@@ -85,8 +85,8 @@ public class HealingBot extends Bot {
     private enum InputKey implements Bot.InputKey {
         md("Set the minimum damage of the wound to be treated", "min_damage");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

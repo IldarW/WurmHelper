@@ -127,8 +127,8 @@ public class ArcherBot extends Bot {
                 "threshold(float value between 0 and 1)"),
         string("String the current bow with a string",
                 "");
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

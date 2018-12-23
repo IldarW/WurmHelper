@@ -768,8 +768,8 @@ public class AssistantBot extends Bot {
         lid("Toggle automatic lockpicking of target chest with provided id", "id"),
         v("Toggle verbose mode. In verbose mode the " + AssistantBot.class.getSimpleName() + " will output additional info to the console", "");
 
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

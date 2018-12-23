@@ -68,9 +68,8 @@ public class ForageStuffMoverBot extends Bot {
         r("Toggle moving of rare items", ""),
         mr("Toggle moving of rocks", "");
 
-        public String description;
-
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;

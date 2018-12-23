@@ -135,8 +135,8 @@ public class BulkItemGetterBot extends Bot {
         asid("Add the source(item in bulk storage) with provided id", "id"),
         atid("Add the target item with provided id", "id"),
         ssxy("Add source item from fixed point on screen", ""),;
-        public String description;
-        public String usage;
+        private String description;
+        private String usage;
         InputKey(String description, String usage) {
             this.description = description;
             this.usage = usage;
