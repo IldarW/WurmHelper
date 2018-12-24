@@ -240,15 +240,15 @@ public class ForagerBot extends Bot {
     }
 
     private void registerEventProcessors() {
-        Chat.registerEventProcessor(message -> message.contains("You are too far away"),
+        registerEventProcessor(message -> message.contains("You are too far away"),
                 this::actionNotQueued);
-        Chat.registerEventProcessor(message -> message.contains("You're too busy"),
+        registerEventProcessor(message -> message.contains("You're too busy"),
                 this::actionNotQueued);
-        Chat.registerEventProcessor(message -> (message.contains("You gather") && message.contains("mixed grass")
+        registerEventProcessor(message -> (message.contains("You gather") && message.contains("mixed grass")
                         || message.contains("You pick some flowers")
                         || message.contains("You try to cut some short grass but you fail to get any significant amount.")),
                 this::actionFinished);
-        Chat.registerEventProcessor(message -> (message.contains("You find")
+        registerEventProcessor(message -> (message.contains("You find")
                         || message.contains("This area looks picked clean.")
                         || message.contains("You fail to find")),
                 this::fbFinished);

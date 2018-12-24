@@ -214,7 +214,7 @@ public class ImproverBot extends Bot {
     }
 
     private void registerEventProcessors() {
-        Chat.registerEventProcessor(message -> message.contains("You improve the")
+        registerEventProcessor(message -> message.contains("You improve the")
                         || message.contains("You damage the")
                         || message.contains("You will want to polish the")
                         || message.contains("You must use a mallet on the ")

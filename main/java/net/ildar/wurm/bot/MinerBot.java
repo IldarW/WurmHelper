@@ -497,7 +497,7 @@ public class MinerBot extends Bot {
     }
 
     private void registerEventProcessors() {
-        Chat.registerEventProcessor(message -> message.contains("The cave walls sound hollow")
+        registerEventProcessor(message -> message.contains("The cave walls sound hollow")
                 || message.contains("Another tunnel is too close")
                 || message.contains("The cave walls look very unstable.")
                 || message.contains("The cave walls look very unstable and dirt flows in")
@@ -515,7 +515,7 @@ public class MinerBot extends Bot {
                 || message.contains("This tile is protected by the gods. You can not mine here")
                 || message.contains("A felled tree on the surface disturbs your operation")
                 || message.contains("Lowering the floor further would make the cavern unstable"), MinerBot::tileError);
-        Chat.registerEventProcessor(message -> message.contains("You mine "), () -> lastMining = System.currentTimeMillis());
+        registerEventProcessor(message -> message.contains("You mine "), () -> lastMining = System.currentTimeMillis());
     }
 
     private void sendMineActions(int coords[]) {

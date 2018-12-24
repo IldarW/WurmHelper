@@ -193,11 +193,11 @@ public class ForesterBot extends Bot {
     }
 
     private void registerEventProcessors() {
-        Chat.registerEventProcessor(message -> message.contains("You are too far away") ,
+        registerEventProcessor(message -> message.contains("You are too far away") ,
                 this::actionNotQueued);
-        Chat.registerEventProcessor(message -> message.contains("You make a lot of errors and need to take a break"),
+        registerEventProcessor(message -> message.contains("You make a lot of errors and need to take a break"),
                 this::actionFinished);
-        Chat.registerEventProcessor(message -> (message.contains("You cut a sprout")
+        registerEventProcessor(message -> (message.contains("You cut a sprout")
                         || message.contains("It does not make sense to prune")
                         || message.contains("You prune the ") || message.contains("You stop pruning")
                         || message.contains("You stop picking") || message.contains("has no sprout to pick")
@@ -206,7 +206,7 @@ public class ForesterBot extends Bot {
                         || message.contains("You chip away some wood")
                         || message.contains("The ground is cultivated and ready to sow now.")),
                 this::actionFinished);
-        Chat.registerEventProcessor(message -> message.contains("You harvest "),
+        registerEventProcessor(message -> message.contains("You harvest "),
                 this::harvestedSomething);
     }
 
