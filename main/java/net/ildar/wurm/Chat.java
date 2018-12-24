@@ -5,22 +5,21 @@ import net.ildar.wurm.bot.ArcherBot;
 import net.ildar.wurm.bot.GuardBot;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Chat {
-    private static Map<Function<String, Boolean>, Runnable> eventProcessors = new HashMap<>();
+    private static List<MessageProcessor> messageProcessors = new ArrayList<>();
 
-    // if (filter.apply(message)) callback.run()
-    public static void registerEventProcessor(Function<String, Boolean> filter, Runnable callback) {
-        eventProcessors.put(filter, callback);
-    }
-    public static void unregisterEventProcessor(Function<String, Boolean> filter) {
-        eventProcessors.remove(filter);
+    //On message in tabName: if (filter.apply(message)) callback.run()
+    public static MessageProcessor registerMessageProcessor(String tabName, Function<String, Boolean> filter, Runnable callback) {
+        MessageProcessor messageProcessor = new MessageProcessor(tabName, filter, callback);
+        messageProcessors.add(messageProcessor);
+        return messageProcessor;
     }
 
-    public static void clearEventProcessors() {
-        eventProcessors.clear();
+    public static void unregisterMessageProcessor(MessageProcessor messageProcessor) {
+        messageProcessors.remove(messageProcessor);
     }
 
     public static void  onMessage(String context, Object input, boolean silent) {
@@ -29,22 +28,17 @@ public class Chat {
             message = pruneMulticolorString((List<MulticolorLineSegment>) input);
         } else
             message = (String)input;
-        message = message.substring(11).trim();
-        if (message.isEmpty()) return;
+        String messageWithoutTime = message.substring(11).trim();
+        if (messageWithoutTime.isEmpty()) return;
+        messageProcessors.stream()
+                .filter(mp -> Objects.equals(mp.tabName, context))
+                .filter(mp -> mp.filter.apply(message))
+                .forEach(mp -> mp.callback.run());
         switch (context) {
-            case ":Event":
-                for (Map.Entry entry : eventProcessors.entrySet()) {
-                    Function<String, Boolean> filter = (Function) entry.getKey();
-                    Runnable callback = (Runnable) entry.getValue();
-                    if (filter.apply(message)) callback.run();
-                }
-                GuardBot.processEvent(message);
-                break;
             case ":Combat":
                 if (input instanceof List)
                     modifyCombatMessage((List<MulticolorLineSegment>) input);
-                if (message.contains("The string breaks!"))
-                    ArcherBot.stringBreaks = true;
+            case ":Event":
                 GuardBot.processEvent(message);
                 break;
         }
@@ -71,6 +65,18 @@ public class Chat {
                 segments.add(newsegment);
                 break;
             }
+        }
+    }
+
+    public static class MessageProcessor{
+        public String tabName;
+        public Function<String, Boolean> filter;
+        public Runnable callback;
+
+        public MessageProcessor(String tabName, Function<String, Boolean> filter, Runnable callback) {
+            this.tabName = tabName;
+            this.filter = filter;
+            this.callback = callback;
         }
     }
 }

@@ -540,7 +540,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
                 return null;
             });
 
-            Chat.registerEventProcessor(message -> message.contains("You fail to relax"), () -> {
+            Chat.registerMessageProcessor(":Event", message -> message.contains("You fail to relax"), () -> {
                 try {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));

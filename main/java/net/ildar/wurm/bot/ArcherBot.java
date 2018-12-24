@@ -96,7 +96,9 @@ public class ArcherBot extends Bot {
     }
 
     private void registerEventProcessors() {
-        registerEventProcessor(message -> message.contains("You string the "), () -> ArcherBot.stringBreaks = false);
+        registerEventProcessor(message -> message.contains("You string the "), () -> stringBreaks = false);
+        registerEventProcessor(message -> message.contains("The string breaks!"), () -> stringBreaks = true);
+        registerMessageProcessor(":Combat", message -> message.contains("The string breaks!"), () -> stringBreaks = true);
     }
 
     private void handleStaminaThresholdChange(String input[]) {

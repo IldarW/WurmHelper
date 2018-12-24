@@ -99,9 +99,9 @@ public abstract class Bot extends Thread {
     private Map<InputKey, InputHandler> inputHandlers = new HashMap<>();
 
     /**
-     * Store all registered event processor filters here to unregister them on bot deactivation to prevent memory leaks
+     * Store all registered message processors here to unregister them on bot deactivation to prevent memory leaks
      */
-    private List<Function<String, Boolean>> registeredEventFilters = new ArrayList<>();
+    private List<Chat.MessageProcessor> registeredMessageProcessors = new ArrayList<>();
 
     protected long timeout = 1000;
 
@@ -198,7 +198,7 @@ public abstract class Bot extends Thread {
             Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
             Utils.consolePrint( e.toString());
         }
-        unregisterEventProcessors();
+        unregisterMessageProcessors();
         Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
         int botIndex = activeBots.indexOf(this);
         if (botIndex >= 0)
@@ -332,13 +332,15 @@ public abstract class Bot extends Thread {
     }
 
     final void registerEventProcessor(Function<String, Boolean> filter, Runnable callback) {
-        registeredEventFilters.add(filter);
-        Chat.registerEventProcessor(filter, callback);
+        registerMessageProcessor(":Event", filter, callback);
     }
 
-    private void unregisterEventProcessors() {
-        for(Function<String, Boolean> filter : registeredEventFilters)
-            Chat.unregisterEventProcessor(filter);
+    final void registerMessageProcessor(String tabName, Function<String, Boolean> filter, Runnable callback) {
+        registeredMessageProcessors.add(Chat.registerMessageProcessor(tabName, filter, callback));
+    }
+
+    private void unregisterMessageProcessors() {
+        registeredMessageProcessors.forEach(Chat::unregisterMessageProcessor);
     }
 
     private enum InputKeyBase implements InputKey {
