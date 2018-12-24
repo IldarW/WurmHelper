@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 public class Chat {
     private static Map<Function<String, Boolean>, Runnable> eventProcessors = new HashMap<>();
-    private static List<BiFunction<String, String, Boolean>> filters = new ArrayList<>();
 
     // if (filter.apply(message)) callback.run()
     public static void registerEventProcessor(Function<String, Boolean> filter, Runnable callback) {
@@ -20,16 +19,8 @@ public class Chat {
         eventProcessors.remove(filter);
     }
 
-    //(chat, message) -> boolean
-    public static void registerFilter(BiFunction<String, String, Boolean> filter) {
-        filters.add(filter);
-    }
-
     public static void clearEventProcessors() {
         eventProcessors.clear();
-    }
-    public static void clearFilters() {
-        filters.clear();
     }
 
     public static void  onMessage(String context, Object input, boolean silent) {
