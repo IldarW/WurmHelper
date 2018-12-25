@@ -12,10 +12,12 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 public class FisherBot extends Bot
 {
     private boolean repairInstrument;
+    private boolean lineBreaks;
 
     public FisherBot()
     {
         registerInputHandler(FisherBot.InputKey.r, input -> toggleRepairInstrument());
+        registerInputHandler(FisherBot.InputKey.line, input -> handleAutoLineChange());
 
         repairInstrument = true;
     }
@@ -35,7 +37,7 @@ public class FisherBot extends Bot
 
         }
         Utils.consolePrint(this.getClass().getSimpleName() + " will use " + fishingRod.getBaseName());
-
+        lineBreaks=fishingRod.getBaseName().contains("unstrung");
         World world = Mod.hud.getWorld();
         long tileId = Tiles.getTileId(
                 world.getPlayerCurrentTileX(),
@@ -45,6 +47,7 @@ public class FisherBot extends Bot
 
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
+        registerEventProcessors();
         while (isActive())
         {
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
@@ -57,8 +60,29 @@ public class FisherBot extends Bot
                 );
             }
 
-            if (progress == 0f)
+            if (progress == 0f && creationWindow.getActionInUse() == 0) 
             {
+                if (Tiles.getTileId(world.getPlayerCurrentTileX(), world.getPlayerCurrentTileY(), 0) != tileId)
+                    tileId = Tiles.getTileId(world.getPlayerCurrentTileX(), world.getPlayerCurrentTileY(), 0);
+
+                if (lineBreaks) 
+                {
+                    InventoryMetaItem fishingLine = Utils.getInventoryItem("fine fishing line");
+                    if (fishingLine == null) 
+                    {
+                        fishingLine = Utils.getInventoryItem("fishing line");
+                    }
+                    if (fishingLine != null) 
+                    {
+                        Mod.hud.getWorld().getServerConnection().sendAction(fishingLine.getId(),
+                                new long[]{fishingRod.getId()}, new PlayerAction((short) 132, PlayerAction.ANYTHING));
+                    }
+                    else
+                    {
+                        Utils.consolePrint("You don't have any fishing line");
+                    }
+                }
+
                 world.getServerConnection().sendAction(
                         fishingRod.getId(),
                         new long[]{tileId},
@@ -70,7 +94,7 @@ public class FisherBot extends Bot
         }
     }
 
-    private void toggleRepairInstrument(){
+    private void toggleRepairInstrument() {
         repairInstrument = !repairInstrument;
         if (repairInstrument)
             Utils.consolePrint("Rod auto repairing is on!");
@@ -78,9 +102,22 @@ public class FisherBot extends Bot
             Utils.consolePrint("Rod auto repairing is off!");
     }
 
+    private void handleAutoLineChange() {
+        Utils.consolePrint(getClass().getSimpleName() + " will try to replace a fishing line.");
+        lineBreaks = true;
+    }
+
+    private void registerEventProcessors() {
+        registerEventProcessor(message -> message.contains("You string the "), () -> lineBreaks = false);
+        registerEventProcessor(message -> message.contains("The line snaps, and the fish escapes!"), () -> lineBreaks = true);
+    }
+
+
     private enum InputKey implements Bot.InputKey {
         r("Toggle the source item repairing(on the left side of crafting window). " +
-                "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", "");
+                "Usually it is an instrument. When the source item gets 10% damage player will repair it automatically", ""),
+        line("Replace a fishing line on the current rod",
+                "");
 
         private String description;
         private String usage;
