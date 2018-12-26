@@ -19,3 +19,6 @@ type "info" in game console to see the list of available commands
   5) Some tools for automatic inventory items management
   6) Automatic item improving
   7) Another various things, making the gameplay easier
+  
+  You can join the discord channel with this link - https://discord.gg/GpqWrtF
+  There you can send us your suggestions, found bugs and errors. Or just express your support with a couple of warm words
