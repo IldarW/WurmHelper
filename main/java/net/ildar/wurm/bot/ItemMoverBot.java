@@ -249,9 +249,9 @@ public class ItemMoverBot extends Bot {
 
     private enum InputKey implements Bot.InputKey {
         st("Set the target item(under mouse pointer). Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", ""),
-        stid("Set the id of target item. Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", ""),
+        stid("Set the id of target item. Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", "id"),
         str("Set the target container(under mouse pointer). Items from your inventory will be moved to the root directory of that container.", ""),
-        stcn("Set the number of items to put inside each container. Use with \"stc\" key", ""),
+        stcn("Set the number of items to put inside each container. Use with \"stc\" key", "number"),
         stc("Set the target container(under mouse pointer) with another containers inside. " +
                 "Items from your inventory will be moved to containers with provided name. " +
                 "Bot will try to put 100 items inside each container. But you change this value using \"" + stcn.name() + "\" key.", "container_name"),

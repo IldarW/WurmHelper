@@ -313,7 +313,7 @@ public class FarmerBot extends Bot {
         h("Toggle the harvesting", ""),
         p("Toggle the planting. Provide the name of the seeds to plant", "seeds_name"),
         c("Toggle the dirt cultivation", ""),
-        and("Add new item name to drop on the ground", ""),
+        and("Add new item name to drop on the ground", "itemName"),
         d("Toggle the dropping of harvested items. Add item names to drop by \"" + and.name() + "\" key", ""),
         dl("Set the drop limit, configured number of harvests won't be dropped", "number"),
         area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
