@@ -579,23 +579,11 @@ public class MinerBot extends Bot {
     private void sendMineActions(long tileId) {
         if (verbose) Utils.consolePrint("Mining tile " + tileId);
 
-        PlayerAction action;
-        switch (direction) {
-            case FORWARD: action = PlayerAction.MINE_FORWARD;
-                break;
-            case UPWARD: action = PlayerAction.MINE_UP;
-                break;
-            case DOWNWARD: action = PlayerAction.MINE_DOWN;
-                break;
-            default: action = PlayerAction.MINE_FORWARD;
-                break;
-        }
-
         for (int i = 0; i < clicks; i++)
             Mod.hud.getWorld().getServerConnection().sendAction(
                     pickaxe.getId(),
                     new long[]{tileId},
-                    action);
+                    direction.action);
     }
 
     private void handleStaminaThresholdChange(String input[]) {
@@ -718,7 +706,7 @@ public class MinerBot extends Bot {
         sft("Set a smelter fuelling timeout for smelting ores", "timeout(in milliseconds)"),
         sfn("Set a name for the fuel for smelting ores", "name"),
         v("Toggle the verbose mode. While verbose bot will show additional info in console", ""),
-        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction.", "direction");
+        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction. ", "direction");
 
         private String description;
         private String usage;
@@ -744,14 +732,17 @@ public class MinerBot extends Bot {
     }
 
     enum Directions {
-        UNKNOWN(""),
-        FORWARD("f"),
-        UPWARD("u"),
-        DOWNWARD("d");
+        UNKNOWN("", PlayerAction.MINE_FORWARD),
+        FORWARD("f", PlayerAction.MINE_FORWARD),
+        UPWARD("u", PlayerAction.MINE_UP),
+        DOWNWARD("d", PlayerAction.MINE_DOWN);
 
         String abbreviation;
-        Directions(String abbreviation) {
+        PlayerAction action;
+        Directions(String abbreviation, PlayerAction action)
+        {
             this.abbreviation = abbreviation;
+            this.action = action;
         }
 
         static Directions getByAbbreviation(String abbreviation) {
