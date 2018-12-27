@@ -38,6 +38,7 @@ public class MinerBot extends Bot {
     private boolean verbose = false;
     private boolean noOre;
     private Random random = new Random();
+    private Directions direction = Directions.FORWARD;
 
     public MinerBot() {
         registerInputHandler(MinerBot.InputKey.s, this::handleStaminaThresholdChange);
@@ -59,7 +60,7 @@ public class MinerBot extends Bot {
         registerInputHandler(MinerBot.InputKey.sft, this::handleFuellingTimeoutChange);
         registerInputHandler(MinerBot.InputKey.sfn, this::handleFuelNameChange);
         registerInputHandler(MinerBot.InputKey.v, input -> toggleVerboseMode());
-
+        registerInputHandler(MinerBot.InputKey.dir, this::handleDirectionChange);
     }
 
     @Override
@@ -312,6 +313,21 @@ public class MinerBot extends Bot {
         return type.tilename.equals("Cave") || type.tilename.equals("Reinforced cave");
     }
 
+    private void handleDirectionChange(String[] input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(MinerBot.InputKey.dir);
+            return;
+        }
+
+        Directions newDirection = Directions.getByAbbreviation(input[0]);
+        if (newDirection == Directions.UNKNOWN) {
+            printInputKeyUsageString(MinerBot.InputKey.dir);
+            return;
+        }
+
+        direction = newDirection;
+    }
+
     private void toggleVerboseMode() {
         verbose = !verbose;
         Utils.consolePrint(getClass().getSimpleName() + " is " + (verbose?"":"not ") + "verbose");
@@ -562,11 +578,24 @@ public class MinerBot extends Bot {
 
     private void sendMineActions(long tileId) {
         if (verbose) Utils.consolePrint("Mining tile " + tileId);
+
+        PlayerAction action;
+        switch (direction) {
+            case FORWARD: action = PlayerAction.MINE_FORWARD;
+                break;
+            case UPWARD: action = PlayerAction.MINE_UP;
+                break;
+            case DOWNWARD: action = PlayerAction.MINE_DOWN;
+                break;
+            default: action = PlayerAction.MINE_FORWARD;
+                break;
+        }
+
         for (int i = 0; i < clicks; i++)
             Mod.hud.getWorld().getServerConnection().sendAction(
                     pickaxe.getId(),
                     new long[]{tileId},
-                    PlayerAction.MINE_FORWARD);
+                    action);
     }
 
     private void handleStaminaThresholdChange(String input[]) {
@@ -688,7 +717,8 @@ public class MinerBot extends Bot {
         ssm("Set a smelter(under the mouse cursor) for smelting ores", ""),
         sft("Set a smelter fuelling timeout for smelting ores", "timeout(in milliseconds)"),
         sfn("Set a name for the fuel for smelting ores", "name"),
-        v("Toggle the verbose mode. While verbose bot will show additional info in console", "");
+        v("Toggle the verbose mode. While verbose bot will show additional info in console", ""),
+        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction.", "direction");
 
         private String description;
         private String usage;
@@ -710,6 +740,25 @@ public class MinerBot extends Bot {
         @Override
         public String getUsage() {
             return usage;
+        }
+    }
+
+    enum Directions {
+        UNKNOWN(""),
+        FORWARD("f"),
+        UPWARD("u"),
+        DOWNWARD("d");
+
+        String abbreviation;
+        Directions(String abbreviation) {
+            this.abbreviation = abbreviation;
+        }
+
+        static Directions getByAbbreviation(String abbreviation) {
+            for(Directions directions : values())
+                if (directions.abbreviation.equals(abbreviation))
+                    return directions;
+            return UNKNOWN;
         }
     }
 }
