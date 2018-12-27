@@ -316,6 +316,7 @@ public class MinerBot extends Bot {
     private void handleDirectionChange(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.dir);
+            Utils.consolePrint("Current direction is \"" + direction.action + "\"");
             return;
         }
 
@@ -326,6 +327,7 @@ public class MinerBot extends Bot {
         }
 
         direction = newDirection;
+        Utils.consolePrint("Current direction is \"" + direction.action + "\"");
     }
 
     private void toggleVerboseMode() {
@@ -706,7 +708,7 @@ public class MinerBot extends Bot {
         sft("Set a smelter fuelling timeout for smelting ores", "timeout(in milliseconds)"),
         sfn("Set a name for the fuel for smelting ores", "name"),
         v("Toggle the verbose mode. While verbose bot will show additional info in console", ""),
-        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction. ", "direction");
+        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction.", "direction");
 
         private String description;
         private String usage;
