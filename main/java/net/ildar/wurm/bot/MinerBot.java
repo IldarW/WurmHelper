@@ -9,7 +9,6 @@ import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -38,7 +37,7 @@ public class MinerBot extends Bot {
     private boolean verbose = false;
     private boolean noOre;
     private Random random = new Random();
-    private Directions direction = Directions.FORWARD;
+    private Direction direction = Direction.FORWARD;
 
     public MinerBot() {
         registerInputHandler(MinerBot.InputKey.s, this::handleStaminaThresholdChange);
@@ -320,8 +319,8 @@ public class MinerBot extends Bot {
             return;
         }
         
-        Directions newDirection = Directions.getByAbbreviation(input[0]);
-        if (newDirection == Directions.UNKNOWN) {
+        Direction newDirection = Direction.getByAbbreviation(input[0]);
+        if (newDirection == Direction.UNKNOWN) {
             printInputKeyUsageString(MinerBot.InputKey.dir);
             return;
         }
@@ -737,7 +736,7 @@ public class MinerBot extends Bot {
         }
     }
 
-    enum Directions {
+    enum Direction {
         UNKNOWN("", PlayerAction.MINE_FORWARD),
         FORWARD("f", PlayerAction.MINE_FORWARD),
         UPWARD("u", PlayerAction.MINE_UP),
@@ -745,16 +744,16 @@ public class MinerBot extends Bot {
 
         String abbreviation;
         PlayerAction action;
-        Directions(String abbreviation, PlayerAction action)
+        Direction(String abbreviation, PlayerAction action)
         {
             this.abbreviation = abbreviation;
             this.action = action;
         }
 
-        static Directions getByAbbreviation(String abbreviation) {
-            for(Directions directions : values())
-                if (directions.abbreviation.equals(abbreviation))
-                    return directions;
+        static Direction getByAbbreviation(String abbreviation) {
+            for(Direction direction : values())
+                if (direction.abbreviation.equals(abbreviation))
+                    return direction;
             return UNKNOWN;
         }
     }
