@@ -77,14 +77,14 @@ public class AssistantBot extends Bot {
         registerInputHandler(AssistantBot.InputKey.st, this::setSacrificeTimeout);
         registerInputHandler(AssistantBot.InputKey.sid, this::toggleSacrificingByAltarId);
         registerInputHandler(AssistantBot.InputKey.kb, input -> toggleKindlingBurns(0));
-        registerInputHandler(AssistantBot.InputKey.kbt, this::toggleKindlingBurnsTimeout);
+        registerInputHandler(AssistantBot.InputKey.kbt, this::setKindlingBurnsTimeout);
         registerInputHandler(AssistantBot.InputKey.kbid, this::toggleKindlingBurningByForgeId);
         registerInputHandler(AssistantBot.InputKey.cwov, input -> toggleWOVCasting());
         registerInputHandler(AssistantBot.InputKey.cleanup, input -> toggleTrashCleaning(0));
-        registerInputHandler(AssistantBot.InputKey.cleanupt, this::toggleTrashCleaningTimeout);
+        registerInputHandler(AssistantBot.InputKey.cleanupt, this::setTrashCleaningTimeout);
         registerInputHandler(AssistantBot.InputKey.cleanupid, this::toggleTrashCleaningByTargetId);
         registerInputHandler(AssistantBot.InputKey.l, input -> toggleLockpicking(0));
-        registerInputHandler(AssistantBot.InputKey.lt, this::toggleLockpickingTimeout);
+        registerInputHandler(AssistantBot.InputKey.lt, this::setLockpickingTimeout);
         registerInputHandler(AssistantBot.InputKey.lid, this::toggleLockpickingByTargetId);
         registerInputHandler(AssistantBot.InputKey.v, input -> toggleVerbosity());
     }
@@ -390,7 +390,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void toggleKindlingBurnsTimeout(String input[]) {
+    private void setKindlingBurnsTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.kbt);
             return;
@@ -440,7 +440,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current prayer timeout is " + prayingTimeout);
     }
 
-    private void toggleTrashCleaningTimeout(String input[]) {
+    private void setTrashCleaningTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.cleanupt);
             return;
@@ -490,7 +490,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current sacrifice timeout is " + sacrificeTimeout);
     }
 
-    private void toggleLockpickingTimeout(String input[]) {
+    private void setLockpickingTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.lt);
             return;
