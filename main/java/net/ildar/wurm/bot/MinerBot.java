@@ -316,10 +316,10 @@ public class MinerBot extends Bot {
     private void handleDirectionChange(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.dir);
-            Utils.consolePrint("Current direction is \"" + direction.action + "\"");
+            printCurrentDirection();
             return;
         }
-
+        
         Directions newDirection = Directions.getByAbbreviation(input[0]);
         if (newDirection == Directions.UNKNOWN) {
             printInputKeyUsageString(MinerBot.InputKey.dir);
@@ -327,7 +327,11 @@ public class MinerBot extends Bot {
         }
 
         direction = newDirection;
-        Utils.consolePrint("Current direction is \"" + direction.action + "\"");
+        printCurrentDirection();
+    }
+
+    private void printCurrentDirection() {
+        Utils.consolePrint("Current direction is \"" + direction.abbreviation + "\"");
     }
 
     private void toggleVerboseMode() {
