@@ -217,7 +217,6 @@ public abstract class Bot extends Thread {
         }
         Bot bot = activeBots.get(botIndex);
         bot.interrupt();
-        activeBots.remove(botIndex);
     }
 
     protected String getAbbreviation() {
