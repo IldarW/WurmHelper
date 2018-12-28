@@ -34,18 +34,18 @@ public class CrafterBot extends Bot {
 
     public CrafterBot() {
         registerInputHandler(CrafterBot.InputKey.r, input -> toggleRepairInstrument());
-        registerInputHandler(CrafterBot.InputKey.st, this::handleTargetNameChange);
+        registerInputHandler(CrafterBot.InputKey.st, this::setTargetName);
         registerInputHandler(CrafterBot.InputKey.stxy, input -> setTargetXY());
-        registerInputHandler(CrafterBot.InputKey.ss, this::handleSourceNameChange);
+        registerInputHandler(CrafterBot.InputKey.ss, this::setSourceName);
         registerInputHandler(CrafterBot.InputKey.ssxy, input -> setSourceXY());
         registerInputHandler(CrafterBot.InputKey.nosort, input -> toggleSorting());
         registerInputHandler(CrafterBot.InputKey.ct, input -> toggleTargetsCombining());
         registerInputHandler(CrafterBot.InputKey.cs, input -> toggleSourcesCombining());
-        registerInputHandler(CrafterBot.InputKey.ctimeout, this::handleCombineTimeoutChange);
-        registerInputHandler(CrafterBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(CrafterBot.InputKey.ctimeout, this::setCombineTimeout);
+        registerInputHandler(CrafterBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(CrafterBot.InputKey.u, input -> toggleUnfinishedMode());
-        registerInputHandler(CrafterBot.InputKey.ssid, this::handleSourceItemIdChange);
-        registerInputHandler(CrafterBot.InputKey.an, this::handleActionNumberChange);
+        registerInputHandler(CrafterBot.InputKey.ssid, this::addSourceByItemId);
+        registerInputHandler(CrafterBot.InputKey.an, this::setActionNumber);
         registerInputHandler(CrafterBot.InputKey.noan, input -> toggleActionNumberChecks());
         registerInputHandler(CrafterBot.InputKey.s1s, input -> toggleSingleSourceItemMode());
     }
@@ -207,7 +207,7 @@ public class CrafterBot extends Bot {
         Utils.consolePrint("Single source item mode is " + (singleSourceItemMode?"on":"off"));
     }
 
-    private void handleActionNumberChange(String input[]) {
+    private void setActionNumber(String input[]) {
         if(input == null || input.length != 1) {
             printInputKeyUsageString(CrafterBot.InputKey.an);
             return;
@@ -223,7 +223,7 @@ public class CrafterBot extends Bot {
         }
     }
 
-    private void handleSourceItemIdChange(String input[]) {
+    private void addSourceByItemId(String input[]) {
         if(input == null || input.length != 1) {
             printInputKeyUsageString(CrafterBot.InputKey.ssid);
             return;
@@ -262,7 +262,7 @@ public class CrafterBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(CrafterBot.InputKey.s);
         else {
@@ -280,7 +280,7 @@ public class CrafterBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleCombineTimeoutChange(String input[]) {
+    private void setCombineTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(CrafterBot.InputKey.ctimeout);
             return;
@@ -325,7 +325,7 @@ public class CrafterBot extends Bot {
             Utils.consolePrint(this.getClass().getSimpleName() + " will sort the targets and sources by weight");
     }
 
-    private void handleTargetNameChange(String input[]) {
+    private void setTargetName(String input[]) {
         if(input == null || input.length == 0) {
             printInputKeyUsageString(CrafterBot.InputKey.st);
             return;
@@ -336,7 +336,7 @@ public class CrafterBot extends Bot {
         setTargetName(target.toString());
     }
 
-    private void handleSourceNameChange(String input[]) {
+    private void setSourceName(String input[]) {
         if(input == null || input.length == 0) {
             printInputKeyUsageString(CrafterBot.InputKey.ss);
             return;

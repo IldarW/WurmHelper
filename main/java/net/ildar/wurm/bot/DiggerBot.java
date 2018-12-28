@@ -33,17 +33,17 @@ public class DiggerBot extends Bot{
     private InventoryMetaItem pickaxeItem;
 
     public DiggerBot() {
-        registerInputHandler(DiggerBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(DiggerBot.InputKey.c, this::handleClicksChange);
-        registerInputHandler(DiggerBot.InputKey.d, this::handleDiggingChange);
-        registerInputHandler(DiggerBot.InputKey.dtile, this::handleDiggingTileChange);
+        registerInputHandler(DiggerBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(DiggerBot.InputKey.c, this::setClicksNumber);
+        registerInputHandler(DiggerBot.InputKey.d, this::toggleDigging);
+        registerInputHandler(DiggerBot.InputKey.dtile, this::toggleTileDiggingMode);
         registerInputHandler(DiggerBot.InputKey.dtp, input -> toggleDigToPileAction());
         registerInputHandler(DiggerBot.InputKey.l, input -> toggleLevelling());
         registerInputHandler(DiggerBot.InputKey.la, this::toggleLevellingArea);
         registerInputHandler(DiggerBot.InputKey.tr, input -> toggleToolRepairing());
         registerInputHandler(DiggerBot.InputKey.sm, input -> toggleSurfaceMining());
-        registerInputHandler(DiggerBot.InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(DiggerBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(DiggerBot.InputKey.area, this::toggleAreaMode);
+        registerInputHandler(DiggerBot.InputKey.area_speed, this::setAreaModeSpeed);
 
         areaAssistant = new AreaAssistant(this);
         areaAssistant.setMoveAheadDistance(1);
@@ -407,7 +407,7 @@ public class DiggerBot extends Bot{
         }
     }
 
-    private void handleDiggingChange(String []input) {
+    private void toggleDigging(String []input) {
         if (workMode != WorkMode.Digging) {
             if (input == null || input.length != 1) {
                 printInputKeyUsageString(DiggerBot.InputKey.d);
@@ -427,7 +427,7 @@ public class DiggerBot extends Bot{
         }
     }
 
-    private void handleDiggingTileChange(String []input) {
+    private void toggleTileDiggingMode(String []input) {
         if (workMode != WorkMode.DiggingTile) {
             if (input == null || input.length != 1) {
                 printInputKeyUsageString(DiggerBot.InputKey.dtile);
@@ -456,7 +456,7 @@ public class DiggerBot extends Bot{
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(DiggerBot.InputKey.s);
         else {
@@ -474,7 +474,7 @@ public class DiggerBot extends Bot{
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleClicksChange(String input[]) {
+    private void setClicksNumber(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(DiggerBot.InputKey.c);
         else {
@@ -497,13 +497,13 @@ public class DiggerBot extends Bot{
         Utils.consolePrint("The repairing of the tool is " + (toolRepairing ?"on":"off"));
     }
 
-    private void handleAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(DiggerBot.InputKey.area);
     }
 
-    private void handleAreaModeSpeedChange(String []input) {
+    private void setAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(DiggerBot.InputKey.area_speed);
             return;
@@ -532,7 +532,7 @@ public class DiggerBot extends Bot{
         Digging,
         DiggingTile,
         Levelling,
-        LevellingArea;
+        LevellingArea
     }
 
     private static class DiggingTileInfo {

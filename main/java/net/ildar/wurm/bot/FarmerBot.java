@@ -31,18 +31,18 @@ public class FarmerBot extends Bot {
     private int dropLimit;
 
     public FarmerBot() {
-        registerInputHandler(FarmerBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(FarmerBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(FarmerBot.InputKey.ft, input -> toggleFarmTending());
         registerInputHandler(FarmerBot.InputKey.h, input -> toggleHarvesting());
-        registerInputHandler(FarmerBot.InputKey.p, this::handlePlantingChange);
+        registerInputHandler(FarmerBot.InputKey.p, this::togglePlanting);
         registerInputHandler(FarmerBot.InputKey.c, input -> toggleCultivating());
         registerInputHandler(FarmerBot.InputKey.d, input -> toggleDropping());
-        registerInputHandler(FarmerBot.InputKey.and, this::handleDropNameAdding);
+        registerInputHandler(FarmerBot.InputKey.and, this::addDropItemName);
         registerInputHandler(FarmerBot.InputKey.r, input -> toggleRepairing());
-        registerInputHandler(FarmerBot.InputKey.dl, this::handleDropLimitChange);
+        registerInputHandler(FarmerBot.InputKey.dl, this::setDropLimit);
 
-        registerInputHandler(FarmerBot.InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(FarmerBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(FarmerBot.InputKey.area, this::toggleAreaMode);
+        registerInputHandler(FarmerBot.InputKey.area_speed, this::setAreaModeSpeed);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class FarmerBot extends Bot {
             Mod.hud.sendAction(PlayerAction.REPAIR, toolItem.getId());
     }
 
-    private void handleDropNameAdding(String []input) {
+    private void addDropItemName(String []input) {
         if (!dropping) {
             Utils.consolePrint("The dropping is off. Can't add new item name to drop");
             return;
@@ -190,7 +190,7 @@ public class FarmerBot extends Bot {
         }
     }
 
-    private void handlePlantingChange(String []input) {
+    private void togglePlanting(String []input) {
         if (!planting) {
             if (input == null || input.length == 0) {
                 printInputKeyUsageString(FarmerBot.InputKey.p);
@@ -245,7 +245,7 @@ public class FarmerBot extends Bot {
         Utils.consolePrint("The tool repairing is " + (repairing?"on":"off"));
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(FarmerBot.InputKey.s);
         else {
@@ -263,13 +263,13 @@ public class FarmerBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(FarmerBot.InputKey.area);
     }
 
-    private void handleDropLimitChange(String[] input) {
+    private void setDropLimit(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(FarmerBot.InputKey.dl);
             return;
@@ -282,7 +282,7 @@ public class FarmerBot extends Bot {
         }
     }
 
-    private void handleAreaModeSpeedChange(String []input) {
+    private void setAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(FarmerBot.InputKey.area_speed);
             return;

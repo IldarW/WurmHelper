@@ -24,9 +24,9 @@ public class PileCollector extends Bot {
     private String targetItemName = "dirt";
 
     public PileCollector() {
-        registerInputHandler(PileCollector.InputKey.stn, this::handleTargetChange);
-        registerInputHandler(PileCollector.InputKey.st, this::handleTargetInventoryChange);
-        registerInputHandler(PileCollector.InputKey.stcc, this::handleContainerCapacityChange);
+        registerInputHandler(PileCollector.InputKey.stn, this::setTargetName);
+        registerInputHandler(PileCollector.InputKey.st, this::setTargetInventoryName);
+        registerInputHandler(PileCollector.InputKey.stcc, this::setContainerCapacity);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class PileCollector extends Bot {
         }
     }
 
-    private void handleTargetChange(String []input) {
+    private void setTargetName(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(PileCollector.InputKey.stn);
             return;
@@ -116,7 +116,7 @@ public class PileCollector extends Bot {
         Utils.consolePrint("New name for target items is \"" + this.targetItemName + "\"");
     }
 
-    private void handleTargetInventoryChange(String []input) {
+    private void setTargetInventoryName(String []input) {
         WurmComponent wurmComponent = Utils.getTargetComponent(c -> c instanceof ItemListWindow);
         if (wurmComponent == null) {
             Utils.consolePrint("Can't find an inventory");
@@ -139,7 +139,7 @@ public class PileCollector extends Bot {
         Utils.consolePrint("The target was set with container name - \"" + containerName + "\"");
     }
 
-    private void handleContainerCapacityChange(String []input) {
+    private void setContainerCapacity(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(PileCollector.InputKey.stcc);
             return;

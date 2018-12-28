@@ -14,7 +14,7 @@ public class HealingBot extends Bot {
     private float minDamage = 0;
 
     public HealingBot() {
-        registerInputHandler(HealingBot.InputKey.md, this::handleMinimumDamageChange);
+        registerInputHandler(HealingBot.InputKey.md, this::setMinimumDamage);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class HealingBot extends Bot {
         }
     }
 
-    private void handleMinimumDamageChange(String[] input) {
+    private void setMinimumDamage(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(HealingBot.InputKey.md);
             return;

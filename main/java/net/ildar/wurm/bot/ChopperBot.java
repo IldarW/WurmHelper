@@ -20,11 +20,11 @@ public class ChopperBot extends Bot {
     private int clicks;
 
     public ChopperBot() {
-        registerInputHandler(ChopperBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(ChopperBot.InputKey.d, this::handleDistanceChange);
-        registerInputHandler(ChopperBot.InputKey.c, this::handleClicksChange);
-        registerInputHandler(ChopperBot.InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(ChopperBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ChopperBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(ChopperBot.InputKey.d, this::toggleDistance);
+        registerInputHandler(ChopperBot.InputKey.c, this::setClickNumber);
+        registerInputHandler(ChopperBot.InputKey.area, this::toggleAreaMode);
+        registerInputHandler(ChopperBot.InputKey.area_speed, this::toggleAreaModeSpeed);
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
@@ -87,7 +87,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private void handleDistanceChange(String input[]) {
+    private void toggleDistance(String input[]) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(ChopperBot.InputKey.d);
             return;
@@ -100,7 +100,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ChopperBot.InputKey.s);
         else {
@@ -118,7 +118,7 @@ public class ChopperBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleClicksChange(String input[]) {
+    private void setClickNumber(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ChopperBot.InputKey.c);
         else {
@@ -136,13 +136,13 @@ public class ChopperBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " will do " + clicks + " chops each time");
     }
 
-    private void handleAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(ChopperBot.InputKey.area);
     }
 
-    private void handleAreaModeSpeedChange(String []input) {
+    private void toggleAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ChopperBot.InputKey.area_speed);
             return;

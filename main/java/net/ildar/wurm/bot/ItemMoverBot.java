@@ -81,12 +81,12 @@ public class ItemMoverBot extends Bot {
 
     public ItemMoverBot() {
         registerInputHandler(ItemMoverBot.InputKey.st, input -> setTargetItem());
-        registerInputHandler(ItemMoverBot.InputKey.stid, this::handleTargetIdChange);
+        registerInputHandler(ItemMoverBot.InputKey.stid, this::setTargetById);
         registerInputHandler(ItemMoverBot.InputKey.str, input -> setTargetContainerRoot());
-        registerInputHandler(ItemMoverBot.InputKey.stc, this::handleContainerAddition);
-        registerInputHandler(ItemMoverBot.InputKey.stcn, this::handleItemNumberInsideContainerChange);
-        registerInputHandler(ItemMoverBot.InputKey.a, this::handleNewItemName);
-        registerInputHandler(ItemMoverBot.InputKey.sw, this::handleMaximumItemWeightChange);
+        registerInputHandler(ItemMoverBot.InputKey.stc, this::setTargetAsContainer);
+        registerInputHandler(ItemMoverBot.InputKey.stcn, this::setTargetContainerVolume);
+        registerInputHandler(ItemMoverBot.InputKey.a, this::addNewItemName);
+        registerInputHandler(ItemMoverBot.InputKey.sw, this::setMaximumItemWeight);
         registerInputHandler(ItemMoverBot.InputKey.r, input -> toggleRareItemsMoving());
         registerInputHandler(ItemMoverBot.InputKey.fl, input -> toggleFirstLevelItemMoving());
     }
@@ -99,7 +99,7 @@ public class ItemMoverBot extends Bot {
             Utils.consolePrint("All items from your inventory that match added keywords can be moved");
     }
 
-    private void handleTargetIdChange(String []input) {
+    private void setTargetById(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ItemMoverBot.InputKey.stid);
             return;
@@ -121,7 +121,7 @@ public class ItemMoverBot extends Bot {
             Utils.consolePrint("Rare+ items will be moved too");
     }
 
-    private void handleMaximumItemWeightChange(String []input) {
+    private void setMaximumItemWeight(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ItemMoverBot.InputKey.sw);
             return;
@@ -144,7 +144,7 @@ public class ItemMoverBot extends Bot {
         }
     }
 
-    private void handleNewItemName(String []input) {
+    private void addNewItemName(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(ItemMoverBot.InputKey.a);
             return;
@@ -156,7 +156,7 @@ public class ItemMoverBot extends Bot {
         addItem(newItem.toString());
     }
 
-    private void handleItemNumberInsideContainerChange(String []input) {
+    private void setTargetContainerVolume(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ItemMoverBot.InputKey.stcn);
             return;
@@ -169,7 +169,7 @@ public class ItemMoverBot extends Bot {
         }
     }
 
-    private void handleContainerAddition(String []input) {
+    private void setTargetAsContainer(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(ItemMoverBot.InputKey.stc);
             return;

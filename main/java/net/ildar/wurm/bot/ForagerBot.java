@@ -7,7 +7,6 @@ import com.wurmonline.mesh.GrassData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
@@ -54,20 +53,20 @@ public class ForagerBot extends Bot {
     private boolean verbose = false;
 
     public ForagerBot() {
-        registerInputHandler(ForagerBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ForagerBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(ForagerBot.InputKey.g, input -> toggleGrassGathering());
         registerInputHandler(ForagerBot.InputKey.f, input -> toggleForaging());
         registerInputHandler(ForagerBot.InputKey.ftl, input -> showForagingTypes());
-        registerInputHandler(ForagerBot.InputKey.ft, this::handleForagingTypeChange);
+        registerInputHandler(ForagerBot.InputKey.ft, this::setForagingType);
         registerInputHandler(ForagerBot.InputKey.b, input -> toggleBotanizing());
         registerInputHandler(ForagerBot.InputKey.btl, input -> showBotanizingTypes());
-        registerInputHandler(ForagerBot.InputKey.bt, this::handleBotanizingTypeChange);
+        registerInputHandler(ForagerBot.InputKey.bt, this::setBotanizingType);
         registerInputHandler(ForagerBot.InputKey.d, input -> toggleDropping());
         registerInputHandler(ForagerBot.InputKey.v, input -> toggleVerboseMode());
-        registerInputHandler(ForagerBot.InputKey.scn, this::handleContainerNameChange);
-        registerInputHandler(ForagerBot.InputKey.na, this::handleMaxActionsChange);
-        registerInputHandler(ForagerBot.InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(ForagerBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ForagerBot.InputKey.scn, this::setContainerName);
+        registerInputHandler(ForagerBot.InputKey.na, this::setMaxActions);
+        registerInputHandler(ForagerBot.InputKey.area, this::toggleAreaMode);
+        registerInputHandler(ForagerBot.InputKey.area_speed, this::setAreaModeSpeed);
 
     }
 
@@ -264,7 +263,7 @@ public class ForagerBot extends Bot {
         Utils.consolePrint(foragingTypes.toString());
     }
 
-    private void handleForagingTypeChange(String []input) {
+    private void setForagingType(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForagerBot.InputKey.ft);
             return;
@@ -289,7 +288,7 @@ public class ForagerBot extends Bot {
         Utils.consolePrint(botanizingTypes.toString());
     }
 
-    private void handleBotanizingTypeChange(String []input) {
+    private void setBotanizingType(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForagerBot.InputKey.bt);
             return;
@@ -303,13 +302,13 @@ public class ForagerBot extends Bot {
         this.botanizeType = botanizeType;
     }
 
-    private void handleAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(ForagerBot.InputKey.area);
     }
 
-    private void handleAreaModeSpeedChange(String []input) {
+    private void setAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForagerBot.InputKey.area_speed);
             return;
@@ -332,7 +331,7 @@ public class ForagerBot extends Bot {
         }
     }
 
-    private void handleMaxActionsChange(String [] input) {
+    private void setMaxActions(String [] input) {
         if (input.length != 1 ){
             printInputKeyUsageString(ForagerBot.InputKey.na);
             return;
@@ -345,7 +344,7 @@ public class ForagerBot extends Bot {
         }
     }
 
-    private void handleContainerNameChange(String []input) {
+    private void setContainerName(String []input) {
         if (input.length != 1 ){
             printInputKeyUsageString(ForagerBot.InputKey.scn);
             return;
@@ -469,7 +468,7 @@ public class ForagerBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ForagerBot.InputKey.s);
         else {

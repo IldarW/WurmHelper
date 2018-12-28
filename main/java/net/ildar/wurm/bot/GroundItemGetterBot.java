@@ -17,8 +17,8 @@ public class GroundItemGetterBot extends Bot {
     private static float distance = 4;
 
     public GroundItemGetterBot() {
-        registerInputHandler(GroundItemGetterBot.InputKey.a, this::handleNewItemNameAddition);
-        registerInputHandler(GroundItemGetterBot.InputKey.d, this::handleDistanceChange);
+        registerInputHandler(GroundItemGetterBot.InputKey.a, this::addNewItemName);
+        registerInputHandler(GroundItemGetterBot.InputKey.d, this::setDistance);
     }
     @Override
     public void work() throws Exception{
@@ -76,7 +76,7 @@ public class GroundItemGetterBot extends Bot {
         }
     }
 
-    private void handleNewItemNameAddition(String []input) {
+    private void addNewItemName(String []input) {
         if (input == null || input.length < 1) {
             printInputKeyUsageString(GroundItemGetterBot.InputKey.a);
             return;
@@ -87,7 +87,7 @@ public class GroundItemGetterBot extends Bot {
         addItem(newitem.toString());
     }
 
-    private void handleDistanceChange(String []input) {
+    private void setDistance(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(GroundItemGetterBot.InputKey.d);
             return;

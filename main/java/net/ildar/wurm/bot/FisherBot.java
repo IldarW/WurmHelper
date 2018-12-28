@@ -17,7 +17,7 @@ public class FisherBot extends Bot
     public FisherBot()
     {
         registerInputHandler(FisherBot.InputKey.r, input -> toggleRepairInstrument());
-        registerInputHandler(FisherBot.InputKey.line, input -> handleAutoLineChange());
+        registerInputHandler(FisherBot.InputKey.line, input -> putFishingLine());
 
         repairInstrument = true;
     }
@@ -102,8 +102,8 @@ public class FisherBot extends Bot
             Utils.consolePrint("Rod auto repairing is off!");
     }
 
-    private void handleAutoLineChange() {
-        Utils.consolePrint(getClass().getSimpleName() + " will try to replace a fishing line.");
+    private void putFishingLine() {
+        Utils.consolePrint(getClass().getSimpleName() + " will try to put a fishing line.");
         lineBreaks = true;
     }
 
