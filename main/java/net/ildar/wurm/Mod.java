@@ -11,6 +11,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.CtNewMethod;
 import net.ildar.wurm.bot.Bot;
 import net.ildar.wurm.bot.BulkItemGetterBot;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -502,14 +504,17 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             });
 
             final CtClass ctSocketConnection = classPool.getCtClass("com.wurmonline.communication.SocketConnection");
-            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.blockingQueue.take();");
-            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
-            ctSocketConnection.getMethod("getBuffer", "()Ljava/nio/ByteBuffer;").insertBefore("net.ildar.wurm.Utils.blockingQueue.take();");
-            ctSocketConnection.getMethod("flush", "()V").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
+            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
+            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
+            ctSocketConnection.getMethod("getBuffer", "()Ljava/nio/ByteBuffer;").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
+            ctSocketConnection.getMethod("flush", "()V").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
 
-            final CtClass ctWurmTextPanel = classPool.getCtClass("com.wurmonline.client.renderer.gui.WurmTextPanel");
-            ctWurmTextPanel.getMethod("gameTick", "()V").insertBefore("net.ildar.wurm.Utils.blockingQueue.take();");
-            ctWurmTextPanel.getMethod("gameTick", "()V").insertAfter("net.ildar.wurm.Utils.blockingQueue.put(new Integer(1));");
+            final CtClass ctConsoleComponent = classPool.getCtClass("com.wurmonline.client.renderer.gui.ConsoleComponent");
+            CtMethod consoleGameTickMethod = CtNewMethod.make("public void gameTick() {\n" +
+                    "        while(!net.ildar.wurm.Utils.consoleMessages.isEmpty()) addLine((String)net.ildar.wurm.Utils.consoleMessages.poll(), 1.0F, 1.0F, 1.0F);\n" +
+                    "        super.gameTick();\n" +
+                    "    };", ctConsoleComponent);
+            ctConsoleComponent.addMethod(consoleGameTickMethod);
             
             final CtClass ctGroundItemCellRenderable = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
             ctGroundItemCellRenderable.getMethod("initialize", "()V").insertBefore("net.ildar.wurm.bot.GroundItemGetterBot.processNewItem($0);");

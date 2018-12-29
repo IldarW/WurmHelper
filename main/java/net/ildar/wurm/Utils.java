@@ -2,55 +2,35 @@ package net.ildar.wurm;
 
 import com.wurmonline.client.game.SkillLogicSet;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
-import com.wurmonline.client.game.inventory.InventoryMetaWindowView;
 import com.wurmonline.client.renderer.gui.*;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Utils {
-    public static ArrayBlockingQueue<Integer> blockingQueue;
-    static {
-        blockingQueue = new ArrayBlockingQueue<Integer>(1);
-        try {
-            blockingQueue.put(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
+    //used to synchronize server calls
+    public static ReentrantLock serverCallLock = new ReentrantLock();
+    //console messages queue
+    public static Queue<String> consoleMessages = new ConcurrentLinkedQueue<>();
     /**
      * Print the message to the console
      */
     public static void consolePrint(String message) {
-        try {
-            blockingQueue.take();
-            HeadsUpDisplay hud = Mod.hud;
-            if (hud != null)
-                hud.consoleOutput(message);
-            blockingQueue.put(1);
-        } catch (InterruptedException e) {
-            blockingQueue.offer(1);
-        }
+        if (message != null)
+            consoleMessages.add(message);
     }
 
     public static void showOnScreenMessage(String message) {
@@ -399,7 +379,7 @@ public class Utils {
         }
         return null;
     }
-    
+
     public static int[][] getAreaCoordinates() {
         int area[][] = new int[9][2];
         int x = Mod.hud.getWorld().getPlayerCurrentTileX();
