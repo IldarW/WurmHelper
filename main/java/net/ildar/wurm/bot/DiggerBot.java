@@ -43,7 +43,7 @@ public class DiggerBot extends Bot{
         registerInputHandler(DiggerBot.InputKey.tr, input -> toggleToolRepairing());
         registerInputHandler(DiggerBot.InputKey.sm, input -> toggleSurfaceMining());
         registerInputHandler(DiggerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(DiggerBot.InputKey.area_speed, this::setAreaModeSpeed);
+        registerInputHandler(DiggerBot.InputKey.area_speed, this::setMovementSpeed);
 
         areaAssistant = new AreaAssistant(this);
         areaAssistant.setMoveAheadDistance(1);
@@ -503,7 +503,7 @@ public class DiggerBot extends Bot{
             printInputKeyUsageString(DiggerBot.InputKey.area);
     }
 
-    private void setAreaModeSpeed(String []input) {
+    private void setMovementSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(DiggerBot.InputKey.area_speed);
             return;

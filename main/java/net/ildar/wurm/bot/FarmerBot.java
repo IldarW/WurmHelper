@@ -42,7 +42,7 @@ public class FarmerBot extends Bot {
         registerInputHandler(FarmerBot.InputKey.dl, this::setDropLimit);
 
         registerInputHandler(FarmerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(FarmerBot.InputKey.area_speed, this::setAreaModeSpeed);
+        registerInputHandler(FarmerBot.InputKey.area_speed, this::setMovementSpeed);
     }
 
     @Override
@@ -282,7 +282,7 @@ public class FarmerBot extends Bot {
         }
     }
 
-    private void setAreaModeSpeed(String []input) {
+    private void setMovementSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(FarmerBot.InputKey.area_speed);
             return;

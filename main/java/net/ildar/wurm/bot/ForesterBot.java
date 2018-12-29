@@ -48,7 +48,7 @@ public class ForesterBot extends Bot {
         registerInputHandler(ForesterBot.InputKey.na, this::setMaxActions);
         registerInputHandler(ForesterBot.InputKey.aim, this::addItemToMove);
         registerInputHandler(ForesterBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ForesterBot.InputKey.area_speed, this::setAreaModeSpeed);
+        registerInputHandler(ForesterBot.InputKey.area_speed, this::setMovementSpeed);
     }
 
     @Override
@@ -245,7 +245,7 @@ public class ForesterBot extends Bot {
             printInputKeyUsageString(ForesterBot.InputKey.area);
     }
 
-    private void setAreaModeSpeed(String []input) {
+    private void setMovementSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForesterBot.InputKey.area_speed);
             return;

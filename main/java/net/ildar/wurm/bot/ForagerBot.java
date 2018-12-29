@@ -66,7 +66,7 @@ public class ForagerBot extends Bot {
         registerInputHandler(ForagerBot.InputKey.scn, this::setContainerName);
         registerInputHandler(ForagerBot.InputKey.na, this::setMaxActions);
         registerInputHandler(ForagerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ForagerBot.InputKey.area_speed, this::setAreaModeSpeed);
+        registerInputHandler(ForagerBot.InputKey.area_speed, this::setMovementSpeed);
 
     }
 
@@ -308,7 +308,7 @@ public class ForagerBot extends Bot {
             printInputKeyUsageString(ForagerBot.InputKey.area);
     }
 
-    private void setAreaModeSpeed(String []input) {
+    private void setMovementSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForagerBot.InputKey.area_speed);
             return;
