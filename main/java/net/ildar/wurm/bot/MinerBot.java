@@ -9,7 +9,6 @@ import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -38,6 +37,7 @@ public class MinerBot extends Bot {
     private boolean verbose = false;
     private boolean noOre;
     private Random random = new Random();
+    private Direction direction = Direction.FORWARD;
 
     public MinerBot() {
         registerInputHandler(MinerBot.InputKey.s, this::handleStaminaThresholdChange);
@@ -59,7 +59,7 @@ public class MinerBot extends Bot {
         registerInputHandler(MinerBot.InputKey.sft, this::handleFuellingTimeoutChange);
         registerInputHandler(MinerBot.InputKey.sfn, this::handleFuelNameChange);
         registerInputHandler(MinerBot.InputKey.v, input -> toggleVerboseMode());
-
+        registerInputHandler(MinerBot.InputKey.dir, this::handleDirectionChange);
     }
 
     @Override
@@ -312,6 +312,27 @@ public class MinerBot extends Bot {
         return type.tilename.equals("Cave") || type.tilename.equals("Reinforced cave");
     }
 
+    private void handleDirectionChange(String[] input) {
+        if (input == null || input.length != 1) {
+            printInputKeyUsageString(MinerBot.InputKey.dir);
+            printCurrentDirection();
+            return;
+        }
+        
+        Direction newDirection = Direction.getByAbbreviation(input[0]);
+        if (newDirection == Direction.UNKNOWN) {
+            printInputKeyUsageString(MinerBot.InputKey.dir);
+            return;
+        }
+
+        direction = newDirection;
+        printCurrentDirection();
+    }
+
+    private void printCurrentDirection() {
+        Utils.consolePrint("Current direction is \"" + direction.abbreviation + "\"");
+    }
+
     private void toggleVerboseMode() {
         verbose = !verbose;
         Utils.consolePrint(getClass().getSimpleName() + " is " + (verbose?"":"not ") + "verbose");
@@ -562,11 +583,12 @@ public class MinerBot extends Bot {
 
     private void sendMineActions(long tileId) {
         if (verbose) Utils.consolePrint("Mining tile " + tileId);
+
         for (int i = 0; i < clicks; i++)
             Mod.hud.getWorld().getServerConnection().sendAction(
                     pickaxe.getId(),
                     new long[]{tileId},
-                    PlayerAction.MINE_FORWARD);
+                    direction.action);
     }
 
     private void handleStaminaThresholdChange(String input[]) {
@@ -688,7 +710,8 @@ public class MinerBot extends Bot {
         ssm("Set a smelter(under the mouse cursor) for smelting ores", ""),
         sft("Set a smelter fuelling timeout for smelting ores", "timeout(in milliseconds)"),
         sfn("Set a name for the fuel for smelting ores", "name"),
-        v("Toggle the verbose mode. While verbose bot will show additional info in console", "");
+        v("Toggle the verbose mode. While verbose bot will show additional info in console", ""),
+        dir("Set mining direction. Possible directions are: f - forward, u - upward, d - downward. Forward is default direction.", "direction");
 
         private String description;
         private String usage;
@@ -710,6 +733,28 @@ public class MinerBot extends Bot {
         @Override
         public String getUsage() {
             return usage;
+        }
+    }
+
+    enum Direction {
+        UNKNOWN("", PlayerAction.MINE_FORWARD),
+        FORWARD("f", PlayerAction.MINE_FORWARD),
+        UPWARD("u", PlayerAction.MINE_UP),
+        DOWNWARD("d", PlayerAction.MINE_DOWN);
+
+        String abbreviation;
+        PlayerAction action;
+        Direction(String abbreviation, PlayerAction action)
+        {
+            this.abbreviation = abbreviation;
+            this.action = action;
+        }
+
+        static Direction getByAbbreviation(String abbreviation) {
+            for(Direction direction : values())
+                if (direction.abbreviation.equals(abbreviation))
+                    return direction;
+            return UNKNOWN;
         }
     }
 }
