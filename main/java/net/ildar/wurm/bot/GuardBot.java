@@ -17,10 +17,10 @@ public class GuardBot extends Bot {
     private long alarmTimeout;
 
     public GuardBot() {
-        registerInputHandler(GuardBot.InputKey.a, this::handleKeywordAddition);
-        registerInputHandler(GuardBot.InputKey.at, this::handleAlarmTimeoutChange);
+        registerInputHandler(GuardBot.InputKey.a, this::addKeyword);
+        registerInputHandler(GuardBot.InputKey.at, this::setAlarmTimeout);
         registerInputHandler(GuardBot.InputKey.soundtest, input -> playSound());
-        registerInputHandler(GuardBot.InputKey.cs, this::handleSoundFileChange);
+        registerInputHandler(GuardBot.InputKey.cs, this::setSoundFileName);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class GuardBot extends Bot {
         Utils.consolePrint("Current alarm timeout is " + timeout + " milliseconds");
     }
 
-    private void handleAlarmTimeoutChange(String[] input) {
+    private void setAlarmTimeout(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(GuardBot.InputKey.at);
             return;
@@ -76,7 +76,7 @@ public class GuardBot extends Bot {
         }
     }
 
-    private void handleKeywordAddition(String []input) {
+    private void addKeyword(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(GuardBot.InputKey.a);
             return;
@@ -106,7 +106,7 @@ public class GuardBot extends Bot {
 
     }
 
-    private void handleSoundFileChange(String [] input) {
+    private void setSoundFileName(String [] input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(GuardBot.InputKey.cs);
             return;

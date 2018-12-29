@@ -40,10 +40,10 @@ public class MinerBot extends Bot {
     private Direction direction = Direction.FORWARD;
 
     public MinerBot() {
-        registerInputHandler(MinerBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(MinerBot.InputKey.c, this::handleClicksChange);
+        registerInputHandler(MinerBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(MinerBot.InputKey.c, this::setClicksNumber);
         registerInputHandler(MinerBot.InputKey.sc, input -> toggleShardsCombining());
-        registerInputHandler(MinerBot.InputKey.scn, this::hangleCombiningShardsNameChange);
+        registerInputHandler(MinerBot.InputKey.scn, this::setCombiningShardsName);
         registerInputHandler(MinerBot.InputKey.fixed, input -> setFixedMiningMode());
         registerInputHandler(MinerBot.InputKey.st, input -> setSelectedTileMiningMode());
         registerInputHandler(MinerBot.InputKey.area, input -> setAreaMiningMode());
@@ -51,13 +51,13 @@ public class MinerBot extends Bot {
         registerInputHandler(MinerBot.InputKey.o, input -> toggleOreMining());
         registerInputHandler(MinerBot.InputKey.m, input -> toggleMoving());
         registerInputHandler(MinerBot.InputKey.sm, input -> toggleSmelting());
-        registerInputHandler(MinerBot.InputKey.at, this::handleTargetAddition);
-        registerInputHandler(MinerBot.InputKey.ati, this::handleTargetInventoryAddition);
-        registerInputHandler(MinerBot.InputKey.atid, this::handleTargetIdAddition);
+        registerInputHandler(MinerBot.InputKey.at, this::addTarget);
+        registerInputHandler(MinerBot.InputKey.ati, this::addTargetInventory);
+        registerInputHandler(MinerBot.InputKey.atid, this::addTargetById);
         registerInputHandler(MinerBot.InputKey.sp, input -> setPile());
         registerInputHandler(MinerBot.InputKey.ssm, input -> setSmelter());
-        registerInputHandler(MinerBot.InputKey.sft, this::handleFuellingTimeoutChange);
-        registerInputHandler(MinerBot.InputKey.sfn, this::handleFuelNameChange);
+        registerInputHandler(MinerBot.InputKey.sft, this::setFuellingTimeout);
+        registerInputHandler(MinerBot.InputKey.sfn, this::setFuelName);
         registerInputHandler(MinerBot.InputKey.v, input -> toggleVerboseMode());
         registerInputHandler(MinerBot.InputKey.dir, this::handleDirectionChange);
     }
@@ -338,7 +338,7 @@ public class MinerBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " is " + (verbose?"":"not ") + "verbose");
     }
 
-    private void handleFuellingTimeoutChange(String [] input) {
+    private void setFuellingTimeout(String [] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.sft);
             return;
@@ -351,7 +351,7 @@ public class MinerBot extends Bot {
         }
     }
 
-    private void handleFuelNameChange(String []input) {
+    private void setFuelName(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(MinerBot.InputKey.sfn);
             return;
@@ -363,19 +363,29 @@ public class MinerBot extends Bot {
         Utils.consolePrint("New fuel name is " + this.fuel);
     }
 
-    private void handleTargetAddition(String []input) {
+    private void addTarget(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.at);
             return;
         }
         try {
-            addTarget(Float.parseFloat(input[0]));
+            float minQuality = Float.parseFloat(input[0]);
+            int x = Mod.hud.getWorld().getClient().getXMouse();
+            int y = Mod.hud.getWorld().getClient().getYMouse();
+            long[] container = Mod.hud.getCommandTargetsFrom(x, y);
+            if (container != null && container.length > 0) {
+                smeltingOptions.containers.add(new Pair<>(container[0], minQuality));
+                smeltingOptions.containers.sort(Comparator.comparingDouble(Pair::getValue));
+                Utils.consolePrint("Added a new target with id - " + container[0] +
+                        " and minimum quality - " + String.format("%.2f", minQuality));
+            } else
+                Utils.consolePrint("Couldn't find the target for " + getClass().getSimpleName());
         } catch (NumberFormatException e) {
             Utils.consolePrint("Invalid value");
         }
     }
 
-    private void handleTargetIdAddition(String []input) {
+    private void addTargetById(String []input) {
         if (input == null || input.length != 2) {
             printInputKeyUsageString(MinerBot.InputKey.atid);
             return;
@@ -392,7 +402,7 @@ public class MinerBot extends Bot {
         }
     }
 
-    private void handleTargetInventoryAddition(String []input) {
+    private void addTargetInventory(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.ati);
             return;
@@ -449,7 +459,7 @@ public class MinerBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " will mine the selected tile");
     }
 
-    private void handleClicksChange(String []input) {
+    private void setClicksNumber(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MinerBot.InputKey.c);
             return;
@@ -465,7 +475,7 @@ public class MinerBot extends Bot {
         }
     }
 
-    private void hangleCombiningShardsNameChange(String []input) {
+    private void setCombiningShardsName(String []input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(MinerBot.InputKey.scn);
             return;
@@ -591,7 +601,7 @@ public class MinerBot extends Bot {
                     direction.action);
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(MinerBot.InputKey.s);
         else {
@@ -607,19 +617,6 @@ public class MinerBot extends Bot {
     private void setStaminaThreshold(float s) {
         staminaThreshold = s;
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
-    }
-
-    private void addTarget(float minQuality) {
-        int x = Mod.hud.getWorld().getClient().getXMouse();
-        int y = Mod.hud.getWorld().getClient().getYMouse();
-        long[] container = Mod.hud.getCommandTargetsFrom(x, y);
-        if (container != null && container.length > 0) {
-            smeltingOptions.containers.add(new Pair<>(container[0], minQuality));
-            smeltingOptions.containers.sort(Comparator.comparingDouble(Pair::getValue));
-            Utils.consolePrint("Added a new target with id - " + container[0] +
-                    " and minimum quality - " + String.format("%.2f", minQuality));
-        } else
-            Utils.consolePrint("Couldn't find the target for " + getClass().getSimpleName());
     }
 
     private void addTargetContainer(float minQuality) {

@@ -5,7 +5,6 @@ import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
 import com.wurmonline.shared.util.MaterialUtilities;
-import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -22,12 +21,12 @@ public class ImproverBot extends Bot {
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     public ImproverBot() {
-        registerInputHandler(ImproverBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ImproverBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(ImproverBot.InputKey.at, input -> addTarget());
         registerInputHandler(ImproverBot.InputKey.ls, input -> listAvailableSkills());
-        registerInputHandler(ImproverBot.InputKey.g, this::handleGroundModeChange);
+        registerInputHandler(ImproverBot.InputKey.g, this::toggleGroundMode);
         registerInputHandler(ImproverBot.InputKey.ci, input -> changeInstrument());
-        registerInputHandler(ImproverBot.InputKey.ss, this::handleSkillChange);
+        registerInputHandler(ImproverBot.InputKey.ss, this::setToolSkill);
 
         tools.add(new Tool(1201, "carving knife", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY))));
         tools.add(new Tool(741, "mallet", true, false, new HashSet<>(Arrays.asList(ToolSkill.CARPENTRY, ToolSkill.LEATHERWORKING))));
@@ -263,7 +262,7 @@ public class ImproverBot extends Bot {
         }
     }
 
-    private void handleSkillChange(String[] input) {
+    private void setToolSkill(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ImproverBot.InputKey.ss);
             return;
@@ -277,7 +276,7 @@ public class ImproverBot extends Bot {
         }
     }
 
-    private void handleGroundModeChange(String input[]) {
+    private void toggleGroundMode(String input[]) {
         if (groundMode) {
             groundMode = false;
             Utils.consolePrint("Ground mode is off!");
@@ -291,7 +290,7 @@ public class ImproverBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ImproverBot.InputKey.s);
         else {

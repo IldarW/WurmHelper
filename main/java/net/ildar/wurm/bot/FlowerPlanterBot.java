@@ -18,7 +18,7 @@ public class FlowerPlanterBot extends Bot {
     private long shovelId;
 
     public FlowerPlanterBot() {
-        registerInputHandler(FlowerPlanterBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(FlowerPlanterBot.InputKey.s, this::setStaminaThreshold);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class FlowerPlanterBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(FlowerPlanterBot.InputKey.s);
         else {

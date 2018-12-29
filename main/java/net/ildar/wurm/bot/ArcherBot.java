@@ -15,14 +15,14 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.Map;
 
 public class ArcherBot extends Bot {
-    public static boolean stringBreaks;
+    private static boolean stringBreaks;
 
     private float staminaThreshold;
     private InventoryMetaItem bow;
 
     public ArcherBot() {
-        registerInputHandler(ArcherBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(ArcherBot.InputKey.string, input -> handleAutoStringChange());
+        registerInputHandler(ArcherBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(ArcherBot.InputKey.string, input -> stringTheBow());
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ArcherBot extends Bot {
         registerMessageProcessor(":Combat", message -> message.contains("The string breaks!"), () -> stringBreaks = true);
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ArcherBot.InputKey.s);
         else {
@@ -119,7 +119,7 @@ public class ArcherBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleAutoStringChange() {
+    private void stringTheBow() {
         Utils.consolePrint(getClass().getSimpleName() + " will try to string the bow.");
         stringBreaks = true;
     }

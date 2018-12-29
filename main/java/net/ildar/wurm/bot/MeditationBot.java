@@ -15,9 +15,9 @@ public class MeditationBot extends Bot {
     private boolean repairInitiated;
 
     public MeditationBot() {
-        registerInputHandler(MeditationBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(MeditationBot.InputKey.c, this::handleClicksChange);
-        registerInputHandler(MeditationBot.InputKey.rt, this::handleRepairTimeoutChange);
+        registerInputHandler(MeditationBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(MeditationBot.InputKey.c, this::setClicksNumber);
+        registerInputHandler(MeditationBot.InputKey.rt, this::setRepairTimeout);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class MeditationBot extends Bot {
                 || message.contains("you will start repairing"), () -> repairInitiated = true);
     }
 
-    private void handleRepairTimeoutChange(String []input){
+    private void setRepairTimeout(String []input){
         if (input == null || input.length != 1) {
             printInputKeyUsageString(MeditationBot.InputKey.rt);
             return;
@@ -92,7 +92,7 @@ public class MeditationBot extends Bot {
         Utils.consolePrint("Current carpet repair timeout is " + repairTimeout + " milliseconds");
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(MeditationBot.InputKey.s);
         else {
@@ -110,7 +110,7 @@ public class MeditationBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleClicksChange(String input[]) {
+    private void setClicksNumber(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(MeditationBot.InputKey.c);
         else {

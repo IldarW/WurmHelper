@@ -15,8 +15,8 @@ public class ProspectorBot extends Bot {
     private int clicks;
 
     public ProspectorBot() {
-        registerInputHandler(ProspectorBot.InputKey.s, this::handleStaminaThresholdChange);
-        registerInputHandler(ProspectorBot.InputKey.c, this::handleClicksChange);
+        registerInputHandler(ProspectorBot.InputKey.s, this::setStaminaThreshold);
+        registerInputHandler(ProspectorBot.InputKey.c, this::setClicksNumber);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ProspectorBot extends Bot {
         }
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ProspectorBot.InputKey.s);
         else {
@@ -78,7 +78,7 @@ public class ProspectorBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void handleClicksChange(String []input) {
+    private void setClicksNumber(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ProspectorBot.InputKey.c);
             return;

@@ -67,25 +67,25 @@ public class AssistantBot extends Bot {
 
     public AssistantBot() {
         registerInputHandler(AssistantBot.InputKey.w, input -> toggleDrinking(0));
-        registerInputHandler(AssistantBot.InputKey.wid, this::handleDrinkingTargetIdChange);
+        registerInputHandler(AssistantBot.InputKey.wid, this::toggleDrinkingByTargetId);
         registerInputHandler(AssistantBot.InputKey.ls, input -> showSpellList());
-        registerInputHandler(AssistantBot.InputKey.c, this::handleAutocastingChange);
+        registerInputHandler(AssistantBot.InputKey.c, this::toggleAutocasting);
         registerInputHandler(AssistantBot.InputKey.p, input -> togglePraying(0));
-        registerInputHandler(AssistantBot.InputKey.pt, this::handlePrayerTimeoutChange);
-        registerInputHandler(AssistantBot.InputKey.pid, this::handlePrayingAltarIdChange);
+        registerInputHandler(AssistantBot.InputKey.pt, this::setPrayerTimeout);
+        registerInputHandler(AssistantBot.InputKey.pid, this::togglePrayingByAltarId);
         registerInputHandler(AssistantBot.InputKey.s, input -> toggleSacrificing(0));
-        registerInputHandler(AssistantBot.InputKey.st, this::handleSacrificeTimeoutChange);
-        registerInputHandler(AssistantBot.InputKey.sid, this::handleSacrificingAltarIdChange);
+        registerInputHandler(AssistantBot.InputKey.st, this::setSacrificeTimeout);
+        registerInputHandler(AssistantBot.InputKey.sid, this::toggleSacrificingByAltarId);
         registerInputHandler(AssistantBot.InputKey.kb, input -> toggleKindlingBurns(0));
-        registerInputHandler(AssistantBot.InputKey.kbt, this::handleKindlingBurnsTimeoutChange);
-        registerInputHandler(AssistantBot.InputKey.kbid, this::handleKindlingBurningForgeIdChange);
+        registerInputHandler(AssistantBot.InputKey.kbt, this::setKindlingBurnsTimeout);
+        registerInputHandler(AssistantBot.InputKey.kbid, this::toggleKindlingBurningByForgeId);
         registerInputHandler(AssistantBot.InputKey.cwov, input -> toggleWOVCasting());
         registerInputHandler(AssistantBot.InputKey.cleanup, input -> toggleTrashCleaning(0));
-        registerInputHandler(AssistantBot.InputKey.cleanupt, this::handleTrashCleaningTimeoutChange);
-        registerInputHandler(AssistantBot.InputKey.cleanupid, this::handleTrashCleaningTargetIdChange);
+        registerInputHandler(AssistantBot.InputKey.cleanupt, this::setTrashCleaningTimeout);
+        registerInputHandler(AssistantBot.InputKey.cleanupid, this::toggleTrashCleaningByTargetId);
         registerInputHandler(AssistantBot.InputKey.l, input -> toggleLockpicking(0));
-        registerInputHandler(AssistantBot.InputKey.lt, this::handleLockpickingTimeoutChange);
-        registerInputHandler(AssistantBot.InputKey.lid, this::handleLockpickingTargetIdChange);
+        registerInputHandler(AssistantBot.InputKey.lt, this::setLockpickingTimeout);
+        registerInputHandler(AssistantBot.InputKey.lid, this::toggleLockpickingByTargetId);
         registerInputHandler(AssistantBot.InputKey.v, input -> toggleVerbosity());
     }
 
@@ -317,7 +317,7 @@ public class AssistantBot extends Bot {
                 () -> successfullStartOfSacrificing = true);
     }
 
-    private void handleDrinkingTargetIdChange(String input[]) {
+    private void toggleDrinkingByTargetId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.wid);
             return;
@@ -329,7 +329,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void handleLockpickingTargetIdChange(String input[]) {
+    private void toggleLockpickingByTargetId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.lid);
             return;
@@ -342,7 +342,7 @@ public class AssistantBot extends Bot {
     }
 
 
-    private void handleTrashCleaningTargetIdChange(String input[]) {
+    private void toggleTrashCleaningByTargetId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.cleanupid);
             return;
@@ -354,7 +354,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void handlePrayingAltarIdChange(String input[]) {
+    private void togglePrayingByAltarId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.pid);
             return;
@@ -366,7 +366,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void handleSacrificingAltarIdChange(String input[]) {
+    private void toggleSacrificingByAltarId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.sid);
             return;
@@ -378,7 +378,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void handleKindlingBurningForgeIdChange(String input[]) {
+    private void toggleKindlingBurningByForgeId(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.kbid);
             return;
@@ -390,7 +390,7 @@ public class AssistantBot extends Bot {
         }
     }
 
-    private void handleKindlingBurnsTimeoutChange(String input[]) {
+    private void setKindlingBurnsTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.kbt);
             return;
@@ -415,7 +415,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current kindling burn timeout is " + kindlingBurningTimeout);
     }
 
-    private void handlePrayerTimeoutChange(String input[]) {
+    private void setPrayerTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.pt);
             return;
@@ -440,7 +440,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current prayer timeout is " + prayingTimeout);
     }
 
-    private void handleTrashCleaningTimeoutChange(String input[]) {
+    private void setTrashCleaningTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.cleanupt);
             return;
@@ -465,7 +465,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current trash cleaning timeout is " + trashCleaningTimeout);
     }
 
-    private void handleSacrificeTimeoutChange(String input[]) {
+    private void setSacrificeTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.st);
             return;
@@ -490,7 +490,7 @@ public class AssistantBot extends Bot {
         Utils.consolePrint("Current sacrifice timeout is " + sacrificeTimeout);
     }
 
-    private void handleLockpickingTimeoutChange(String input[]) {
+    private void setLockpickingTimeout(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(AssistantBot.InputKey.lt);
             return;
@@ -549,7 +549,7 @@ public class AssistantBot extends Bot {
             Utils.consolePrint(enchant.name() + " " + enchant.abbreviation);
     }
 
-    private void handleAutocastingChange(String [] input) {
+    private void toggleAutocasting(String [] input) {
         casting = !casting;
         if (casting) {
             try {

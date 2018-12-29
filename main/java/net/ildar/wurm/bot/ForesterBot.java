@@ -7,7 +7,6 @@ import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
@@ -39,17 +38,17 @@ public class ForesterBot extends Bot {
     private static int toHarvest;
 
     public ForesterBot() {
-        registerInputHandler(ForesterBot.InputKey.s, this::handleStaminaThresholdChange);
+        registerInputHandler(ForesterBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(ForesterBot.InputKey.ca, input -> toggleAllTreesCutting());
         registerInputHandler(ForesterBot.InputKey.cs, input -> toggleShriveledTreesChopping());
         registerInputHandler(ForesterBot.InputKey.df, input -> toggleDeforestation());
         registerInputHandler(ForesterBot.InputKey.h, input -> toggleHarvesting());
         registerInputHandler(ForesterBot.InputKey.p, input -> togglePlanting());
-        registerInputHandler(ForesterBot.InputKey.scn, this::handleContainerNameChange);
-        registerInputHandler(ForesterBot.InputKey.na, this::handleMaxActionsChange);
-        registerInputHandler(ForesterBot.InputKey.aim, this::handleAddingItemToMove);
-        registerInputHandler(ForesterBot.InputKey.area, this::handleAreaModeChange);
-        registerInputHandler(ForesterBot.InputKey.area_speed, this::handleAreaModeSpeedChange);
+        registerInputHandler(ForesterBot.InputKey.scn, this::setContainerName);
+        registerInputHandler(ForesterBot.InputKey.na, this::setMaxActions);
+        registerInputHandler(ForesterBot.InputKey.aim, this::addItemToMove);
+        registerInputHandler(ForesterBot.InputKey.area, this::toggleAreaMode);
+        registerInputHandler(ForesterBot.InputKey.area_speed, this::setMovementSpeed);
     }
 
     @Override
@@ -240,13 +239,13 @@ public class ForesterBot extends Bot {
         lastActionFinishedTime = System.currentTimeMillis();
     }
 
-    private void handleAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(ForesterBot.InputKey.area);
     }
 
-    private void handleAreaModeSpeedChange(String []input) {
+    private void setMovementSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForesterBot.InputKey.area_speed);
             return;
@@ -269,7 +268,7 @@ public class ForesterBot extends Bot {
         }
     }
 
-    private void handleAddingItemToMove(String []input) {
+    private void addItemToMove(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForesterBot.InputKey.aim);
             return;
@@ -278,7 +277,7 @@ public class ForesterBot extends Bot {
         Utils.consolePrint("Items with name \"" + input[0] + "\" will be moved to containers");
     }
 
-    private void handleMaxActionsChange(String [] input) {
+    private void setMaxActions(String [] input) {
         if (input.length != 1 ){
             printInputKeyUsageString(ForesterBot.InputKey.na);
             return;
@@ -291,7 +290,7 @@ public class ForesterBot extends Bot {
         }
     }
 
-    private void handleContainerNameChange(String []input) {
+    private void setContainerName(String []input) {
         if (input.length != 1 ){
             printInputKeyUsageString(ForesterBot.InputKey.scn);
             return;
@@ -378,7 +377,7 @@ public class ForesterBot extends Bot {
             Utils.consolePrint("Deforesting is off!");
     }
 
-    private void handleStaminaThresholdChange(String input[]) {
+    private void setStaminaThreshold(String input[]) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ForesterBot.InputKey.s);
         else {

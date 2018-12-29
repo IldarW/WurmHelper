@@ -48,12 +48,12 @@ public class BulkItemGetterBot extends Bot {
     public BulkItemGetterBot() {
         registerInputHandler(BulkItemGetterBot.InputKey.as, input -> addSource());
         registerInputHandler(BulkItemGetterBot.InputKey.at, input -> addTarget());
-        registerInputHandler(BulkItemGetterBot.InputKey.asid, this::handleSourceIdAdding);
-        registerInputHandler(BulkItemGetterBot.InputKey.atid, this::handleTargetIdAdding);
+        registerInputHandler(BulkItemGetterBot.InputKey.asid, this::addSourceById);
+        registerInputHandler(BulkItemGetterBot.InputKey.atid, this::addTargetById);
         registerInputHandler(BulkItemGetterBot.InputKey.ssxy, input -> addFixedPointSource());
     }
 
-    private void handleSourceIdAdding(String input[]) {
+    private void addSourceById(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(BulkItemGetterBot.InputKey.asid);
             return;
@@ -68,7 +68,7 @@ public class BulkItemGetterBot extends Bot {
         }
     }
 
-    private void handleTargetIdAdding(String input[]) {
+    private void addTargetById(String input[]) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(BulkItemGetterBot.InputKey.atid);
             return;
