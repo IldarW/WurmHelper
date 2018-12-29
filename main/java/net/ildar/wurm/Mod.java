@@ -409,11 +409,13 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         }
 
         if (Bot.isInstantiated(botClass)) {
-            if (data[1].equals("on")) {
+            Bot botInstance = Bot.getInstance(botClass);
+            if (botInstance.isInterrupted()) {
+                Utils.consolePrint(botClass.getSimpleName() + " is trying to stop");
+            } else if (data[1].equals("on")) {
                 Utils.consolePrint(botClass.getSimpleName() + " is already on");
             } else {
                 try {
-                    Bot botInstance = Bot.getInstance(botClass);
                     botInstance.handleInput(Arrays.copyOfRange(data, 1, data.length));
                 } catch (Exception e) {
                     Utils.consolePrint("Unable to configure  " + botClass.getSimpleName());
