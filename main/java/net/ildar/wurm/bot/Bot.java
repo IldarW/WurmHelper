@@ -107,10 +107,7 @@ public abstract class Bot extends Thread {
 
     public static synchronized void deactivateAllBots() {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
-        for (Bot bot : bots) {
-            Utils.consolePrint("Deactivating " + bot.getClass().getSimpleName());
-            bot.deactivate();
-        }
+        bots.forEach(Bot::deactivate);
     }
 
     public static synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
@@ -192,32 +189,32 @@ public abstract class Bot extends Thread {
         try {
             work();
         } catch (InterruptedException ignored) {
-        } catch(NullPointerException e) {
-            e.printStackTrace();
         } catch(Exception e) {
             Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
             Utils.consolePrint( e.toString());
         }
         unregisterMessageProcessors();
-        Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
-        int botIndex = activeBots.indexOf(this);
-        if (botIndex >= 0)
-            activeBots.remove(botIndex);
-    }
-
-    public synchronized boolean isActive() {
-        return activeBots.contains(this) && !isInterrupted();
-    }
-
-    public synchronized void deactivate() {
-        int botIndex = activeBots.indexOf(this);
-        if (botIndex < 0) {
-            Utils.consolePrint(this.getClass().getSimpleName() + " is not on");
-            return;
+        synchronized (Bot.class) {
+            activeBots.remove(this);
         }
-        Bot bot = activeBots.get(botIndex);
-        bot.interrupt();
-        activeBots.remove(botIndex);
+        Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
+    }
+
+    public boolean isActive() {
+        synchronized (Bot.class) {
+            return activeBots.contains(this) && !isInterrupted();
+        }
+    }
+
+    public void deactivate() {
+        synchronized (Bot.class) {
+            if (!super.isAlive()) {
+                activeBots.remove(this);
+                return;
+            }
+            Utils.consolePrint("Deactivating " + getClass().getSimpleName());
+            interrupt();
+        }
     }
 
     protected String getAbbreviation() {
