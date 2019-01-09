@@ -3,6 +3,7 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.game.PlayerObj;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.TreeData;
@@ -10,6 +11,7 @@ import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
+import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,9 +73,12 @@ public class TreeCutterBot extends Bot{
             hatchetId = hatchet.getId();
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + hatchet.getDisplayName() + " with QL:" + hatchet.getQuality() + " DMG:" + hatchet.getDamage());
         }
+        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
 
-        registerEventProcessors();
         while (isActive()) {
+            float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
+
             float stamina = player.getStamina();
             float damage = player.getDamage();
 
@@ -109,7 +114,7 @@ public class TreeCutterBot extends Bot{
                         }
                     }
                 }
-                if (queuedTiles.size() == 0 && areaAssistant.areaTourActivated())
+                if (queuedTiles.size() == 0 && areaAssistant.areaTourActivated() && progress == 0f)
                     areaAssistant.areaNextPosition();
 
             }
@@ -128,9 +133,6 @@ public class TreeCutterBot extends Bot{
                 Utils.consolePrint("Wrong threshold value!");
             }
         }
-    }
-
-    private void registerEventProcessors() {
     }
 
     private void setTreeType(String[] strings) {
@@ -161,7 +163,7 @@ public class TreeCutterBot extends Bot{
             printInputKeyUsageString(TreeCutterBot.InputKey.a);
             return;
         }
-        minTreeAge = TreeAge.getByAbbreviation(input[0]);
+        minTreeAge = TreeAge.getByName(input[0]);
 
         Utils.consolePrint("Minimal tree age set to " +minTreeAge.name+"!");
     }
@@ -251,7 +253,7 @@ public class TreeCutterBot extends Bot{
     }
 
     private enum TreeAge {
-        //all, mature, old, very old, overaged, shivered
+        //any, mature, old, very old, overaged, shivered
         any(0,"any"),
         m(4,"mature"),
         o(8,"old"),
@@ -267,9 +269,9 @@ public class TreeCutterBot extends Bot{
         public int id;
         public String name;
 
-        static TreeAge getByAbbreviation(String abbreviation) {
+        static TreeAge getByName(String name) {
             for (TreeAge treeAge : values())
-                if (treeAge.name().equals(abbreviation))
+                if (treeAge.name().equals(name))
                     return treeAge;
             return any;
         }
