@@ -345,11 +345,14 @@ public class ForagerBot extends Bot {
     }
 
     private void setContainerName(String []input) {
-        if (input.length != 1 ){
+        if (input.length < 1 ){
             printInputKeyUsageString(ForagerBot.InputKey.scn);
             return;
         }
-        containerName = input[0];
+        StringBuilder containerNameBuilder = new StringBuilder(input[0]);
+        for (int i = 1; i < input.length; i++)
+            containerNameBuilder.append(" ").append(input[i]);
+        containerName = containerNameBuilder.toString();
         Utils.consolePrint("Container name was set to \"" + containerName + "\"");
     }
 
