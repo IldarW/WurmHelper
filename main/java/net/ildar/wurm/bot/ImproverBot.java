@@ -229,7 +229,10 @@ public class ImproverBot extends Bot {
                         || message.contains("needs some holes punched with an awl")
                         || message.contains("has some holes and must be tailored with an iron needle to improve")
                         || message.contains("in order to smooth out a quirk")
-                        || message.contains("some flaws that must be fixed with a clay shaper"),
+                        || message.contains("some flaws that must be fixed with a clay shaper")
+                        || message.contains("needs to be sharpened")
+                        || message.contains("has some dents that must be flattened")
+                        || message.contains("dipping it in water"),
                 () -> improveActionFinished = true);
     }
 
