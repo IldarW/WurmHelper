@@ -24,8 +24,8 @@ public class TreeCutterBot extends Bot{
 
     private TreeAge minTreeAge;
     private String treeType;
-    private boolean cutBushes;
-    private boolean cutSprouting;
+    private boolean bushCutting;
+    private boolean sproutCutting;
 
     private long hatchetId;
     private long lastActionFinishedTime;
@@ -37,26 +37,26 @@ public class TreeCutterBot extends Bot{
     public TreeCutterBot(){
         registerInputHandler(InputKey.s, this::setStaminaThreshold);
         registerInputHandler(InputKey.c, this::setMaxActions);
-        registerInputHandler(InputKey.area, this::setAreaModeChange);
+        registerInputHandler(InputKey.area, this::toggleAreaMode);
         registerInputHandler(InputKey.area_speed, this::setAreaModeSpeedChange);
-        registerInputHandler(InputKey.a, this::setMinAgeChange);
+        registerInputHandler(InputKey.a, this::setMinAge);
         registerInputHandler(InputKey.al, input-> showAgesList());
         registerInputHandler(InputKey.tt, this::setTreeType);
-        registerInputHandler(InputKey.b, input->toggleCutBushes());
-        registerInputHandler(InputKey.sp, input->toggleCutSprouting());
+        registerInputHandler(InputKey.b, input-> toggleBushCutting());
+        registerInputHandler(InputKey.sp, input-> toggleSproutCutting());
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
 
-        cutBushes = false;
-        cutSprouting = true;
+        bushCutting = false;
+        sproutCutting = true;
         minTreeAge=TreeAge.any;
         treeType="";
     }
 
     @Override
     public void work() throws Exception {
-        setStaminaThresholdValue(0.96f);
+        setStaminaThreshold(0.96f);
         String[] maxActionsNum={""+Utils.getMaxActionNumber()};
         setMaxActions(maxActionsNum);
         World world = Mod.hud.getWorld();
@@ -97,12 +97,12 @@ public class TreeCutterBot extends Bot{
                     byte tileData = world.getNearTerrainBuffer().getData(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
 
 
-                    if (tileType.isTree() || tileType.isBush() && cutBushes) {
+                    if (tileType.isTree() || tileType.isBush() && bushCutting) {
                         FoliageAge fage = FoliageAge.getFoliageAge(tileData);
                         TreeData.TreeType ttype = tileType.getTreeType(tileData);
 
                         boolean isRightAge=fage.getAgeId() >= minTreeAge.id;
-                        boolean isCutSprouts = cutSprouting || !Arrays.asList(sproutingAgeId).contains(fage.getAgeId());
+                        boolean isCutSprouts = sproutCutting || !Arrays.asList(sproutingAgeId).contains(fage.getAgeId());
                         boolean isRightType = treeType.equals("") || treeType.contains(TreeData.TreeType.fromInt(ttype.getTypeId()).toString().toLowerCase());
 
                         if(isRightAge && isCutSprouts && isRightType){
@@ -128,7 +128,7 @@ public class TreeCutterBot extends Bot{
         else {
             try {
                 float threshold = Float.parseFloat(input[0]);
-                setStaminaThresholdValue(threshold);
+                setStaminaThreshold(threshold);
             } catch (Exception e) {
                 Utils.consolePrint("Wrong threshold value!");
             }
@@ -144,26 +144,26 @@ public class TreeCutterBot extends Bot{
         treeType = String.join(" ", strings).toLowerCase();
         Utils.consolePrint("The bot cut " +treeType);
     }
-    private void toggleCutBushes() {
-        cutBushes=!cutBushes;
-        if (cutBushes)
+    private void toggleBushCutting() {
+        bushCutting=!bushCutting;
+        if (bushCutting)
             Utils.consolePrint("Bushes cutting is on!");
         else
             Utils.consolePrint("Bushes cutting is off!");
     }
-    private void toggleCutSprouting() {
-        cutSprouting=!cutSprouting;
-        if (cutSprouting)
+    private void toggleSproutCutting() {
+        sproutCutting = !sproutCutting;
+        if (sproutCutting)
             Utils.consolePrint("Sprouting trees cutting is on!");
         else
             Utils.consolePrint("Sprouting trees cutting is off!");
     }
-    private void setMinAgeChange(String[] input) {
+    private void setMinAge(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(TreeCutterBot.InputKey.a);
             return;
         }
-        minTreeAge = TreeAge.getByName(input[0]);
+        minTreeAge = TreeAge.getByNameOrAbbreviation(input[0]);
 
         Utils.consolePrint("Minimal tree age set to " +minTreeAge.name+"!");
     }
@@ -177,19 +177,19 @@ public class TreeCutterBot extends Bot{
         Utils.consolePrint(getClass().getSimpleName() + " will do " + maxActions + " chops each time");
     }
 
-    private void setStaminaThresholdValue(float s) {
+    private void setStaminaThreshold(float s) {
         staminaThreshold = s;
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void setAreaModeChange(String []input) {
+    private void toggleAreaMode(String []input) {
         boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
         if (!successfullAreaModeChange)
             printInputKeyUsageString(InputKey.area);
     }
 
     private void showAgesList() {
-        Utils.consolePrint("Spell abbreviation");
+        Utils.consolePrint("Age abbreviation");
         for(TreeAge age : TreeAge.values())
             Utils.consolePrint(age.name + " " + age.name());
     }
@@ -269,9 +269,9 @@ public class TreeCutterBot extends Bot{
         public int id;
         public String name;
 
-        static TreeAge getByName(String name) {
+        static TreeAge getByNameOrAbbreviation(String input) {
             for (TreeAge treeAge : values())
-                if (treeAge.name().equals(name))
+                if (treeAge.name().equals(input) || treeAge.name.equals(input))//name() is collection element name, not name parameter
                     return treeAge;
             return any;
         }
