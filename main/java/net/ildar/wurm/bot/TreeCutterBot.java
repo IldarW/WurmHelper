@@ -25,7 +25,7 @@ public class TreeCutterBot extends Bot{
     private TreeAge minTreeAge;
     private String treeType;
     private boolean bushCutting;
-    private boolean sproutCutting;
+    private boolean sproutingTreeCutting;
 
     private long hatchetId;
     private long lastActionFinishedTime;
@@ -38,18 +38,18 @@ public class TreeCutterBot extends Bot{
         registerInputHandler(InputKey.s, this::setStaminaThreshold);
         registerInputHandler(InputKey.c, this::setMaxActions);
         registerInputHandler(InputKey.area, this::toggleAreaMode);
-        registerInputHandler(InputKey.area_speed, this::setAreaModeSpeedChange);
+        registerInputHandler(InputKey.area_speed, this::setAreaModeSpeed);
         registerInputHandler(InputKey.a, this::setMinAge);
         registerInputHandler(InputKey.al, input-> showAgesList());
         registerInputHandler(InputKey.tt, this::setTreeType);
         registerInputHandler(InputKey.b, input-> toggleBushCutting());
-        registerInputHandler(InputKey.sp, input-> toggleSproutCutting());
+        registerInputHandler(InputKey.sp, input-> toggleSproutingTreeCutting());
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
 
         bushCutting = false;
-        sproutCutting = true;
+        sproutingTreeCutting = true;
         minTreeAge=TreeAge.any;
         treeType="";
     }
@@ -57,8 +57,7 @@ public class TreeCutterBot extends Bot{
     @Override
     public void work() throws Exception {
         setStaminaThreshold(0.96f);
-        String[] maxActionsNum={""+Utils.getMaxActionNumber()};
-        setMaxActions(maxActionsNum);
+        setMaxActions(Utils.getMaxActionNumber());
         World world = Mod.hud.getWorld();
         PlayerObj player = world.getPlayer();
         lastActionFinishedTime = System.currentTimeMillis();
@@ -102,7 +101,7 @@ public class TreeCutterBot extends Bot{
                         TreeData.TreeType ttype = tileType.getTreeType(tileData);
 
                         boolean isRightAge=fage.getAgeId() >= minTreeAge.id;
-                        boolean isCutSprouts = sproutCutting || !Arrays.asList(sproutingAgeId).contains(fage.getAgeId());
+                        boolean isCutSprouts = sproutingTreeCutting || !Arrays.asList(sproutingAgeId).contains(fage.getAgeId());
                         boolean isRightType = treeType.equals("") || treeType.contains(TreeData.TreeType.fromInt(ttype.getTypeId()).toString().toLowerCase());
 
                         if(isRightAge && isCutSprouts && isRightType){
@@ -151,9 +150,9 @@ public class TreeCutterBot extends Bot{
         else
             Utils.consolePrint("Bushes cutting is off!");
     }
-    private void toggleSproutCutting() {
-        sproutCutting = !sproutCutting;
-        if (sproutCutting)
+    private void toggleSproutingTreeCutting() {
+        sproutingTreeCutting = !sproutingTreeCutting;
+        if (sproutingTreeCutting)
             Utils.consolePrint("Sprouting trees cutting is on!");
         else
             Utils.consolePrint("Sprouting trees cutting is off!");
@@ -173,7 +172,11 @@ public class TreeCutterBot extends Bot{
             printInputKeyUsageString(TreeCutterBot.InputKey.c);
             return;
         }
-        this.maxActions = Integer.parseInt(input[0]);
+        setMaxActions(Integer.parseInt(input[0]));
+    }
+
+    private void setMaxActions(int num){
+        this.maxActions = num;
         Utils.consolePrint(getClass().getSimpleName() + " will do " + maxActions + " chops each time");
     }
 
@@ -194,7 +197,7 @@ public class TreeCutterBot extends Bot{
             Utils.consolePrint(age.name + " " + age.name());
     }
 
-    private void setAreaModeSpeedChange(String []input) {
+    private void setAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(InputKey.area_speed);
             return;
