@@ -1,14 +1,19 @@
 package net.ildar.wurm.bot;
 
+import com.wurmonline.client.comm.ServerConnectionListenerClass;
 import com.wurmonline.client.game.PlayerObj;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.GroundItemData;
+import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.CreationWindow;
+import com.wurmonline.client.renderer.structures.StructureData;
 import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.TreeData;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
+import javassist.compiler.ast.Variable;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -16,6 +21,8 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class TreeCutterBot extends Bot{
@@ -75,6 +82,7 @@ public class TreeCutterBot extends Bot{
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
 
+        ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
 
@@ -92,9 +100,20 @@ public class TreeCutterBot extends Bot{
                     Pair<Integer, Integer> coordsPair = new Pair<>(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
                     if (queuedTiles.contains(coordsPair))
                         continue;
+
+                    Map<Long, GroundItemCellRenderable> beeItems = ReflectionUtil.getPrivateField(sscc,
+                            ReflectionUtil.getField(sscc.getClass(), "groundItems"));
+                    beeItems = beeItems.entrySet().stream().filter(entry -> {
+                        try {
+                            GroundItemData groundItemData = ReflectionUtil.getPrivateField(entry.getValue(), ReflectionUtil.getField(entry.getValue().getClass(), "item"));
+                            return groundItemData.getName().contains("hive");
+                        } catch (Exception e) {
+                            Utils.consolePrint(e.getMessage());
+                        }
+                        return false;
+                    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     Tiles.Tile tileType = world.getNearTerrainBuffer().getTileType(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
                     byte tileData = world.getNearTerrainBuffer().getData(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1]);
-
 
                     if (tileType.isTree() || tileType.isBush() && bushCutting) {
                         FoliageAge fage = FoliageAge.getFoliageAge(tileData);
@@ -103,8 +122,17 @@ public class TreeCutterBot extends Bot{
                         boolean isRightAge=fage.getAgeId() >= minTreeAge.id;
                         boolean isCutSprouts = sproutingTreeCutting || !Arrays.asList(sproutingAgeId).contains(fage.getAgeId());
                         boolean isRightType = treeType.equals("") || treeType.contains(TreeData.TreeType.fromInt(ttype.getTypeId()).toString().toLowerCase());
-
-                        if(isRightAge && isCutSprouts && isRightType){
+                        boolean isHive = false;
+                        if (beeItems.size() > 0) {
+                            for (Map.Entry<Long, GroundItemCellRenderable> entry : beeItems.entrySet()) {
+                                Long beeTile = Tiles.getTileId((int) (entry.getValue().getXPos() / 4.0f), (int) (entry.getValue().getYPos() / 4.0f), 0);
+                                if (Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0) == beeTile) {
+                                    isHive = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(isRightAge && isCutSprouts && isRightType && !isHive){
                             world.getServerConnection().sendAction(hatchetId,
                                     new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
                                     PlayerAction.CUT_DOWN);
