@@ -282,11 +282,21 @@ public class Utils {
             if (items == null || items.size() == 0) {
                 return null;
             }
+
+            // first try to find by startsWith 
+            for (InventoryMetaItem invItem : items) {
+                if (invItem.getBaseName().startsWith(item)) {
+                    return invItem;
+                }
+            }
+            
+            // if not found by startsWith lets try to find by contains
             for (InventoryMetaItem invItem : items) {
                 if (invItem.getBaseName().contains(item)) {
                     return invItem;
                 }
             }
+            
         } catch (Exception e) {
             consolePrint("Got error while searching for " + item + " in your inventory. Error - " + e.getMessage());
             consolePrint( e.toString());
