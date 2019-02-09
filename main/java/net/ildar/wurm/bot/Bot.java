@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 public abstract class Bot extends Thread {
     private static List<Bot> activeBots = new ArrayList<>();
+    private static Boolean suspended = false;
 
     /**
      * The list of all bot implementations.
@@ -109,6 +110,21 @@ public abstract class Bot extends Thread {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
         bots.forEach(Bot::deactivate);
     }
+    
+    @SuppressWarnings("deprecation")
+	public static synchronized String pauseAllBots() {
+		List<Bot> bots = new ArrayList<>(Bot.activeBots);
+		String message;
+		if (suspended) {
+			bots.forEach(bot -> bot.resume());
+			message = "resumed";
+		} else {
+			bots.forEach(bot -> bot.suspend());
+			message = "suspended";
+		}
+		suspended = !suspended;
+		return message;
+    }
 
     public static synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
         return Bot.activeBots.stream().anyMatch(bot -> bot.getClass().equals(botClass));
@@ -151,7 +167,7 @@ public abstract class Bot extends Thread {
         StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
         for(BotRegistration botRegistration : botList)
             result.append(botRegistration.abbreviation).append("|");
-        result.append("off}");
+        result.append("pause|off}");
         return result.toString();
     }
 

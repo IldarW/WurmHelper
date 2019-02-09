@@ -397,6 +397,12 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             Bot.deactivateAllBots();
             return;
         }
+        if (data[0].equals("pause")) {
+            String result;
+            result = Bot.pauseAllBots();
+            Utils.consolePrint("Bot has been " + result);
+            return;
+        }
         Class<? extends Bot> botClass = Bot.getBotClass(data[0]);
         if (botClass == null) {
             Utils.consolePrint("Didn't find a bot with abbreviation \"" + data[0] + "\"");
