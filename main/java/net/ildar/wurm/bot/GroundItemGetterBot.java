@@ -25,6 +25,11 @@ public class GroundItemGetterBot extends Bot {
         active = true;
         setTimeout(500);
         while (isActive()) {
+            synchronized (this) {
+                while (isPaused()) {
+                    this.wait();
+                }
+            }
             if (itemNames.size() > 0) {
                 ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
                 Map<Long, GroundItemCellRenderable> groundItems = ReflectionUtil.getPrivateField(sscc,

@@ -34,6 +34,11 @@ public class PileCollector extends Bot {
         setTimeout(500);
         ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
+            synchronized (this) {
+                while (isPaused()) {
+                    this.wait();
+                }
+            }
             Map<Long, GroundItemCellRenderable> groundItemsMap = ReflectionUtil.getPrivateField(sscc,
                     ReflectionUtil.getField(sscc.getClass(), "groundItems"));
             List<GroundItemCellRenderable> groundItems = groundItemsMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());

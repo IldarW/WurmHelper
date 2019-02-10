@@ -1,5 +1,6 @@
 package net.ildar.wurm.bot;
 
+import com.wurmonline.shared.constants.PlayerAction;
 import net.ildar.wurm.Chat;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
@@ -15,6 +16,7 @@ public abstract class Bot extends Thread {
      * The list of all bot implementations.
      */
     private static List<BotRegistration> botList = new ArrayList<>();
+
     static {
         registerBot(ArcherBot.class,
                 "Automatically shoots at selected target with currently equipped bow. " +
@@ -33,7 +35,7 @@ public abstract class Bot extends Thread {
                 "ch");
         registerBot(CrafterBot.class,
                 "Automatically does crafting operations using items from crafting window. " +
-                "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ", "c");
+                        "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ", "c");
         registerBot(FlowerPlanterBot.class,
                 "Skills up player's gardening skill by planting and picking flowers in surrounding area",
                 "fp");
@@ -89,7 +91,7 @@ public abstract class Bot extends Thread {
                 "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
         registerBot(FisherBot.class,
                 "Catches and cuts fish", "fsh");
-		registerBot(ProspectorBot.class,
+        registerBot(ProspectorBot.class,
                 "Prospect selected tile", "pr");
     }
 
@@ -104,10 +106,18 @@ public abstract class Bot extends Thread {
     private List<Chat.MessageProcessor> registeredMessageProcessors = new ArrayList<>();
 
     protected long timeout = 1000;
+    private boolean paused = false;
 
     public static synchronized void deactivateAllBots() {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
         bots.forEach(Bot::deactivate);
+    }
+
+    public static synchronized void pauseAllBots() {
+        List<Bot> bots = new ArrayList<>(Bot.activeBots);
+        bots.forEach(bot -> {
+            bot.pause();
+        });
     }
 
     public static synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
@@ -149,14 +159,14 @@ public abstract class Bot extends Thread {
 
     public static String getBotUsageString() {
         StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
-        for(BotRegistration botRegistration : botList)
+        for (BotRegistration botRegistration : botList)
             result.append(botRegistration.abbreviation).append("|");
         result.append("off}");
         return result.toString();
     }
 
     public static Class<? extends Bot> getBotClass(String abbreviation) {
-        for(BotRegistration botRegistration : botList)
+        for (BotRegistration botRegistration : botList)
             if (botRegistration.abbreviation.equals(abbreviation))
                 return botRegistration.botClass;
         return null;
@@ -168,7 +178,7 @@ public abstract class Bot extends Thread {
     }
 
     private static BotRegistration getBotRegistration(Class<? extends Bot> botClass) {
-        for(BotRegistration botRegistration : botList) {
+        for (BotRegistration botRegistration : botList) {
             if (botRegistration.botClass.equals(botClass))
                 return botRegistration;
         }
@@ -180,6 +190,7 @@ public abstract class Bot extends Thread {
         registerInputHandler(InputKeyBase.t, this::handleTimeoutChange);
         registerInputHandler(InputKeyBase.off, inputs -> deactivate());
         registerInputHandler(InputKeyBase.info, this::handleInfoCommand);
+        registerInputHandler(InputKeyBase.pause, inputs -> pause());
     }
 
     protected abstract void work() throws Exception;
@@ -189,9 +200,9 @@ public abstract class Bot extends Thread {
         try {
             work();
         } catch (InterruptedException ignored) {
-        } catch(Exception e) {
+        } catch (Exception e) {
             Utils.consolePrint(this.getClass().getSimpleName() + " has encountered an error - " + e.getMessage());
-            Utils.consolePrint( e.toString());
+            Utils.consolePrint(e.toString());
         }
         unregisterMessageProcessors();
         synchronized (Bot.class) {
@@ -203,6 +214,20 @@ public abstract class Bot extends Thread {
     public boolean isActive() {
         synchronized (Bot.class) {
             return activeBots.contains(this) && !isInterrupted();
+        }
+    }
+
+    public void pause() {
+        synchronized (this) {
+            paused = !paused;
+            if (!paused) this.notify();
+            Utils.consolePrint(getClass().getSimpleName() + " is " + (paused ? "paused." : "resumed."));
+        }
+    }
+
+    public boolean isPaused() {
+        synchronized (Bot.class) {
+            return paused;
         }
     }
 
@@ -233,7 +258,7 @@ public abstract class Bot extends Thread {
                 .append(" {");
         boolean firstInputKeyString = true;
         List<String> sortedInputKeys = inputHandlers.keySet().stream().map(InputKey::getName).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
-        for(String inputKey : sortedInputKeys) {
+        for (String inputKey : sortedInputKeys) {
             if (firstInputKeyString)
                 firstInputKeyString = false;
             else
@@ -250,6 +275,7 @@ public abstract class Bot extends Thread {
 
     /**
      * Handle the console input for current bot instance
+     *
      * @param data console input
      * @return true if input was processed and false if input should be handled by derived classes
      */
@@ -283,7 +309,7 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(inputKey.getDescription());
     }
 
-    private void handleTimeoutChange(String []input){
+    private void handleTimeoutChange(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(InputKeyBase.t);
             return;
@@ -316,7 +342,7 @@ public abstract class Bot extends Thread {
     }
 
     private InputKey getInputKey(String key) {
-        for(InputKey inputKey : inputHandlers.keySet())
+        for (InputKey inputKey : inputHandlers.keySet())
             if (inputKey.getName().equals(key))
                 return inputKey;
         return null;
@@ -345,11 +371,14 @@ public abstract class Bot extends Thread {
                 "timeout(in milliseconds)"),
         off("Deactivate the bot",
                 ""),
+        pause("Pause the bot",
+                ""),
         info("Get information about configuration key",
                 "key");
 
         private String description;
         private String usage;
+
         InputKeyBase(String description, String usage) {
             this.description = description;
             this.usage = usage;
@@ -371,7 +400,7 @@ public abstract class Bot extends Thread {
         }
     }
 
-    private static class BotRegistration{
+    private static class BotRegistration {
         private Class<? extends Bot> botClass;
         private String description;
         private String abbreviation;
@@ -383,13 +412,15 @@ public abstract class Bot extends Thread {
         }
     }
 
-    protected interface InputHandler{
-        void handle(String []inputData);
+    protected interface InputHandler {
+        void handle(String[] inputData);
     }
 
     interface InputKey {
         String getName();
+
         String getDescription();
+
         String getUsage();
     }
 }

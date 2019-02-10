@@ -28,6 +28,11 @@ public class GuardBot extends Bot {
         lastEvent = System.currentTimeMillis();
         setAlarmTimeout(300000);
         while (isActive()) {
+            synchronized (this) {
+                while (isPaused()) {
+                    this.wait();
+                }
+            }
             if (Math.abs(lastEvent - System.currentTimeMillis()) > alarmTimeout) {
                 playSound();
                 lastEvent += 60000;
