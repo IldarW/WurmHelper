@@ -94,7 +94,7 @@ public class MinerBot extends Bot {
                 int tileX = Mod.hud.getWorld().getPlayerCurrentTileX();
                 int tileY = Mod.hud.getWorld().getPlayerCurrentTileY();
                 List<Long> closePileIds = new ArrayList<>();
-                for (Map.Entry<Long, GroundItemCellRenderable> entry : groundItems.entrySet()) {
+                for (Map.Entry<Long, GroundItemCellRenderable> entry : new HashSet<>(groundItems.entrySet())) {
                     GroundItemCellRenderable groundItem = entry.getValue();
                     GroundItemData groundItemData = ReflectionUtil.getPrivateField(groundItem,
                             ReflectionUtil.getField(groundItem.getClass(), "item"));
