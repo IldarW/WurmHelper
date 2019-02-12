@@ -61,15 +61,18 @@ public class ImproverBot extends Bot {
         setStaminaThreshold(0.8f);
         setTimeout(300);
         registerEventProcessors();
+        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
             if (targets.size() == 0 && !groundMode) {
                 sleep(timeout);
                 continue;
             }
+            float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             boolean improveInitiated = false;
-            if ((stamina+damage) > staminaThreshold) {
+            if ((stamina+damage) > staminaThreshold && progress == 0f && creationWindow.getActionInUse() == 0) {
                 if (!groundMode) {
                     List<InventoryMetaItem> selectedItems = new ArrayList<>();
                     for (InventoryListComponent ilc : targets) {
@@ -232,7 +235,9 @@ public class ImproverBot extends Bot {
                         || message.contains("some flaws that must be fixed with a clay shaper")
                         || message.contains("needs to be sharpened")
                         || message.contains("has some dents that must be flattened")
-                        || message.contains("dipping it in water"),
+                        || message.contains("dipping it in water")
+                        || message.contains("doesn't need repairing")
+                        || message.contains("You repair the"),
                 () -> improveActionFinished = true);
     }
 
