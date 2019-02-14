@@ -70,11 +70,7 @@ public class CrafterBot extends Bot {
                 ReflectionUtil.getField(creationWindow.getClass(), "target"));
         registerEventProcessors();
         while (isActive()) {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,

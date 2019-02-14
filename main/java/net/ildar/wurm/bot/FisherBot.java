@@ -50,11 +50,7 @@ public class FisherBot extends Bot
         registerEventProcessors();
         while (isActive())
         {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
 
             if (repairInstrument && fishingRod.getDamage() > 10)

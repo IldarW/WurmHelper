@@ -18,11 +18,7 @@ public class BulkItemGetterBot extends Bot {
         registerEventProcessor(message -> message.contains("That item is already busy"),
                 () -> closeBMLWindow = false);
         while (isActive()) {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             if (sources.size() > 0 && targets.size() > 0) {
                 int moves = Math.min(sources.size(), targets.size());
                 for(int i = 0; i < moves; i++) {

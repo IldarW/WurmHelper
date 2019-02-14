@@ -71,11 +71,7 @@ public class ForesterBot extends Bot {
         }
         registerEventProcessors();
         while (isActive()) {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             float stamina = player.getStamina();
             float damage = player.getDamage();
             if (Math.abs(lastActionFinishedTime - System.currentTimeMillis()) > 10000 && (stamina + damage) > staminaThreshold)

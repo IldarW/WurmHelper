@@ -57,11 +57,7 @@ public class FarmerBot extends Bot {
         Set<String> cultivatedTiles = new HashSet<>(Arrays.asList(
                 Tiles.Tile.TILE_STEPPE.tilename, Tiles.Tile.TILE_MOSS.tilename, Tiles.Tile.TILE_DIRT_PACKED.tilename));
         while (isActive()) {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             float stamina = player.getStamina();
             float damage = player.getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,

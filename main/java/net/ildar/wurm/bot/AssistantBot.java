@@ -93,11 +93,7 @@ public class AssistantBot extends Bot {
     public void work() throws Exception{
         registerEventProcessors();
         while (isActive()) {
-            synchronized (this) {
-                while (isPaused()) {
-                    this.wait();
-                }
-            }
+
             if (casting) {
                 float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
                 if (favor > spellToCast.favorCap) {

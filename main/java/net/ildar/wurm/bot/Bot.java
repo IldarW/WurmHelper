@@ -107,6 +107,7 @@ public abstract class Bot extends Thread {
 
     protected long timeout = 1000;
     private boolean paused = false;
+    private static boolean gPaused = false;
 
     public static synchronized void deactivateAllBots() {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
@@ -115,9 +116,17 @@ public abstract class Bot extends Thread {
 
     public static synchronized void pauseAllBots() {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
-        bots.forEach(bot -> {
-            bot.pause();
-        });
+        if (bots.size() > 0) {
+            gPaused = !gPaused;
+            if (gPaused) {
+                bots.forEach(Bot::setPaused);
+            } else {
+                bots.forEach(Bot::setResumed);
+            }
+            Mod.hud.addOnscreenMessage("Robots have been " + (gPaused ? "paused!" : "resumed!"), 0, 150, 0, (byte) 1);
+        } else {
+            Mod.hud.addOnscreenMessage("No bots are running!", 0, 0, 0, (byte) 1);
+        }
     }
 
     public static synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
@@ -161,7 +170,7 @@ public abstract class Bot extends Thread {
         StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
         for (BotRegistration botRegistration : botList)
             result.append(botRegistration.abbreviation).append("|");
-        result.append("off}");
+        result.append("pause|off}");
         return result.toString();
     }
 
@@ -211,24 +220,41 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
     }
 
-    public boolean isActive() {
-        synchronized (Bot.class) {
-            return activeBots.contains(this) && !isInterrupted();
+    public synchronized boolean isActive() {
+        waitOnPause();
+        return activeBots.contains(this) && !isInterrupted();
+    }
+
+    private synchronized void waitOnPause() {
+        if (paused) {
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    public void pause() {
-        synchronized (this) {
-            paused = !paused;
-            if (!paused) this.notify();
-            Utils.consolePrint(getClass().getSimpleName() + " is " + (paused ? "paused." : "resumed."));
+    private synchronized void pause() {
+        if (paused) {
+            this.setResumed();
+        } else {
+            this.setPaused();
         }
     }
 
-    public boolean isPaused() {
-        synchronized (Bot.class) {
-            return paused;
+    private synchronized void setPaused(){
+        paused = true;
+        for (int i = 0; i < Utils.getMaxActionNumber(); i++) {
+            Mod.hud.sendAction(PlayerAction.STOP, 0);
         }
+        Utils.consolePrint(getClass().getSimpleName() + " is paused.");
+    }
+
+    private synchronized void setResumed(){
+        paused = false;
+        this.notify();
+        Utils.consolePrint(getClass().getSimpleName() + " is resumed.");
     }
 
     public void deactivate() {
@@ -242,13 +268,13 @@ public abstract class Bot extends Thread {
         }
     }
 
-    protected String getAbbreviation() {
+    private String getAbbreviation() {
         BotRegistration botRegistration = getBotRegistration(this.getClass());
         if (botRegistration == null) return null;
         return botRegistration.abbreviation;
     }
 
-    String getUsageString() {
+    private String getUsageString() {
         StringBuilder output = new StringBuilder();
         output
                 .append("Usage: ")
@@ -279,7 +305,7 @@ public abstract class Bot extends Thread {
      * @param data console input
      * @return true if input was processed and false if input should be handled by derived classes
      */
-    final public boolean handleInput(String data[]) {
+    final public boolean handleInput(String[] data) {
         if (data == null || data.length == 0)
             return false;
         InputHandler inputHandler = getInputHandler(data[0]);
@@ -295,7 +321,7 @@ public abstract class Bot extends Thread {
         return true;
     }
 
-    private void handleInfoCommand(String input[]) {
+    private void handleInfoCommand(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(InputKeyBase.info);
             return;
@@ -371,7 +397,7 @@ public abstract class Bot extends Thread {
                 "timeout(in milliseconds)"),
         off("Deactivate the bot",
                 ""),
-        pause("Pause the bot",
+        pause("Pausing the bot. Assign a hotkey for it (e.m. 'bind p \"bot pause\"') for more convenience.",
                 ""),
         info("Get information about configuration key",
                 "key");
