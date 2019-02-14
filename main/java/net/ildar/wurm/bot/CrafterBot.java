@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class CrafterBot extends Bot {
     private float staminaThreshold;
-    private boolean repairInstrument;
+    private boolean repairInstrument = true;
     private String targetName;
     private String sourceName;
     private Comparator<InventoryMetaItem> weightComparator = Comparator.comparingDouble(InventoryMetaItem::getWeight);
