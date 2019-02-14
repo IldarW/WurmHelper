@@ -38,7 +38,7 @@ public class MeditationBot extends Bot {
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         PlayerAction meditationAction = new PlayerAction((short) 384, PlayerAction.ANYTHING);
-        while(isActive()) {
+        while (isActive()) {
             if (Math.abs(lastRepair - System.currentTimeMillis()) > repairTimeout) {
                 repairInitiated = false;
                 int count = 0;
