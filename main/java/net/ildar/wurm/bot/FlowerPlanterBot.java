@@ -51,7 +51,6 @@ public class FlowerPlanterBot extends Bot {
 
         BotState state = BotState.PLANT;
         while (isActive()) {
-
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,

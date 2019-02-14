@@ -46,7 +46,6 @@ public class ProspectorBot extends Bot {
         setStaminaThreshold(0.9f);
         setClicks(3);
         while (isActive()) {
-
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,

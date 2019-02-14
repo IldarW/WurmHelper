@@ -62,7 +62,6 @@ public class ImproverBot extends Bot {
         setTimeout(300);
         registerEventProcessors();
         while (isActive()) {
-
             if (targets.size() == 0 && !groundMode) {
                 sleep(timeout);
                 continue;

@@ -24,7 +24,6 @@ public class ItemMoverBot extends Bot {
     public void work() throws Exception{
         setTimeout(15000);
         while (isActive()) {
-
             if (itemNames != null && itemNames.size() > 0 && (target != 0 || targetComponent != null)) {
                 List<InventoryMetaItem> invItems;
                 if (onlyFirstLevelItems)

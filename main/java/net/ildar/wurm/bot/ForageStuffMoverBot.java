@@ -22,7 +22,6 @@ public class ForageStuffMoverBot extends Bot {
     @Override
     public void work() throws Exception{
         while (isActive()) {
-
             List<InventoryMetaItem> foragables = Utils.getSelectedItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), true, true);
             List<InventoryMetaItem> moveList = foragables.stream()
                     .filter(item -> ForagerBot.isForagable(item) && !(notMoveRocks && item.getBaseName().contains("rock")))

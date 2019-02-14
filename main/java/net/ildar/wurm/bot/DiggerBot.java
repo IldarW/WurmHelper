@@ -87,8 +87,7 @@ public class DiggerBot extends Bot{
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         registerEventProcessors();
-        while(isActive()) {
-
+        while (isActive()) {
             if (toolRepairing) {
                 if (surfaceMiningMode && pickaxeItem.getDamage() > 10)
                     Mod.hud.sendAction(PlayerAction.REPAIR, pickaxeItem.getId());

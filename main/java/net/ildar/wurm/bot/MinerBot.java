@@ -78,7 +78,6 @@ public class MinerBot extends Bot {
                 + " DMG:" + pickaxe.getDamage());
         registerEventProcessors();
         while (isActive()) {
-
             if (shardsCombining) {
                 List<ItemListWindow> piles = new ArrayList<>();
                 for (WurmComponent wurmComponent : Mod.components)

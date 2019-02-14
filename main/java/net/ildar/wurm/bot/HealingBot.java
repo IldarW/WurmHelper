@@ -22,8 +22,7 @@ public class HealingBot extends Bot {
         setTimeout(500);
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
-        while(isActive()) {
-
+        while (isActive()) {
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if (progress != 0f) {
