@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("StaticInitializerReferencesSubClass")
 public abstract class Bot extends Thread {
     private static List<Bot> activeBots = new ArrayList<>();
 
@@ -221,7 +222,7 @@ public abstract class Bot extends Thread {
     }
 
     public boolean isActive() {
-        synchronized (activeBots) {
+        synchronized (Bot.class) {
             return activeBots.contains(this) && !isInterrupted();
         }
     }
