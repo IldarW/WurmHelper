@@ -84,6 +84,7 @@ public class TreeCutterBot extends Bot{
 
         ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
+            waitOnPause();
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
 
             float stamina = player.getStamina();

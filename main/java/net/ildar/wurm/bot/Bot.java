@@ -16,6 +16,7 @@ public abstract class Bot extends Thread {
      * The list of all bot implementations.
      */
     private static List<BotRegistration> botList = new ArrayList<>();
+    private static boolean gPaused = false;
 
     static {
         registerBot(ArcherBot.class,
@@ -93,23 +94,28 @@ public abstract class Bot extends Thread {
                 "Catches and cuts fish", "fsh");
         registerBot(ProspectorBot.class,
                 "Prospect selected tile", "pr");
-		registerBot(TreeCutterBot.class,
+        registerBot(TreeCutterBot.class,
                 "Cut trees", "tc");
     }
 
+    protected long timeout = 1000;
     /**
      * The bot implementation should register his input handlers with {@link #registerInputHandler(InputKey, InputHandler)}
      */
     private Map<InputKey, InputHandler> inputHandlers = new HashMap<>();
-
     /**
      * Store all registered message processors here to unregister them on bot deactivation to prevent memory leaks
      */
     private List<Chat.MessageProcessor> registeredMessageProcessors = new ArrayList<>();
-
-    protected long timeout = 1000;
     private boolean paused = false;
-    private static boolean gPaused = false;
+
+    public Bot() {
+        //register standard input handlers
+        registerInputHandler(InputKeyBase.t, this::handleTimeoutChange);
+        registerInputHandler(InputKeyBase.off, inputs -> deactivate());
+        registerInputHandler(InputKeyBase.info, this::handleInfoCommand);
+        registerInputHandler(InputKeyBase.pause, inputs -> pause());
+    }
 
     public static synchronized void deactivateAllBots() {
         List<Bot> bots = new ArrayList<>(Bot.activeBots);
@@ -196,14 +202,6 @@ public abstract class Bot extends Thread {
         return null;
     }
 
-    public Bot() {
-        //register standard input handlers
-        registerInputHandler(InputKeyBase.t, this::handleTimeoutChange);
-        registerInputHandler(InputKeyBase.off, inputs -> deactivate());
-        registerInputHandler(InputKeyBase.info, this::handleInfoCommand);
-        registerInputHandler(InputKeyBase.pause, inputs -> pause());
-    }
-
     protected abstract void work() throws Exception;
 
     @Override
@@ -222,22 +220,19 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
     }
 
-    public synchronized boolean isActive() {
-        waitOnPause();
-        return activeBots.contains(this) && !isInterrupted();
-    }
-
-    private synchronized void waitOnPause() {
-        if (paused) {
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    public boolean isActive() {
+        synchronized (activeBots) {
+            return activeBots.contains(this) && !isInterrupted();
         }
     }
 
-    private synchronized void pause() {
+    protected synchronized void waitOnPause() throws InterruptedException {
+        if (paused) {
+            this.wait();
+        }
+    }
+
+    private void pause() {
         if (paused) {
             this.setResumed();
         } else {
@@ -245,7 +240,7 @@ public abstract class Bot extends Thread {
         }
     }
 
-    private synchronized void setPaused(){
+    private void setPaused() {
         paused = true;
         for (int i = 0; i < Utils.getMaxActionNumber(); i++) {
             Mod.hud.sendAction(PlayerAction.STOP, 0);
@@ -253,7 +248,7 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(getClass().getSimpleName() + " is paused.");
     }
 
-    private synchronized void setResumed(){
+    private synchronized void setResumed() {
         paused = false;
         this.notify();
         Utils.consolePrint(getClass().getSimpleName() + " is resumed.");
@@ -428,18 +423,6 @@ public abstract class Bot extends Thread {
         }
     }
 
-    private static class BotRegistration {
-        private Class<? extends Bot> botClass;
-        private String description;
-        private String abbreviation;
-
-        BotRegistration(Class<? extends Bot> botClass, String description, String abbreviation) {
-            this.botClass = botClass;
-            this.description = description;
-            this.abbreviation = abbreviation;
-        }
-    }
-
     protected interface InputHandler {
         void handle(String[] inputData);
     }
@@ -450,5 +433,17 @@ public abstract class Bot extends Thread {
         String getDescription();
 
         String getUsage();
+    }
+
+    private static class BotRegistration {
+        private Class<? extends Bot> botClass;
+        private String description;
+        private String abbreviation;
+
+        BotRegistration(Class<? extends Bot> botClass, String description, String abbreviation) {
+            this.botClass = botClass;
+            this.description = description;
+            this.abbreviation = abbreviation;
+        }
     }
 }

@@ -49,6 +49,7 @@ public class ChopperBot extends Bot {
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
+            waitOnPause();
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
