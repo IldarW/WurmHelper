@@ -93,6 +93,8 @@ public abstract class Bot extends Thread {
                 "Catches and cuts fish", "fsh");
         registerBot(ProspectorBot.class,
                 "Prospect selected tile", "pr");
+		registerBot(TreeCutterBot.class,
+                "Cut trees", "tc");
     }
 
     /**

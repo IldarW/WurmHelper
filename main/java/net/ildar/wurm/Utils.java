@@ -320,7 +320,7 @@ public class Utils {
             if (hoveredNode != null) {
                 List childLines = new ArrayList(ReflectionUtil.getPrivateField(hoveredNode,
                         ReflectionUtil.getField(hoveredNode.getClass(), "children")));
-                List<InventoryMetaItem> items = Utils.getSelectedItems(childLines, true, true);
+                itemList = Utils.getSelectedItems(childLines, true, true);
                 Object lineItem = ReflectionUtil.getPrivateField(hoveredNode,
                         ReflectionUtil.getField(hoveredNode.getClass(), "item"));
                 InventoryMetaItem item = ReflectionUtil.getPrivateField(lineItem,
@@ -328,7 +328,7 @@ public class Utils {
                 boolean isContainer = ReflectionUtil.getPrivateField(lineItem,
                         ReflectionUtil.getField(lineItem.getClass(), "isContainer"));
                 if (childLines.size() == 0 || isContainer)
-                    items.add(item);
+                    itemList.add(item);
             }
         } catch (NoSuchMethodException | IllegalAccessException | NoSuchFieldException | InvocationTargetException e) {
             e.printStackTrace();

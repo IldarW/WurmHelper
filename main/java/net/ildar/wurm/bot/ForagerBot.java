@@ -50,7 +50,10 @@ public class ForagerBot extends Bot {
     private boolean foraging = true;
     private boolean botanizing = true;
     private boolean dropping = false;
+    private boolean dropWhenFull = false;
     private boolean verbose = false;
+    private List<String> filterItemNames = new ArrayList<>();
+
 
     public ForagerBot() {
         registerInputHandler(ForagerBot.InputKey.s, this::setStaminaThreshold);
@@ -62,6 +65,9 @@ public class ForagerBot extends Bot {
         registerInputHandler(ForagerBot.InputKey.btl, input -> showBotanizingTypes());
         registerInputHandler(ForagerBot.InputKey.bt, this::setBotanizingType);
         registerInputHandler(ForagerBot.InputKey.d, input -> toggleDropping());
+        registerInputHandler(ForagerBot.InputKey.dwf, input -> toggleDroppingWhenFull());
+        registerInputHandler(ForagerBot.InputKey.dfa, this::addItemToFilter);
+        registerInputHandler(ForagerBot.InputKey.dfc, input -> clearFilter());
         registerInputHandler(ForagerBot.InputKey.v, input -> toggleVerboseMode());
         registerInputHandler(ForagerBot.InputKey.scn, this::setContainerName);
         registerInputHandler(ForagerBot.InputKey.na, this::setMaxActions);
@@ -220,17 +226,35 @@ public class ForagerBot extends Bot {
                         }
                     }
                 }
-                else {
-                    List<InventoryMetaItem> foragables = firstLevelItems.stream()
-                            .filter(ForagerBot::isForagable)
-                            .filter(item -> item.getRarity() == 0)
-                            .collect(Collectors.toList());
-                    long[] foragablesIds = Utils.getItemIds(foragables);
-                    if (foragablesIds != null)
-                        Mod.hud.sendAction(PlayerAction.DROP, foragablesIds);
+                else if(!dropWhenFull) {
+                    dropItems();
                 }
             }
             sleep(timeout);
+        }
+    }
+
+    public void dropItems(){
+        if (dropping) {
+            List<InventoryMetaItem> firstLevelItems = Utils.getFirstLevelItems();
+            List<InventoryMetaItem> foragables = firstLevelItems.stream()
+                    .filter(ForagerBot::isForagable)
+                    .filter(item -> item.getRarity() == 0)
+                    .collect(Collectors.toList());
+            if (!filterItemNames.isEmpty()) {
+                Iterator<InventoryMetaItem> iter = foragables.iterator();
+                while (iter.hasNext()) {
+                    InventoryMetaItem item = iter.next();
+                    for (String name : filterItemNames) {
+                        if (item.getBaseName().contains(name)) {
+                            iter.remove();
+                        }
+                    }
+                }
+            }
+            long[] foragablesIds = Utils.getItemIds(foragables);
+            if (foragablesIds != null)
+                Mod.hud.sendAction(PlayerAction.DROP, foragablesIds);
         }
     }
 
@@ -251,6 +275,8 @@ public class ForagerBot extends Bot {
                         || message.contains("This area looks picked clean.")
                         || message.contains("You fail to find")),
                 this::fbFinished);
+        registerEventProcessor(message -> (message.contains("inventory is full") && dropWhenFull),
+                this::dropItems);
     }
     private void showForagingTypes() {
         StringBuilder foragingTypes = new StringBuilder();
@@ -345,11 +371,14 @@ public class ForagerBot extends Bot {
     }
 
     private void setContainerName(String []input) {
-        if (input.length != 1 ){
+        if (input.length < 1 ){
             printInputKeyUsageString(ForagerBot.InputKey.scn);
             return;
         }
-        containerName = input[0];
+        StringBuilder containerNameBuilder = new StringBuilder(input[0]);
+        for (int i = 1; i < input.length; i++)
+            containerNameBuilder.append(" ").append(input[i]);
+        containerName = containerNameBuilder.toString();
         Utils.consolePrint("Container name was set to \"" + containerName + "\"");
     }
 
@@ -367,6 +396,28 @@ public class ForagerBot extends Bot {
             Utils.consolePrint("Dropping is on!");
         else
             Utils.consolePrint("Dropping is off!");
+    }
+    private void toggleDroppingWhenFull() {
+        dropWhenFull = !dropWhenFull;
+        if (dropWhenFull)
+            Utils.consolePrint("Drop when inventory full.");
+        else
+            Utils.consolePrint("Drop when action done.");
+    }
+
+    private void addItemToFilter(String[] input) {
+        if (input.length < 1 ){
+            printInputKeyUsageString(InputKey.dfa);
+            return;
+        }
+        String itemName = Arrays.stream(input).collect(Collectors.joining(" "));
+        filterItemNames.add(itemName);
+        Utils.consolePrint("Added " + itemName + " to filter list. Current filter: [" + String.join(",", filterItemNames) + "]");
+    }
+
+    private void clearFilter() {
+        Utils.consolePrint("Cleared drop filter.");
+        filterItemNames.clear();
     }
 
     private void toggleBotanizing() {
@@ -497,6 +548,9 @@ public class ForagerBot extends Bot {
         btl("Show the list of botanizing types", ""),
         bt("Set the botanizing type", "type"),
         d("Toggle the dropping of collected items to the ground", ""),
+        dwf("Change drop mode between drop when full inventory or drop after every action", ""),
+        dfa("Add item to drop filter. Drop filter items won't be dropped", "name(string)"),
+        dfc("Clear filter", ""),
         v("Toggle the verbose mode. " +
                 "Additional information will be shown in console during the work of the bot in verbose mode", ""),
         scn("Set the new name for containers to put sprouts/harvest", "container_name"),
