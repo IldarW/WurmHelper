@@ -64,6 +64,7 @@ public class ImproverBot extends Bot {
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
+            waitOnPause();
             if (targets.size() == 0 && !groundMode) {
                 sleep(timeout);
                 continue;

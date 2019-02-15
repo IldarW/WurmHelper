@@ -86,6 +86,7 @@ public class ForagerBot extends Bot {
         maxActions = Utils.getMaxActionNumber();
         registerEventProcessors();
         while (isActive()) {
+            waitOnPause();
             float stamina = player.getStamina();
             float damage = player.getDamage();
             float forageSkill = player.getSkillSet().getSkillValue("foraging");
