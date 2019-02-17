@@ -21,7 +21,7 @@ public class PileCollector extends Bot {
     private InventoryListComponent targetLc;
     private String containerName = "large crate";
     private int containerCapacity = 300;
-    private String targetItemName = "dirt";
+    private String targetItemName = "nothing";
     private boolean forageMode = false;
 
     private boolean growables = false;
@@ -39,18 +39,22 @@ public class PileCollector extends Bot {
                 spices = true;
                 resources = true;
                 berries = true;
+                Utils.consolePrint("All forage items added");
                 break;
             case "grow":
                 forageMode = true;
                 growables = true;
+                Utils.consolePrint("Growables added");
                 break;
             case "resources":
                 forageMode = true;
                 resources = true;
+                Utils.consolePrint("Resources added");
                 break;
             case "berries":
                 forageMode = true;
                 berries = true;
+                Utils.consolePrint("Berries added");
                 break;
             case "spices":
                 forageMode = true;
@@ -70,34 +74,20 @@ public class PileCollector extends Bot {
     }
 
 
-    private List<String> foragedVegs = Arrays.asList(new String[]{
-            "cabbage", "carrot", "corn", "cucumber", "lettuce",
-            "onion", "pea pod", "potato", "pumpkin", "rice", "sugar beet", "tomato"
-    });
+    private List<String> foragedVegs = Arrays.asList("cabbage", "carrot", "corn", "cucumber", "lettuce",
+            "onion", "pea pod", "potato", "pumpkin", "rice", "sugar beet", "tomato");
 
-    private List<String> foragedBerries = Arrays.asList(new String[]{
-            "blueberry", "lingonberry", "raspberr", "strawberr"
-    });
+    private List<String> foragedBerries = Arrays.asList("blueberry", "lingonberry", "raspberr", "strawberr");
 
-    private List<String> foragedResources = Arrays.asList(new String[]{
-            "wemp", "cotton", "sprout"
-    });
+    private List<String> foragedResources = Arrays.asList("wemp", "cotton", "sprout");
 
-    private List<String> botanizedHerbs = Arrays.asList(new String[]{
-            "belladonna", "basil", "lovage", "oregano", "parsley", "rosemary", "sage", "sassafras", "thyme", "mint"
-    });
+    private List<String> botanizedHerbs = Arrays.asList("belladonna", "basil", "lovage", "oregano", "parsley", "rosemary", "sage", "sassafras", "thyme", "mint");
 
-    private List<String> botanizedSeeds = Arrays.asList(new String[]{
-            "barley", "oat", "rye", "wheat"
-    });
+    private List<String> botanizedSeeds = Arrays.asList("barley", "oat", "rye", "wheat");
 
-    private List<String> botanizedSpices = Arrays.asList(new String[]{
-            "cumin", "ginger", "nutmeg", "paprika", "turmeric"
-    });
+    private List<String> botanizedSpices = Arrays.asList("cumin", "ginger", "nutmeg", "paprika", "turmeric");
 
-    private List<String> botanizedResources = Arrays.asList(new String[]{
-            "nettles", "acorn", "woad", "garlic", "fennel"
-    });
+    private List<String> botanizedResources = Arrays.asList("nettles", "acorn", "woad", "garlic", "fennel");
 
 
     public PileCollector() {
@@ -133,42 +123,43 @@ public class PileCollector extends Bot {
                         }
 
                     }
+
+                    for (WurmComponent wurmComponent : Mod.components) {
+                        if (wurmComponent instanceof ItemListWindow) {
+                            InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
+                                    ReflectionUtil.getField(wurmComponent.getClass(), "component"));
+                            if (ilc == null) continue;
+                            InventoryMetaItem rootItem = Utils.getRootItem(ilc);
+                            if (rootItem == null || !rootItem.getBaseName().toLowerCase().contains("pile of")) continue;
+                            openedPiles.add(rootItem.getId());
+                            List<InventoryMetaItem> targetItems = Utils.getInventoryItems(ilc, targetItemName);
+                            if (forageMode) {
+                                List<InventoryMetaItem> targetForage = new ArrayList<>();
+                                if (growables) {
+                                    targetForage.addAll(getListedItems(ilc, foragedVegs));
+                                    targetForage.addAll(getListedItems(ilc, botanizedSeeds));
+                                }
+                                if (resources) {
+                                    targetForage.addAll(getListedItems(ilc, foragedResources));
+                                    targetForage.addAll(getListedItems(ilc, botanizedResources));
+                                }
+                                if (spices) {
+                                    targetForage.addAll(getListedItems(ilc, botanizedSpices));
+                                    targetForage.addAll(getListedItems(ilc, botanizedHerbs));
+                                }
+
+                                if (berries) {
+                                    targetForage.addAll(getListedItems(ilc, foragedBerries));
+                                }
+                                moveToContainers(targetForage);
+                            }
+                            moveToContainers(targetItems);
+                        }
+                    }
+                    List<InventoryMetaItem> targetItems = Utils.getInventoryItems(targetItemName).stream().filter(item -> item.getBaseName().equals(targetItemName) && item.getRarity() == 0).collect(Collectors.toList());
+                    moveToContainers(targetItems);
                 } catch (ConcurrentModificationException ignored) {
                 }
-                for (WurmComponent wurmComponent : Mod.components) {
-                    if (wurmComponent instanceof ItemListWindow) {
-                        InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
-                                ReflectionUtil.getField(wurmComponent.getClass(), "component"));
-                        if (ilc == null) continue;
-                        InventoryMetaItem rootItem = Utils.getRootItem(ilc);
-                        if (rootItem == null || !rootItem.getBaseName().toLowerCase().contains("pile of")) continue;
-                        openedPiles.add(rootItem.getId());
-                        List<InventoryMetaItem> targetItems = Utils.getInventoryItems(ilc, targetItemName);
-                        if (forageMode) {
-                            List<InventoryMetaItem> targetForage = new ArrayList<>();
-                            if (growables) {
-                                targetForage.addAll(getListedItems(ilc, foragedVegs));
-                                targetForage.addAll(getListedItems(ilc, botanizedSeeds));
-                            }
-                            if (resources) {
-                                targetForage.addAll(getListedItems(ilc, foragedResources));
-                                targetForage.addAll(getListedItems(ilc, botanizedResources));
-                            }
-                            if (spices) {
-                                targetForage.addAll(getListedItems(ilc, botanizedSpices));
-                                targetForage.addAll(getListedItems(ilc, botanizedHerbs));
-                            }
-
-                            if (berries) {
-                                targetForage.addAll(getListedItems(ilc, foragedBerries));
-                            }
-                            moveToContainers(targetForage);
-                        }
-                        moveToContainers(targetItems);
-                    }
-                }
-                List<InventoryMetaItem> targetItems = Utils.getInventoryItems(targetItemName).stream().filter(item -> item.getBaseName().equals(targetItemName) && item.getRarity() == 0).collect(Collectors.toList());
-                moveToContainers(targetItems);
             }
             sleep(timeout);
         }
@@ -176,7 +167,7 @@ public class PileCollector extends Bot {
 
     private List<InventoryMetaItem> getListedItems(InventoryListComponent ilc, List<String> names) {
         List<InventoryMetaItem> target = new ArrayList<>();
-        for (String item : botanizedResources) {
+        for (String item : names) {
             target.addAll(Utils.getInventoryItems(ilc, item));
         }
         return target;
@@ -261,7 +252,7 @@ public class PileCollector extends Bot {
     }
 
     private enum InputKey implements Bot.InputKey {
-        stn("Set the name for target items. Default name is \"dirt\"", "name"),
+        stn("Set the name for target items. Default name is \"nothing\"", "name"),
         st("Set the target bulk inventory to put items to. Provide an optional name of containers inside inventory. Default is \"large crate\"", "[name]"),
         stcc("Set the capacity for target container. Default value is 300", "capacity(integer value)"),
         fm("Set the forage mode", "[all|grow|resources|berries|spices|off]");

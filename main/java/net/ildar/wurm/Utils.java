@@ -295,7 +295,8 @@ public class Utils {
                 return targets;
             }
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().contains(item)) {
+                if (invItem.getBaseName().contains(item)
+                        || item.contains(invItem.getBaseName())) {
                     targets.add(invItem);
                 }
             }
