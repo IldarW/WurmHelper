@@ -138,9 +138,9 @@ public class BotController {
             } else {
                 activeBots.forEach(Bot::setResumed);
             }
-            Mod.hud.addOnscreenMessage("Robots have been " + (gPaused ? "paused!" : "resumed!"), 0, 150, 0, (byte) 1);
+            Utils.consolePrint("All bots have been " + (gPaused ? "paused!" : "resumed!"));
         } else {
-            Mod.hud.addOnscreenMessage("No bots are running!", 0, 0, 0, (byte) 1);
+            Utils.consolePrint("No bots are running!");
         }
     }
 

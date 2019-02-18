@@ -27,13 +27,14 @@ public abstract class Bot extends Thread {
         registerInputHandler(InputKeyBase.t, this::handleTimeoutChange);
         registerInputHandler(InputKeyBase.off, inputs -> deactivate());
         registerInputHandler(InputKeyBase.info, this::handleInfoCommand);
-        registerInputHandler(InputKeyBase.pause, inputs -> pause());
+        registerInputHandler(InputKeyBase.pause, inputs -> togglePause());
     }
 
+    //Bot implementations must do their stuff here
     abstract void work() throws Exception;
 
     @Override
-    public void run() {
+    public final void run() {
         try {
             work();
         } catch (InterruptedException ignored) {
@@ -55,7 +56,7 @@ public abstract class Bot extends Thread {
      * Sometimes the interruption status of a thread is cleared(ignored,lost) in the bot(the bot developer should avoid that),
      * so we check current bot instance for presence in active bot list
      */
-    public boolean isActive() {
+    boolean isActive() {
         return BotController.getInstance().isActive(this) && !isInterrupted();
     }
 
@@ -65,7 +66,7 @@ public abstract class Bot extends Thread {
         }
     }
 
-    private void pause() {
+    private void togglePause() {
         if (paused) {
             this.setResumed();
         } else {
@@ -132,7 +133,7 @@ public abstract class Bot extends Thread {
      *
      * @param data console input
      */
-    final public void handleInput(String[] data) {
+    public void handleInput(String[] data) {
         if (data == null || data.length == 0)
             return;
         InputHandler inputHandler = getInputHandler(data[0]);
@@ -174,7 +175,7 @@ public abstract class Bot extends Thread {
         }
     }
 
-    protected void setTimeout(int timeout) {
+    final void setTimeout(int timeout) {
         if (timeout < 100) {
             Utils.consolePrint("Too small timeout!");
             timeout = 100;
@@ -186,7 +187,7 @@ public abstract class Bot extends Thread {
     /**
      * The enumeration type of the key must have a usage and description string fields for each item
      */
-    void registerInputHandler(InputKey key, InputHandler inputHandler) {
+    final void registerInputHandler(InputKey key, InputHandler inputHandler) {
         InputKey oldKey = getInputKey(key.getName());
         if (oldKey != null)
             inputHandlers.remove(oldKey);
@@ -223,7 +224,7 @@ public abstract class Bot extends Thread {
                 "timeout(in milliseconds)"),
         off("Deactivate the bot",
                 ""),
-        pause("Pausing the bot. Assign a hotkey for it (e.m. 'bind p \"bot pause\"') for more convenience.",
+        pause("Pause/resume the bot",
                 ""),
         info("Get information about configuration key",
                 "key");
