@@ -161,7 +161,7 @@ public abstract class Bot extends Thread {
         BotRegistration botRegistration = getBotRegistration(botClass);
         String description = "no description";
         if (botRegistration != null)
-            description = botRegistration.description;
+            description = botRegistration.getDescription();
         Utils.consolePrint("=== " + botClass.getSimpleName() + " ===");
         Utils.consolePrint(description);
         if (isInstantiated(botClass)) {
@@ -170,7 +170,7 @@ public abstract class Bot extends Thread {
         } else {
             String abbreviation = "*";
             if (botRegistration != null)
-                abbreviation = botRegistration.abbreviation;
+                abbreviation = botRegistration.getAbbreviation();
             Utils.consolePrint("Type \"" + Mod.ConsoleCommand.bot.name() + " " + abbreviation + " " + "on\" to activate the bot");
         }
     }
@@ -178,15 +178,15 @@ public abstract class Bot extends Thread {
     public static String getBotUsageString() {
         StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
         for (BotRegistration botRegistration : botList)
-            result.append(botRegistration.abbreviation).append("|");
+            result.append(botRegistration.getAbbreviation()).append("|");
         result.append("pause|off}");
         return result.toString();
     }
 
     public static Class<? extends Bot> getBotClass(String abbreviation) {
         for (BotRegistration botRegistration : botList)
-            if (botRegistration.abbreviation.equals(abbreviation))
-                return botRegistration.botClass;
+            if (botRegistration.getAbbreviation().equals(abbreviation))
+                return botRegistration.getBotClass();
         return null;
     }
 
@@ -197,7 +197,7 @@ public abstract class Bot extends Thread {
 
     private static BotRegistration getBotRegistration(Class<? extends Bot> botClass) {
         for (BotRegistration botRegistration : botList) {
-            if (botRegistration.botClass.equals(botClass))
+            if (botRegistration.getBotClass().equals(botClass))
                 return botRegistration;
         }
         return null;
@@ -269,7 +269,7 @@ public abstract class Bot extends Thread {
     private String getAbbreviation() {
         BotRegistration botRegistration = getBotRegistration(this.getClass());
         if (botRegistration == null) return null;
-        return botRegistration.abbreviation;
+        return botRegistration.getAbbreviation();
     }
 
     private String getUsageString() {
@@ -436,15 +436,4 @@ public abstract class Bot extends Thread {
         String getUsage();
     }
 
-    private static class BotRegistration {
-        private Class<? extends Bot> botClass;
-        private String description;
-        private String abbreviation;
-
-        BotRegistration(Class<? extends Bot> botClass, String description, String abbreviation) {
-            this.botClass = botClass;
-            this.description = description;
-            this.abbreviation = abbreviation;
-        }
-    }
 }
