@@ -63,6 +63,7 @@ public class ArcherBot extends Bot {
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         registerEventProcessors();
         while (isActive()) {
+            waitOnPause();
             float stamina = Mod.hud.getWorld().getPlayer().getStamina();
             float damage = Mod.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
