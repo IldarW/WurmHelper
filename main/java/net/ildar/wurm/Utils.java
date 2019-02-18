@@ -488,4 +488,16 @@ public class Utils {
         }
         return mlc.getMaxNumberOfActions();
     }
+
+    public static void writeToConsoleInputLine(String s) {
+        try {
+            Object consoleComponent = ReflectionUtil.getPrivateField(Mod.hud, ReflectionUtil.getField(Mod.hud.getClass(), "consoleComponent"));
+            Object inputField = ReflectionUtil.getPrivateField(consoleComponent, ReflectionUtil.getField(consoleComponent.getClass(), "inputField"));
+            Method method = inputField.getClass().getDeclaredMethod("setTextMoveToEnd", String.class);
+            method.setAccessible(true);
+            method.invoke(inputField, s);
+        } catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
 }

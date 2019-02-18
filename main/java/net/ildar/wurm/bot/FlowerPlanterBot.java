@@ -5,6 +5,7 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.GrassData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -16,6 +17,12 @@ public class FlowerPlanterBot extends Bot {
     private float staminaThreshold;
     private long sickleId;
     private long shovelId;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(FlowerPlanterBot.class,
+                "Skills up player's gardening skill by planting and picking flowers in surrounding area",
+                "fp");
+    }
 
     public FlowerPlanterBot() {
         registerInputHandler(FlowerPlanterBot.InputKey.s, this::setStaminaThreshold);

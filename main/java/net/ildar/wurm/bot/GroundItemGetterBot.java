@@ -5,6 +5,7 @@ import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.cell.StaticModelRenderable;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -15,6 +16,12 @@ public class GroundItemGetterBot extends Bot {
     private static Set <String> itemNames = new HashSet<>();
     public static boolean active;
     private static float distance = 4;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(GroundItemGetterBot.class,
+                "Collects items from the ground around player.",
+                "gig");
+    }
 
     public GroundItemGetterBot() {
         registerInputHandler(GroundItemGetterBot.InputKey.a, this::addNewItemName);

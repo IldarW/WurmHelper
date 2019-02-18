@@ -3,6 +3,7 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -12,6 +13,11 @@ import java.util.*;
 public class HealingBot extends Bot {
     private final Set<String> WOUND_NAMES = new HashSet<>(Arrays.asList("Cut", "Bite", "Bruise", "Burn", "Hole", "Acid", "Infection"));
     private float minDamage = 0;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(HealingBot.class,
+                "Heals the player's wounds with cotton found in inventory", "h");
+    }
 
     public HealingBot() {
         registerInputHandler(HealingBot.InputKey.md, this::setMinimumDamage);

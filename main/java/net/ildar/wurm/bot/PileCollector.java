@@ -8,6 +8,7 @@ import com.wurmonline.client.renderer.gui.InventoryListComponent;
 import com.wurmonline.client.renderer.gui.ItemListWindow;
 import com.wurmonline.client.renderer.gui.WurmComponent;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -22,6 +23,11 @@ public class PileCollector extends Bot {
     private String containerName = "large crate";
     private int containerCapacity = 300;
     private String targetItemName = "dirt";
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(PileCollector.class,
+                "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
+    }
 
     public PileCollector() {
         registerInputHandler(PileCollector.InputKey.stn, this::setTargetName);

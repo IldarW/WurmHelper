@@ -7,6 +7,7 @@ import com.wurmonline.mesh.GrassData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
@@ -54,6 +55,15 @@ public class ForagerBot extends Bot {
     private boolean verbose = false;
     private List<String> filterItemNames = new ArrayList<>();
 
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ForagerBot.class,
+                "Can forage, botanize, collect grass and flowers in an area surrounding player. " +
+                        "Bot can be configured to process rectangular area of any size. " +
+                        "Picked items, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
+                        "Default container name is \"" + ForagerBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
+                        "Bot can be configured to drop picked items on the floor. ",
+                "fg");
+    }
 
     public ForagerBot() {
         registerInputHandler(ForagerBot.InputKey.s, this::setStaminaThreshold);

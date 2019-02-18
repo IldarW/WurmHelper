@@ -1,105 +1,17 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.Chat;
-import net.ildar.wurm.Mod;
-import net.ildar.wurm.Utils;
+import net.ildar.wurm.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("StaticInitializerReferencesSubClass")
 public abstract class Bot extends Thread {
-    private static List<Bot> activeBots = new ArrayList<>();
-
     /**
-     * The list of all bot implementations.
+     * A timeout an each bot implementation should use between iterations
      */
-    private static List<BotRegistration> botList = new ArrayList<>();
-    private static boolean gPaused = false;
-
-    static {
-        registerBot(ArcherBot.class,
-                "Automatically shoots at selected target with currently equipped bow. " +
-                        "When the string breaks tries to place a new one. " +
-                        "Deactivates on target death.",
-                "ar");
-        registerBot(AssistantBot.class,
-                "Assists player in various ways",
-                "a");
-        registerBot(BulkItemGetterBot.class,
-                "Automatically transfers items to player's inventory from configured bulk storages. " +
-                        "The n-th  source item will be transferred to the n-th target item",
-                "big");
-        registerBot(ChopperBot.class,
-                "Automatically chops felled trees near player",
-                "ch");
-        registerBot(CrafterBot.class,
-                "Automatically does crafting operations using items from crafting window. " +
-                        "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ", "c");
-        registerBot(FlowerPlanterBot.class,
-                "Skills up player's gardening skill by planting and picking flowers in surrounding area",
-                "fp");
-        registerBot(ImproverBot.class,
-                "Improves selected items in provided inventories. Tools searched from player's inventory. " +
-                        "Items like water or stone searched before each improve, " +
-                        "actual instruments searched one time before improve of the first item that must be improved with this tool. " +
-                        "Tool for improving is determined by improve icon that you see on the right side of item row in inventory. " +
-                        "For example improve icons for stone chisel and carving knife are equal, and sometimes bot can choose wrong tool. " +
-                        "Use \"" + ImproverBot.InputKey.ci.name() + "\" key to change the chosen instrument.",
-                "i");
-        registerBot(ForageStuffMoverBot.class,
-                "Moves foragable and botanizable items from your inventory to the target inventories. " +
-                        "Optionally you can toggle the moving of rocks or rare items on and off.",
-                "fsm");
-        registerBot(ForesterBot.class,
-                "A forester bot. Can pick and plant sprouts, cut trees/bushes and gather the harvest in 3x3 area around player. " +
-                        "Bot can be configured to process rectangular area of any size. " +
-                        "Sprouts, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
-                        "Default container name is \"" + ForesterBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
-                        "New item names can be added(harvested fruits for example) to be moved to containers too. " +
-                        "Steppe and moss tiles will be cultivated if planting is enabled and player have shovel in his inventory. ",
-                "fr");
-        registerBot(ForagerBot.class,
-                "Can forage, botanize, collect grass and flowers in an area surrounding player. " +
-                        "Bot can be configured to process rectangular area of any size. " +
-                        "Picked items, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
-                        "Default container name is \"" + ForagerBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
-                        "Bot can be configured to drop picked items on the floor. ",
-                "fg");
-        registerBot(GroundItemGetterBot.class,
-                "Collects items from the ground around player.",
-                "gig");
-        registerBot(GuardBot.class,
-                "Looks for messages in Event and Combat tabs. " +
-                        "Raises alarm if no messages were received during configured time. " +
-                        "With no provided keywords the bot will be satisfied with every message. " +
-                        "If user adds some keywords bot will compare messages only with them.",
-                "g");
-        registerBot(ItemMoverBot.class,
-                "Moves items from your inventory to the target destination.", "im");
-        registerBot(MinerBot.class,
-                "Mines rocks and smelts ores.", "m");
-        registerBot(MeditationBot.class,
-                "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.", "md");
-        registerBot(HealingBot.class,
-                "Heals the player's wounds with cotton found in inventory", "h");
-        registerBot(FarmerBot.class,
-                "Tends the fields, plants the seeds, cultivates the ground, collects harvests", "f");
-        registerBot(DiggerBot.class,
-                "Does the dirty job for you", "d");
-        registerBot(PileCollector.class,
-                "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
-        registerBot(FisherBot.class,
-                "Catches and cuts fish", "fsh");
-        registerBot(ProspectorBot.class,
-                "Prospect selected tile", "pr");
-        registerBot(TreeCutterBot.class,
-                "Cut trees", "tc");
-    }
-
-    protected long timeout = 1000;
+    long timeout = 1000;
     /**
      * The bot implementation should register his input handlers with {@link #registerInputHandler(InputKey, InputHandler)}
      */
@@ -118,92 +30,7 @@ public abstract class Bot extends Thread {
         registerInputHandler(InputKeyBase.pause, inputs -> pause());
     }
 
-    public static synchronized void deactivateAllBots() {
-        List<Bot> bots = new ArrayList<>(Bot.activeBots);
-        bots.forEach(Bot::deactivate);
-    }
-
-    public static synchronized void pauseAllBots() {
-        List<Bot> bots = new ArrayList<>(Bot.activeBots);
-        if (bots.size() > 0) {
-            gPaused = !gPaused;
-            if (gPaused) {
-                bots.forEach(Bot::setPaused);
-            } else {
-                bots.forEach(Bot::setResumed);
-            }
-            Mod.hud.addOnscreenMessage("Robots have been " + (gPaused ? "paused!" : "resumed!"), 0, 150, 0, (byte) 1);
-        } else {
-            Mod.hud.addOnscreenMessage("No bots are running!", 0, 0, 0, (byte) 1);
-        }
-    }
-
-    public static synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
-        return Bot.activeBots.stream().anyMatch(bot -> bot.getClass().equals(botClass));
-    }
-
-    public static synchronized Bot getInstance(Class<? extends Bot> botClass) {
-        Bot instance = null;
-        try {
-            Optional<Bot> optionalKimeBot = activeBots.stream().filter(bot -> bot.getClass().equals(botClass)).findAny();
-            if (!optionalKimeBot.isPresent()) {
-                instance = botClass.newInstance();
-                activeBots.add(instance);
-            } else
-                instance = optionalKimeBot.get();
-        } catch (InstantiationException | IllegalAccessException | NoSuchElementException | NullPointerException e) {
-            e.printStackTrace();
-        }
-        return instance;
-    }
-
-    public static void printBotDescription(Class<? extends Bot> botClass) {
-        BotRegistration botRegistration = getBotRegistration(botClass);
-        String description = "no description";
-        if (botRegistration != null)
-            description = botRegistration.getDescription();
-        Utils.consolePrint("=== " + botClass.getSimpleName() + " ===");
-        Utils.consolePrint(description);
-        if (isInstantiated(botClass)) {
-            Bot botInstance = getInstance(botClass);
-            Utils.consolePrint(botInstance.getUsageString());
-        } else {
-            String abbreviation = "*";
-            if (botRegistration != null)
-                abbreviation = botRegistration.getAbbreviation();
-            Utils.consolePrint("Type \"" + Mod.ConsoleCommand.bot.name() + " " + abbreviation + " " + "on\" to activate the bot");
-        }
-    }
-
-    public static String getBotUsageString() {
-        StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
-        for (BotRegistration botRegistration : botList)
-            result.append(botRegistration.getAbbreviation()).append("|");
-        result.append("pause|off}");
-        return result.toString();
-    }
-
-    public static Class<? extends Bot> getBotClass(String abbreviation) {
-        for (BotRegistration botRegistration : botList)
-            if (botRegistration.getAbbreviation().equals(abbreviation))
-                return botRegistration.getBotClass();
-        return null;
-    }
-
-    private static void registerBot(Class<? extends Bot> botClass, String description, String abbreviation) {
-        Utils.consolePrint("Registering new bot with abbreviation " + abbreviation);
-        botList.add(new BotRegistration(botClass, description, abbreviation));
-    }
-
-    private static BotRegistration getBotRegistration(Class<? extends Bot> botClass) {
-        for (BotRegistration botRegistration : botList) {
-            if (botRegistration.getBotClass().equals(botClass))
-                return botRegistration;
-        }
-        return null;
-    }
-
-    protected abstract void work() throws Exception;
+    abstract void work() throws Exception;
 
     @Override
     public void run() {
@@ -215,19 +42,24 @@ public abstract class Bot extends Thread {
             Utils.consolePrint(e.toString());
         }
         unregisterMessageProcessors();
-        synchronized (Bot.class) {
-            activeBots.remove(this);
-        }
+        BotController.getInstance().onBotInterruption(this);
         Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
     }
 
-    public boolean isActive() {
-        synchronized (Bot.class) {
-            return activeBots.contains(this) && !isInterrupted();
-        }
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(Bot.class, "Bot didn't provide a description", "?");
     }
 
-    protected synchronized void waitOnPause() throws InterruptedException {
+    /**
+     * The bot is stopping by interruption(see {@link #deactivate()}.
+     * Sometimes the interruption status of a thread is cleared(ignored,lost) in the bot(the bot developer should avoid that),
+     * so we check current bot instance for presence in active bot list
+     */
+    public boolean isActive() {
+        return BotController.getInstance().isActive(this) && !isInterrupted();
+    }
+
+    synchronized void waitOnPause() throws InterruptedException {
         if (paused) {
             this.wait();
         }
@@ -241,7 +73,7 @@ public abstract class Bot extends Thread {
         }
     }
 
-    private void setPaused() {
+    public void setPaused() {
         paused = true;
         for (int i = 0; i < Utils.getMaxActionNumber(); i++) {
             Mod.hud.sendAction(PlayerAction.STOP, 0);
@@ -249,30 +81,28 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(getClass().getSimpleName() + " is paused.");
     }
 
-    private synchronized void setResumed() {
+    public synchronized void setResumed() {
         paused = false;
         this.notify();
         Utils.consolePrint(getClass().getSimpleName() + " is resumed.");
     }
 
     public void deactivate() {
-        synchronized (Bot.class) {
-            if (!super.isAlive()) {
-                activeBots.remove(this);
-                return;
-            }
-            Utils.consolePrint("Deactivating " + getClass().getSimpleName());
-            interrupt();
+        if (!super.isAlive()) {
+            BotController.getInstance().onBotInterruption(this);
+            return;
         }
+        Utils.consolePrint("Deactivating " + getClass().getSimpleName());
+        interrupt();
     }
 
     private String getAbbreviation() {
-        BotRegistration botRegistration = getBotRegistration(this.getClass());
+        BotRegistration botRegistration = BotController.getInstance().getBotRegistration(this.getClass());
         if (botRegistration == null) return null;
         return botRegistration.getAbbreviation();
     }
 
-    private String getUsageString() {
+    public String getUsageString() {
         StringBuilder output = new StringBuilder();
         output
                 .append("Usage: ")
@@ -301,22 +131,20 @@ public abstract class Bot extends Thread {
      * Handle the console input for current bot instance
      *
      * @param data console input
-     * @return true if input was processed and false if input should be handled by derived classes
      */
-    final public boolean handleInput(String[] data) {
+    final public void handleInput(String[] data) {
         if (data == null || data.length == 0)
-            return false;
+            return;
         InputHandler inputHandler = getInputHandler(data[0]);
         if (inputHandler == null) {
             Utils.consolePrint("Unknown key - " + data[0]);
-            printBotDescription(this.getClass());
-            return false;
+            BotController.getInstance().printBotDescription(this.getClass());
+            return;
         }
         String[] handlerParameters = null;
         if (data.length > 1)
             handlerParameters = Arrays.copyOfRange(data, 1, data.length);
         inputHandler.handle(handlerParameters);
-        return true;
     }
 
     private void handleInfoCommand(String[] input) {

@@ -3,6 +3,7 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -31,6 +32,13 @@ public class CrafterBot extends Bot {
     private boolean withoutActionsInUse;
     private long lastClick;
     private boolean singleSourceItemMode;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(CrafterBot.class,
+                "Automatically does crafting operations using items from crafting window. " +
+                        "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ",
+                "c");
+    }
 
     public CrafterBot() {
         registerInputHandler(CrafterBot.InputKey.r, input -> toggleRepairInstrument());

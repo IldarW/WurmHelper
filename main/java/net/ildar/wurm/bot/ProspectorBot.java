@@ -4,6 +4,7 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -13,6 +14,11 @@ import java.util.InputMismatchException;
 public class ProspectorBot extends Bot {
     private float staminaThreshold;
     private int clicks;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ProspectorBot.class,
+                "Prospect selected tile", "pr");
+    }
 
     public ProspectorBot() {
         registerInputHandler(ProspectorBot.InputKey.s, this::setStaminaThreshold);

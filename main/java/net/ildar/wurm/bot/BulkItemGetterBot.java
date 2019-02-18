@@ -1,5 +1,6 @@
 package net.ildar.wurm.bot;
 
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
@@ -10,6 +11,13 @@ public class BulkItemGetterBot extends Bot {
     public static boolean closeBMLWindow;
     private List<SourceItem> sources = new ArrayList<>();
     private List<Long> targets = new ArrayList<>();
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(BulkItemGetterBot.class,
+                "Automatically transfers items to player's inventory from configured bulk storages. " +
+                        "The n-th  source item will be transferred to the n-th target item",
+                "big");
+    }
 
     @Override
     public void work() throws Exception{

@@ -5,6 +5,7 @@ import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.PaperDollInventory;
 import com.wurmonline.client.renderer.gui.PaperDollSlot;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -64,6 +65,12 @@ public class AssistantBot extends Bot {
     private boolean successfullStartOfBurning;
 
     private boolean verbose = false;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(AssistantBot.class,
+                "Assists player in various ways",
+                "a");
+    }
 
     public AssistantBot() {
         registerInputHandler(AssistantBot.InputKey.w, input -> toggleDrinking(0));

@@ -3,6 +3,7 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -13,6 +14,11 @@ public class MeditationBot extends Bot {
     private float staminaThreshold;
     private int clicks = 3;
     private boolean repairInitiated;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(MeditationBot.class,
+                "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.", "md");
+    }
 
     public MeditationBot() {
         registerInputHandler(MeditationBot.InputKey.s, this::setStaminaThreshold);

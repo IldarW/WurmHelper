@@ -5,6 +5,7 @@ import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
 import com.wurmonline.shared.util.MaterialUtilities;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -18,6 +19,17 @@ public class ImproverBot extends Bot {
     private boolean improveActionFinished;
     private boolean groundMode;
     private ToolSkill toolSkill = ToolSkill.UNKNOWN;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ImproverBot.class,
+        "Improves selected items in provided inventories. Tools searched from player's inventory. " +
+                "Items like water or stone searched before each improve, " +
+                "actual instruments searched one time before improve of the first item that must be improved with this tool. " +
+                "Tool for improving is determined by improve icon that you see on the right side of item row in inventory. " +
+                "For example improve icons for stone chisel and carving knife are equal, and sometimes bot can choose wrong tool. " +
+                "Use \"" + ImproverBot.InputKey.ci.name() + "\" key to change the chosen instrument.",
+                "i");
+    }
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     public ImproverBot() {

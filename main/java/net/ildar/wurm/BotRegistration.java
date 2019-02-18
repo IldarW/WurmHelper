@@ -1,11 +1,13 @@
-package net.ildar.wurm.bot;
+package net.ildar.wurm;
 
-class BotRegistration {
+import net.ildar.wurm.bot.Bot;
+
+public class BotRegistration {
     private Class<? extends Bot> botClass;
     private String description;
     private String abbreviation;
 
-    BotRegistration(Class<? extends Bot> botClass, String description, String abbreviation) {
+    public BotRegistration(Class<? extends Bot> botClass, String description, String abbreviation) {
         this.botClass = botClass;
         this.description = description;
         this.abbreviation = abbreviation;

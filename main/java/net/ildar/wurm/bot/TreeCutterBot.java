@@ -7,13 +7,12 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.CreationWindow;
-import com.wurmonline.client.renderer.structures.StructureData;
 import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.TreeData;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import javassist.compiler.ast.Variable;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -40,6 +39,11 @@ public class TreeCutterBot extends Bot{
 
     private AreaAssistant areaAssistant = new AreaAssistant(this);
     private List<Pair<Integer, Integer>> queuedTiles = new ArrayList<>();
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(TreeCutterBot.class,
+                "Cut trees", "tc");
+    }
 
     public TreeCutterBot(){
         registerInputHandler(InputKey.s, this::setStaminaThreshold);

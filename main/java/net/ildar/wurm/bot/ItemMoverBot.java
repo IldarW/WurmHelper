@@ -2,6 +2,7 @@ package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.*;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -19,6 +20,11 @@ public class ItemMoverBot extends Bot {
     private boolean notMoveRares = true;
     private String lastItemName;
     private boolean onlyFirstLevelItems = true;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ItemMoverBot.class,
+                "Moves items from your inventory to the target destination.", "im");
+    }
 
     @Override
     public void work() throws Exception{

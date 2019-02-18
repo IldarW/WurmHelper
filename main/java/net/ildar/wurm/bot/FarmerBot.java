@@ -7,6 +7,7 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.FieldData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -29,6 +30,11 @@ public class FarmerBot extends Bot {
     private boolean repairing = true;
     private List<String> dropNamesList;
     private int dropLimit;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(FarmerBot.class,
+                "Tends the fields, plants the seeds, cultivates the ground, collects harvests", "f");
+    }
 
     public FarmerBot() {
         registerInputHandler(FarmerBot.InputKey.s, this::setStaminaThreshold);

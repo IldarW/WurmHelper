@@ -6,6 +6,7 @@ import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -18,6 +19,12 @@ public class ChopperBot extends Bot {
     private AreaAssistant areaAssistant = new AreaAssistant(this);
     private float staminaThreshold;
     private int clicks;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ChopperBot.class,
+                "Automatically chops felled trees near player",
+                "ch");
+    }
 
     public ChopperBot() {
         registerInputHandler(ChopperBot.InputKey.s, this::setStaminaThreshold);

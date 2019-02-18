@@ -7,6 +7,7 @@ import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
@@ -36,6 +37,17 @@ public class ForesterBot extends Bot {
     private boolean shriveledTreesChopping;
     private boolean deforesting;
     private static int toHarvest;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ForesterBot.class,
+                "A forester bot. Can pick and plant sprouts, cut trees/bushes and gather the harvest in 3x3 area around player. " +
+                        "Bot can be configured to process rectangular area of any size. " +
+                        "Sprouts, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
+                        "Default container name is \"" + ForesterBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
+                        "New item names can be added(harvested fruits for example) to be moved to containers too. " +
+                        "Steppe and moss tiles will be cultivated if planting is enabled and player have shovel in his inventory. ",
+                "fr");
+    }
 
     public ForesterBot() {
         registerInputHandler(ForesterBot.InputKey.s, this::setStaminaThreshold);

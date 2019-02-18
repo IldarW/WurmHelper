@@ -5,6 +5,7 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -13,6 +14,11 @@ public class FisherBot extends Bot
 {
     private boolean repairInstrument;
     private boolean lineBreaks;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(FisherBot.class,
+                "Catches and cuts fish", "fsh");
+    }
 
     public FisherBot()
     {

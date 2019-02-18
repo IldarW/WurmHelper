@@ -13,7 +13,6 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
-import net.ildar.wurm.bot.Bot;
 import net.ildar.wurm.bot.BulkItemGetterBot;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
@@ -22,7 +21,6 @@ import org.gotti.wurmunlimited.modloader.interfaces.Initable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 
 import java.io.FileInputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
@@ -47,7 +45,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         consoleCommandHandlers.put(ConsoleCommand.combine, input -> handleCombineCommand());
         consoleCommandHandlers.put(ConsoleCommand.move, Mod::handleMoveCommand);
         consoleCommandHandlers.put(ConsoleCommand.stabilize, input -> Utils.stabilizePlayer());
-        consoleCommandHandlers.put(ConsoleCommand.bot, Mod::configureBot);
+        consoleCommandHandlers.put(ConsoleCommand.bot, BotController.getInstance()::handleInput);
         consoleCommandHandlers.put(ConsoleCommand.mts, Mod::handleMtsCommand);
         consoleCommandHandlers.put(ConsoleCommand.info, Mod::handleInfoCommand);
         consoleCommandHandlers.put(ConsoleCommand.actionlist, input -> showActionList());
@@ -88,7 +86,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             return;
         }
         if (consoleCommand == ConsoleCommand.bot) {
-            Utils.consolePrint(Bot.getBotUsageString());
+            Utils.consolePrint(BotController.getInstance().getBotUsageString());
             return;
         }
         Utils.consolePrint("Usage: " + consoleCommand.name() + " " + consoleCommand.getUsage());
@@ -385,79 +383,6 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         Utils.consolePrint("Didn't find an opened altar");
     }
 
-    private static void configureBot(String data[]) {
-        String usageString = Bot.getBotUsageString();
-
-        if (data.length < 1) {
-            Utils.consolePrint(usageString);
-            writeToConsoleInputLine(ConsoleCommand.bot.name() + " ");
-            return;
-        }
-        if (data[0].equals("off")) {
-            Bot.deactivateAllBots();
-            return;
-        }
-        if (data[0].equals("pause")) {
-            Bot.pauseAllBots();
-            writeToConsoleInputLine(ConsoleCommand.bot.name() + " pause");
-            return;
-        }
-        Class<? extends Bot> botClass = Bot.getBotClass(data[0]);
-        if (botClass == null) {
-            Utils.consolePrint("Didn't find a bot with abbreviation \"" + data[0] + "\"");
-            Utils.consolePrint(usageString);
-            return;
-        }
-
-        if (data.length == 1) {
-            Bot.printBotDescription(botClass);
-            writeToConsoleInputLine(ConsoleCommand.bot.name() + " " + data[0] + " ");
-            return;
-        }
-
-        if (Bot.isInstantiated(botClass)) {
-            Bot botInstance = Bot.getInstance(botClass);
-            if (botInstance.isInterrupted()) {
-                Utils.consolePrint(botClass.getSimpleName() + " is trying to stop");
-            } else if (data[1].equals("on")) {
-                Utils.consolePrint(botClass.getSimpleName() + " is already on");
-            } else {
-                try {
-                    botInstance.handleInput(Arrays.copyOfRange(data, 1, data.length));
-                } catch (Exception e) {
-                    Utils.consolePrint("Unable to configure  " + botClass.getSimpleName());
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            if (data[1].equals("on")) {
-                Bot botInstance = Bot.getInstance(botClass);
-                if (botInstance != null) {
-                    botInstance.start();
-                    Utils.consolePrint(botClass.getSimpleName() + " is on!");
-                    Bot.printBotDescription(botClass);
-                } else {
-                    Utils.consolePrint("Internal error on bot activation");
-                }
-            } else {
-                Utils.consolePrint(botClass.getSimpleName() + " is not running!");
-            }
-        }
-        writeToConsoleInputLine(ConsoleCommand.bot.name() + " " + data[0] + " ");
-    }
-
-    private static void writeToConsoleInputLine(String s) {
-        try {
-            Object consoleComponent = ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "consoleComponent"));
-            Object inputField = ReflectionUtil.getPrivateField(consoleComponent, ReflectionUtil.getField(consoleComponent.getClass(), "inputField"));
-            Method method = inputField.getClass().getDeclaredMethod("setTextMoveToEnd", String.class);
-            method.setAccessible(true);
-            method.invoke(inputField, s);
-        } catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void configure(Properties properties) {
         String enableInfoCommands = properties.getProperty("DevInfoCommands");
@@ -520,7 +445,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
                     "        super.gameTick();\n" +
                     "    };", ctConsoleComponent);
             ctConsoleComponent.addMethod(consoleGameTickMethod);
-            
+
             final CtClass ctGroundItemCellRenderable = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
             ctGroundItemCellRenderable.getMethod("initialize", "()V").insertBefore("net.ildar.wurm.bot.GroundItemGetterBot.processNewItem($0);");
 

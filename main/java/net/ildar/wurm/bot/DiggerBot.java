@@ -7,6 +7,7 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -31,6 +32,11 @@ public class DiggerBot extends Bot{
     private Set<Pair<Integer, Integer>> invalidCorners;
     private boolean surfaceMiningMode;
     private InventoryMetaItem pickaxeItem;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(DiggerBot.class,
+                "Does the dirty job for you", "d");
+    }
 
     public DiggerBot() {
         registerInputHandler(DiggerBot.InputKey.s, this::setStaminaThreshold);

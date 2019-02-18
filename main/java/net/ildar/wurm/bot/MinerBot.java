@@ -9,6 +9,7 @@ import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -38,6 +39,11 @@ public class MinerBot extends Bot {
     private boolean noOre;
     private Random random = new Random();
     private Direction direction = Direction.FORWARD;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(MinerBot.class,
+                "Mines rocks and smelts ores.", "m");
+    }
 
     public MinerBot() {
         registerInputHandler(MinerBot.InputKey.s, this::setStaminaThreshold);

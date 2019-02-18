@@ -8,6 +8,7 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.client.renderer.gui.PaperDollInventory;
 import com.wurmonline.client.renderer.gui.PaperDollSlot;
 import com.wurmonline.shared.constants.PlayerAction;
+import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
@@ -19,6 +20,14 @@ public class ArcherBot extends Bot {
 
     private float staminaThreshold;
     private InventoryMetaItem bow;
+
+    public static BotRegistration getRegistration() {
+        return new BotRegistration(ArcherBot.class,
+                "Automatically shoots at selected target with currently equipped bow. " +
+                        "When the string breaks tries to place a new one. " +
+                        "Deactivates on target death.",
+                "ar");
+    }
 
     public ArcherBot() {
         registerInputHandler(ArcherBot.InputKey.s, this::setStaminaThreshold);
