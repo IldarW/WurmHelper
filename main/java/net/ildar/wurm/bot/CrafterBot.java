@@ -98,7 +98,7 @@ public class CrafterBot extends Bot {
                 if (unfinishedItemList != null) {
                     List lines = ReflectionUtil.getPrivateField(unfinishedItemList,
                             ReflectionUtil.getField(unfinishedItemList.getClass(), "lines"));
-                    if (lines != null) {
+                    if (lines != null && lines.size() > 0) {
                         targetName = null;
                         //noinspection ForLoopReplaceableByForEach
                         for (int i = 0; i < lines.size(); i++) {
