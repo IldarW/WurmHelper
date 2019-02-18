@@ -399,6 +399,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         }
         if (data[0].equals("pause")) {
             Bot.pauseAllBots();
+            writeToConsoleInputLine(ConsoleCommand.bot.name() + " pause");
             return;
         }
         Class<? extends Bot> botClass = Bot.getBotClass(data[0]);
