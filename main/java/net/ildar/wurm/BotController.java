@@ -148,7 +148,7 @@ public class BotController {
         return activeBots.stream().anyMatch(bot -> bot.getClass().equals(botClass));
     }
 
-    private synchronized <T extends Bot> T getInstance(Class<T> botClass) {
+    public synchronized <T extends Bot> T getInstance(Class<T> botClass) {
         T instance = null;
         try {
             Optional<Bot> optionalBot = activeBots.stream().filter(bot -> bot.getClass().equals(botClass)).findAny();
