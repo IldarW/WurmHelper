@@ -11,17 +11,15 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 public class Utils {
     //used to synchronize server calls
+    @SuppressWarnings("unused")
     public static ReentrantLock serverCallLock = new ReentrantLock();
     //console messages queue
     public static Queue<String> consoleMessages = new ConcurrentLinkedQueue<>();

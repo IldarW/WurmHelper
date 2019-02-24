@@ -13,9 +13,8 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import java.util.*;
 
 public class GroundItemGetterBot extends Bot {
-    private static Set <String> itemNames = new HashSet<>();
-    public static boolean active;
-    private static float distance = 4;
+    private Set <String> itemNames = new HashSet<>();
+    private float distance = 4;
 
     public static BotRegistration getRegistration() {
         return new BotRegistration(GroundItemGetterBot.class,
@@ -29,7 +28,6 @@ public class GroundItemGetterBot extends Bot {
     }
     @Override
     public void work() throws Exception{
-        active = true;
         setTimeout(500);
         while (isActive()) {
             waitOnPause();
@@ -58,15 +56,8 @@ public class GroundItemGetterBot extends Bot {
         }
     }
 
-    @Override
-    public synchronized void deactivate() {
-        active = false;
-        super.deactivate();
-    }
-
     @SuppressWarnings("unused")
-    public static void processNewItem(StaticModelRenderable staticModelRenderable) {
-        if (!active) return;
+    public void processNewItem(StaticModelRenderable staticModelRenderable) {
         try {
             float x = Mod.hud.getWorld().getPlayerPosX();
             float y = Mod.hud.getWorld().getPlayerPosY();

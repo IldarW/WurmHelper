@@ -148,15 +148,16 @@ public class BotController {
         return activeBots.stream().anyMatch(bot -> bot.getClass().equals(botClass));
     }
 
-    private synchronized Bot getInstance(Class<? extends Bot> botClass) {
-        Bot instance = null;
+    private synchronized <T extends Bot> T getInstance(Class<T> botClass) {
+        T instance = null;
         try {
             Optional<Bot> optionalBot = activeBots.stream().filter(bot -> bot.getClass().equals(botClass)).findAny();
             if (!optionalBot.isPresent()) {
                 instance = botClass.newInstance();
                 activeBots.add(instance);
             } else
-                instance = optionalBot.get();
+                //noinspection unchecked
+                instance = (T) optionalBot.get();
         } catch (InstantiationException | IllegalAccessException | NoSuchElementException | NullPointerException e) {
             e.printStackTrace();
         }
