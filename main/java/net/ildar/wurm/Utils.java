@@ -23,6 +23,7 @@ public class Utils {
     public static ReentrantLock serverCallLock = new ReentrantLock();
     //console messages queue
     public static Queue<String> consoleMessages = new ConcurrentLinkedQueue<>();
+
     /**
      * Print the message to the console
      */
@@ -34,21 +35,23 @@ public class Utils {
     public static void showOnScreenMessage(String message) {
         showOnScreenMessage(message, 1, 1, 1);
     }
+
     public static void showOnScreenMessage(String message, float r, float g, float b) {
-        Mod.hud.addOnscreenMessage(message, r, g, b, (byte)1);
+        Mod.hud.addOnscreenMessage(message, r, g, b, (byte) 1);
         consolePrint(message);
     }
 
     /**
      * Turn player by specified angle
+     *
      * @param dxRot angle in degrees
      */
     public static void turnPlayer(float dxRot) {
-        try{
+        try {
             float xRot = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
-            xRot = (xRot + dxRot)%360;
-            if (xRot < 0 ) xRot = (xRot + 360)%360;
+            xRot = (xRot + dxRot) % 360;
+            if (xRot < 0) xRot = (xRot + 360) % 360;
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
         } catch (Exception e) {
@@ -58,11 +61,12 @@ public class Utils {
 
     /**
      * Turn player at exact angle.
+     *
      * @param xRot the horizontal angle. Between 0 and 359, clockwise, 0 is north
      * @param yRot the vertical angle, 0 is center, 90 is bottom, -90 is top
      */
     public static void turnPlayer(float xRot, float yRot) {
-        try{
+        try {
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
@@ -74,41 +78,42 @@ public class Utils {
 
     /**
      * Move player at specified distance in current direction
+     *
      * @param d distance in meters
      */
     public static void movePlayer(float d) {
-        try{
+        try {
             float x = Mod.hud.getWorld().getPlayerPosX();
             float y = Mod.hud.getWorld().getPlayerPosY();
             float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
-            float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
-            float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
-            movePlayer(x+dx, y+dy);
+            float dx = (float) (d * Math.sin((double) xr / 180 * Math.PI));
+            float dy = (float) (-d * Math.cos((double) xr / 180 * Math.PI));
+            movePlayer(x + dx, y + dy);
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
-            consolePrint( e.toString());
+            consolePrint(e.toString());
         }
     }
 
-    public static void movePlayerBySteps(float d, int steps, long duration) throws InterruptedException{
-        try{
+    public static void movePlayerBySteps(float d, int steps, long duration) throws InterruptedException {
+        try {
             float x = Mod.hud.getWorld().getPlayerPosX();
             float y = Mod.hud.getWorld().getPlayerPosY();
             float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
-            float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
-            float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
-            movePlayerBySteps(x+dx, y+dy, steps, duration);
+            float dx = (float) (d * Math.sin((double) xr / 180 * Math.PI));
+            float dy = (float) (-d * Math.cos((double) xr / 180 * Math.PI));
+            movePlayerBySteps(x + dx, y + dy, steps, duration);
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
-            consolePrint( e.toString());
+            consolePrint(e.toString());
         }
     }
 
-    public static void movePlayerBySteps(float x, float y, int steps, long duration) throws InterruptedException{
+    public static void movePlayerBySteps(float x, float y, int steps, long duration) throws InterruptedException {
         float curX = Mod.hud.getWorld().getPlayerPosX();
         float curY = Mod.hud.getWorld().getPlayerPosY();
         float xStep = (x - curX) / steps;
@@ -120,14 +125,14 @@ public class Utils {
     }
 
     public static void movePlayer(float x, float y) {
-        try{
+        try {
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
-            consolePrint( e.toString());
+            consolePrint(e.toString());
         }
     }
 
@@ -143,25 +148,25 @@ public class Utils {
      * Turns the look towards nearest cardinal direction
      */
     public static void stabilizeLook() {
-        try{
+        try {
             float xRot = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
-            xRot = Math.round(xRot/90)*90;
+            xRot = Math.round(xRot / 90) * 90;
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yRotUsed"), (float)0.0);
+                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yRotUsed"), (float) 0.0);
         } catch (Exception e) {
             consolePrint("Unexpected error while turning - " + e.getMessage());
         }
     }
 
     public static void moveToCenter() {
-        try{
+        try {
             float x = Mod.hud.getWorld().getPlayerPosX();
             float y = Mod.hud.getWorld().getPlayerPosY();
-            x = (float)(Math.floor((double)x/4)*4 + 2);
-            y = (float)(Math.floor((double)y/4)*4 + 2);
+            x = (float) (Math.floor((double) x / 4) * 4 + 2);
+            y = (float) (Math.floor((double) y / 4) * 4 + 2);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
@@ -182,22 +187,24 @@ public class Utils {
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
             ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
                     ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
-        } catch(Exception e) {
+        } catch (Exception e) {
             consolePrint("Error on moving to the corner");
         }
     }
 
     public static float itemFavor(InventoryMetaItem item, float c) {
-        float quality = item.getQuality() * (1- item.getDamage()/100);
+        float quality = item.getQuality() * (1 - item.getDamage() / 100);
         return quality * quality / 500 * c;
     }
 
-    public static List<InventoryMetaItem>  getSelectedItems() {
+    public static List<InventoryMetaItem> getSelectedItems() {
         return getSelectedItems(Mod.hud.getInventoryWindow().getInventoryListComponent());
     }
+
     public static List<InventoryMetaItem> getSelectedItems(InventoryListComponent ilc) {
         return getSelectedItems(ilc, false, true);
     }
+
     public static List<InventoryMetaItem> getSelectedItems(InventoryListComponent ilc, boolean getAll, boolean recursive) {
         List<InventoryMetaItem> selItems = new ArrayList<>();
         try {
@@ -208,13 +215,14 @@ public class Utils {
             @SuppressWarnings("unchecked")
             List lines = new ArrayList(ReflectionUtil.getPrivateField(rootNode,
                     ReflectionUtil.getField(rootNode.getClass(), "children")));
-            selItems =  getSelectedItems(lines, getAll, recursive);
-        } catch(Exception e){
+            selItems = getSelectedItems(lines, getAll, recursive);
+        } catch (Exception e) {
             consolePrint("Unexpected error while getting selected items - " + e.getMessage());
             consolePrint(e.toString());
         }
         return selItems;
     }
+
     public static List<InventoryMetaItem> getSelectedItems(List lines, boolean getAll, boolean recursive) {
         //List<WTreeListNode<InventoryListComponent.InventoryTreeListItem>> lines
         List<InventoryMetaItem> selItems = new ArrayList<>();
@@ -244,7 +252,7 @@ public class Utils {
                 } else if (!isInventoryGroup && (getAll || isSelected))
                     selItems.add(item);
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             consolePrint("Unexpected error while getting selected items - " + e.getMessage());
             consolePrint(e.toString());
         }
@@ -254,6 +262,7 @@ public class Utils {
     public static InventoryMetaItem getInventoryItem(String item) {
         return getInventoryItem(Mod.hud.getInventoryWindow().getInventoryListComponent(), item);
     }
+
     public static InventoryMetaItem getInventoryItem(InventoryListComponent ilc, String item) {
         try {
             List<InventoryMetaItem> items = getSelectedItems(ilc, true, true);
@@ -267,17 +276,17 @@ public class Utils {
                     return invItem;
                 }
             }
-            
+
             // if not found by startsWith lets try to find by contains
             for (InventoryMetaItem invItem : items) {
                 if (invItem.getBaseName().contains(item)) {
                     return invItem;
                 }
             }
-            
+
         } catch (Exception e) {
             consolePrint("Got error while searching for " + item + " in your inventory. Error - " + e.getMessage());
-            consolePrint( e.toString());
+            consolePrint(e.toString());
         }
         return null;
     }
@@ -285,6 +294,7 @@ public class Utils {
     public static List<InventoryMetaItem> getInventoryItems(String item) {
         return getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), item);
     }
+
     public static List<InventoryMetaItem> getInventoryItems(InventoryListComponent ilc, String item) {
         List<InventoryMetaItem> targets = new ArrayList<>();
         try {
@@ -299,7 +309,7 @@ public class Utils {
             }
         } catch (Exception e) {
             consolePrint("Got error while searching for " + item + " in your inventory. Error - " + e.getMessage());
-            consolePrint( e.toString());
+            consolePrint(e.toString());
         }
         return targets;
     }
@@ -307,6 +317,7 @@ public class Utils {
     public static List<InventoryMetaItem> getInventoryItemsAtPoint(int x, int y) {
         return getInventoryItemsAtPoint(Mod.hud.getInventoryWindow().getInventoryListComponent(), x, y);
     }
+
     public static List<InventoryMetaItem> getInventoryItemsAtPoint(InventoryListComponent ilc, int x, int y) {
         List<InventoryMetaItem> itemList = new ArrayList<>();
         try {
@@ -333,9 +344,11 @@ public class Utils {
         }
         return itemList;
     }
+
     public static List<InventoryMetaItem> getFirstLevelItems() {
         return getFirstLevelItems(Mod.hud.getInventoryWindow().getInventoryListComponent());
     }
+
     public static List<InventoryMetaItem> getFirstLevelItems(InventoryListComponent ilc) {
         try {
             WurmTreeList wtl = ReflectionUtil.getPrivateField(ilc,
@@ -352,7 +365,7 @@ public class Utils {
             return new ArrayList<>(nodeItem.getChildren());
         } catch (Exception e) {
             Utils.consolePrint("getFirstLevelItems() has encountered an error - " + e.getMessage());
-            Utils.consolePrint( e.toString());
+            Utils.consolePrint(e.toString());
         }
         return new ArrayList<>();
     }
@@ -383,7 +396,7 @@ public class Utils {
             }
         } catch (Exception e) {
             Utils.consolePrint("Can't get target component! Error - " + e.getMessage());
-            Utils.consolePrint( e.toString());
+            Utils.consolePrint(e.toString());
         }
         return null;
     }
@@ -433,7 +446,7 @@ public class Utils {
                 String path = url.toString();
                 int pos = path.lastIndexOf('!');
                 if (pos != -1) {
-                    if (r.substring(0,1).equals("/"))
+                    if (r.substring(0, 1).equals("/"))
                         r = r.substring(1);
                     path = path.substring(0, pos) + "!/" + r;
                 }
@@ -460,6 +473,7 @@ public class Utils {
         }
         return 0;
     }
+
     public static float getMaxWeight() {
         float bs = SkillLogicSet.getSkill("Body strength").getValue();
         return bs * 7;
@@ -498,4 +512,22 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * Gets distance between objects
+     */
+    public static long getDistance(float x, float y, float x2, float y2) {
+        return (long) Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
+    }
+
+    /**
+     * Gets distance between player and some object
+     */
+    public static long getDistance(float x2, float y2) {
+        float x = Mod.hud.getWorld().getPlayerPosX();
+        float y = Mod.hud.getWorld().getPlayerPosY();
+        return (long) Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
+    }
+
 }
