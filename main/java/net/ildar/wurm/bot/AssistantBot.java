@@ -2,6 +2,7 @@ package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
+import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.client.renderer.gui.PaperDollInventory;
 import com.wurmonline.client.renderer.gui.PaperDollSlot;
 import com.wurmonline.shared.constants.PlayerAction;
@@ -99,183 +100,188 @@ public class AssistantBot extends Bot {
     @Override
     public void work() throws Exception{
         registerEventProcessors();
+        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
             waitOnPause();
-            if (casting) {
-                float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
-                if (favor > spellToCast.favorCap) {
-                    successfullCasting = false;
-                    successfullCastStart = false;
-                    int counter = 0;
-                    while (casting && !successfullCastStart && counter++ < 50 && favor > spellToCast.favorCap) {
-                        if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
-                        Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, spellToCast.playerAction);
-                        favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
-                        sleep(500);
+            float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
+            if (progress == 0f && creationWindow.getActionInUse() == 0){
+                if (casting) {
+                    float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                    if (favor > spellToCast.favorCap) {
+                        successfullCasting = false;
+                        successfullCastStart = false;
+                        int counter = 0;
+                        while (casting && !successfullCastStart && counter++ < 50 && favor > spellToCast.favorCap) {
+                            if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
+                            Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, spellToCast.playerAction);
+                            favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                            sleep(500);
+                        }
+                        counter = 0;
+                        while (casting && !successfullCasting && counter++ < 100 && favor > spellToCast.favorCap) {
+                            if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
+                            sleep(2000);
+                        }
                     }
-                    counter = 0;
-                    while (casting && !successfullCasting && counter++ < 100 && favor > spellToCast.favorCap) {
-                        if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
-                        sleep(2000);
-                    }
-                }
-            } else if (wovCasting && Math.abs(lastWOV - System.currentTimeMillis()) > 1810000) {
-                float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
-                if (favor > 30) {
-                    successfullCasting = false;
-                    successfullCastStart = false;
-                    needWaitWov = false;
-                    int counter = 0;
-                    while (wovCasting && !successfullCastStart && counter++ < 50 && !needWaitWov) {
-                        if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
-                        Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, PlayerAction.WISDOM_OF_VYNORA);
-                        sleep(500);
-                    }
-                    counter = 0;
-                    while (wovCasting && !successfullCasting && counter++ < 100 && !needWaitWov) {
-                        if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
-                        sleep(2000);
-                    }
-                    if (needWaitWov)
-                        lastWOV = lastWOV + 20000;
-                    else
-                        lastWOV = System.currentTimeMillis();
-                }
-            }
-            if (drinking) {
-                float thirst = Mod.hud.getWorld().getPlayer().getThirst();
-                if (thirst > 0.1) {
-                    successfullDrinking = false;
-                    successfullDrinkingStart = false;
-                    int counter = 0;
-                    while (drinking && !successfullDrinkingStart && counter++ < 50) {
-                        if (verbose) Utils.consolePrint("successfullDrinkingStart counter=" + counter);
-                        Mod.hud.sendAction(new PlayerAction((short) 183, PlayerAction.ANYTHING), waterId);
-                        sleep(500);
-                    }
-                    counter = 0;
-                    while (drinking && !successfullDrinking && counter++ < 100) {
-                        if (verbose) Utils.consolePrint("successfullDrinking counter=" + counter);
-                        sleep(2000);
+                } else if (wovCasting && Math.abs(lastWOV - System.currentTimeMillis()) > 1810000) {
+                    float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                    if (favor > 30) {
+                        successfullCasting = false;
+                        successfullCastStart = false;
+                        needWaitWov = false;
+                        int counter = 0;
+                        while (wovCasting && !successfullCastStart && counter++ < 50 && !needWaitWov) {
+                            if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
+                            Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, PlayerAction.WISDOM_OF_VYNORA);
+                            sleep(500);
+                        }
+                        counter = 0;
+                        while (wovCasting && !successfullCasting && counter++ < 100 && !needWaitWov) {
+                            if (verbose) Utils.consolePrint("successfullCasting counter=" + counter);
+                            sleep(2000);
+                        }
+                        if (needWaitWov)
+                            lastWOV = lastWOV + 20000;
+                        else
+                            lastWOV = System.currentTimeMillis();
                     }
                 }
-            }
-            if (lockpicking && Math.abs(lastLockpicking - System.currentTimeMillis()) > lockpickingTimeout) {
-                long lockpickId = 0;
-                InventoryMetaItem lockpick = Utils.getInventoryItem("lock picks");
-                if (lockpick != null)
-                    lockpickId = lockpick.getId();
-                if (lockpickId == 0) {
-                    Utils.consolePrint("No lockpicks in inventory! Turning lockpicking off");
-                    lockpicking = false;
-                    continue;
+                if (drinking) {
+                    float thirst = Mod.hud.getWorld().getPlayer().getThirst();
+                    if (thirst > 0.1) {
+                        successfullDrinking = false;
+                        successfullDrinkingStart = false;
+                        int counter = 0;
+                        while (drinking && !successfullDrinkingStart && counter++ < 50) {
+                            if (verbose) Utils.consolePrint("successfullDrinkingStart counter=" + counter);
+                            Mod.hud.sendAction(new PlayerAction((short) 183, PlayerAction.ANYTHING), waterId);
+                            sleep(500);
+                        }
+                        counter = 0;
+                        while (drinking && !successfullDrinking && counter++ < 100) {
+                            if (verbose) Utils.consolePrint("successfullDrinking counter=" + counter);
+                            sleep(2000);
+                        }
+                    }
                 }
-
-                successfullStartOfLockpicking = false;
-                lockpickingResult = -1;
-                int counter = 0;
-                while (lockpicking && !successfullStartOfLockpicking && counter++ < 50 && !noLock) {
-                    if (verbose) Utils.consolePrint("successfullStartOfLockpicking counter=" + counter);
-                    Mod.hud.getWorld().getServerConnection().sendAction(lockpickId,
-                            new long[]{chestId}, new PlayerAction((short) 101, PlayerAction.ANYTHING));
-                    sleep(500);
-                }
-                if (counter >= 50) continue;
-                counter = 0;
-                while (lockpicking && lockpickingResult == -1 && counter++ < 100 && !noLock) {
-                    if (verbose) Utils.consolePrint("lockpickingResult counter=" + counter);
-                    sleep(2000);
-                }
-                if (noLock || lockpickingResult > 0) {
-                    long padlockId = 0;
-                    InventoryMetaItem padlock = Utils.getInventoryItem("padlock");
-                    if (padlock != null)
-                        padlockId = padlock.getId();
-                    if (padlockId == 0) {
-                        sleep(1000);
+                if (lockpicking && Math.abs(lastLockpicking - System.currentTimeMillis()) > lockpickingTimeout) {
+                    long lockpickId = 0;
+                    InventoryMetaItem lockpick = Utils.getInventoryItem("lock picks");
+                    if (lockpick != null)
+                        lockpickId = lockpick.getId();
+                    if (lockpickId == 0) {
+                        Utils.consolePrint("No lockpicks in inventory! Turning lockpicking off");
+                        lockpicking = false;
                         continue;
                     }
-                    successfullLocking = false;
-                    counter = 0;
-                    while (lockpicking && !successfullLocking && counter++ < 50) {
-                        if (verbose) Utils.consolePrint("successfullLocking lockingcounter=" + counter);
-                        Mod.hud.getWorld().getServerConnection().sendAction(padlockId,
-                                new long[]{chestId}, new PlayerAction((short) 161, PlayerAction.ANYTHING));
+
+                    successfullStartOfLockpicking = false;
+                    lockpickingResult = -1;
+                    int counter = 0;
+                    while (lockpicking && !successfullStartOfLockpicking && counter++ < 50 && !noLock) {
+                        if (verbose) Utils.consolePrint("successfullStartOfLockpicking counter=" + counter);
+                        Mod.hud.getWorld().getServerConnection().sendAction(lockpickId,
+                                new long[]{chestId}, new PlayerAction((short) 101, PlayerAction.ANYTHING));
                         sleep(500);
                     }
-                }
-                if (noLock)
-                    noLock = false;
-                else
-                    lastLockpicking = System.currentTimeMillis();
-            }
-            if (trashCleaning) {
-                if (Math.abs(lastTrashCleaning - System.currentTimeMillis()) > trashCleaningTimeout) {
-                    lastTrashCleaning = System.currentTimeMillis();
-                    successfullStartTrashCleaning = false;
-                    int counter = 0;
-                    while (trashCleaning && !successfullStartTrashCleaning && counter++ < 30) {
-                        if (verbose) Utils.consolePrint("successfullStartTrashCleaning counter=" + counter);
-                        Mod.hud.sendAction(new PlayerAction((short) 954, PlayerAction.ANYTHING), trashBinId);
-                        sleep(1000);
+                    if (counter >= 50) continue;
+                    counter = 0;
+                    while (lockpicking && lockpickingResult == -1 && counter++ < 100 && !noLock) {
+                        if (verbose) Utils.consolePrint("lockpickingResult counter=" + counter);
+                        sleep(2000);
                     }
-                    successfullStartTrashCleaning = true;
-                }
-            }
-
-            if (praying) {
-                if (Math.abs(lastPrayer - System.currentTimeMillis()) > prayingTimeout) {
-                    lastPrayer = System.currentTimeMillis();
-                    successfullStartOfPraying = false;
-                    int counter = 0;
-                    while (praying && !successfullStartOfPraying && counter++ < 50) {
-                        if (verbose) Utils.consolePrint("successfullStartOfPraying counter=" + counter);
-                        Mod.hud.sendAction(PlayerAction.PRAY, altarId);
-                        sleep(1000);
-                    }
-                    successfullStartOfPraying = true;
-                }
-            }
-
-            if (sacrificing) {
-                if (Math.abs(lastSacrifice - System.currentTimeMillis()) > sacrificeTimeout) {
-                    lastSacrifice = System.currentTimeMillis();
-                    successfullStartOfSacrificing = false;
-                    int counter = 0;
-                    while (sacrificing && !successfullStartOfSacrificing && counter++ < 50) {
-                        if (verbose) Utils.consolePrint("successfullStartOfSacrificing counter=" + counter);
-                        Mod.hud.sendAction(PlayerAction.SACRIFICE, sacrificeAltarId);
-                        sleep(1000);
-                    }
-                    successfullStartOfSacrificing = true;
-                }
-            }
-
-            if (kindlingBurning) {
-                if (Math.abs(lastBurning - System.currentTimeMillis()) > kindlingBurningTimeout) {
-                    lastBurning = System.currentTimeMillis();
-                    List<InventoryMetaItem> kindlings = Utils.getInventoryItems("kindling")
-                            .stream()
-                            .filter(item -> item.getRarity() == 0)
-                            .collect(Collectors.toList());
-                    if (kindlings.size() > 1) {
-                        kindlings.sort(Comparator.comparingDouble(InventoryMetaItem::getWeight));
-                        InventoryMetaItem biggestKindling = kindlings.get(kindlings.size() - 1);
-                        kindlings.remove(biggestKindling);
-                        long[] targetIds = new long[kindlings.size()];
-                        for (int i = 0; i < Math.min(kindlings.size(), 64); i++)
-                            targetIds[i] = kindlings.get(i).getId();
-                        Mod.hud.getWorld().getServerConnection().sendAction(
-                                targetIds[0], targetIds, PlayerAction.COMBINE);
-                        successfullStartOfBurning = false;
-                        int counter = 0;
-                        while (kindlingBurning && !successfullStartOfBurning && counter++ < 50) {
-                            if (verbose) Utils.consolePrint("successfullStartOfBurning counter=" + counter);
-                            Mod.hud.getWorld().getServerConnection().sendAction(
-                                    biggestKindling.getId(), new long[]{forgeId}, new PlayerAction((short) 117, PlayerAction.ANYTHING));
-                            sleep(300);
+                    if (noLock || lockpickingResult > 0) {
+                        long padlockId = 0;
+                        InventoryMetaItem padlock = Utils.getInventoryItem("padlock");
+                        if (padlock != null)
+                            padlockId = padlock.getId();
+                        if (padlockId == 0) {
+                            sleep(1000);
+                            continue;
                         }
-                        successfullStartOfBurning = true;
+                        successfullLocking = false;
+                        counter = 0;
+                        while (lockpicking && !successfullLocking && counter++ < 50) {
+                            if (verbose) Utils.consolePrint("successfullLocking lockingcounter=" + counter);
+                            Mod.hud.getWorld().getServerConnection().sendAction(padlockId,
+                                    new long[]{chestId}, new PlayerAction((short) 161, PlayerAction.ANYTHING));
+                            sleep(500);
+                        }
+                    }
+                    if (noLock)
+                        noLock = false;
+                    else
+                        lastLockpicking = System.currentTimeMillis();
+                }
+                if (trashCleaning) {
+                    if (Math.abs(lastTrashCleaning - System.currentTimeMillis()) > trashCleaningTimeout) {
+                        lastTrashCleaning = System.currentTimeMillis();
+                        successfullStartTrashCleaning = false;
+                        int counter = 0;
+                        while (trashCleaning && !successfullStartTrashCleaning && counter++ < 30) {
+                            if (verbose) Utils.consolePrint("successfullStartTrashCleaning counter=" + counter);
+                            Mod.hud.sendAction(new PlayerAction((short) 954, PlayerAction.ANYTHING), trashBinId);
+                            sleep(1000);
+                        }
+                        successfullStartTrashCleaning = true;
+                    }
+                }
+
+                if (praying) {
+                    if (Math.abs(lastPrayer - System.currentTimeMillis()) > prayingTimeout) {
+                        lastPrayer = System.currentTimeMillis();
+                        successfullStartOfPraying = false;
+                        int counter = 0;
+                        while (praying && !successfullStartOfPraying && counter++ < 50) {
+                            if (verbose) Utils.consolePrint("successfullStartOfPraying counter=" + counter);
+                            Mod.hud.sendAction(PlayerAction.PRAY, altarId);
+                            sleep(1000);
+                        }
+                        successfullStartOfPraying = true;
+                    }
+                }
+
+                if (sacrificing) {
+                    if (Math.abs(lastSacrifice - System.currentTimeMillis()) > sacrificeTimeout) {
+                        lastSacrifice = System.currentTimeMillis();
+                        successfullStartOfSacrificing = false;
+                        int counter = 0;
+                        while (sacrificing && !successfullStartOfSacrificing && counter++ < 50) {
+                            if (verbose) Utils.consolePrint("successfullStartOfSacrificing counter=" + counter);
+                            Mod.hud.sendAction(PlayerAction.SACRIFICE, sacrificeAltarId);
+                            sleep(1000);
+                        }
+                        successfullStartOfSacrificing = true;
+                    }
+                }
+
+                if (kindlingBurning) {
+                    if (Math.abs(lastBurning - System.currentTimeMillis()) > kindlingBurningTimeout) {
+                        lastBurning = System.currentTimeMillis();
+                        List<InventoryMetaItem> kindlings = Utils.getInventoryItems("kindling")
+                                .stream()
+                                .filter(item -> item.getRarity() == 0)
+                                .collect(Collectors.toList());
+                        if (kindlings.size() > 1) {
+                            kindlings.sort(Comparator.comparingDouble(InventoryMetaItem::getWeight));
+                            InventoryMetaItem biggestKindling = kindlings.get(kindlings.size() - 1);
+                            kindlings.remove(biggestKindling);
+                            long[] targetIds = new long[kindlings.size()];
+                            for (int i = 0; i < Math.min(kindlings.size(), 64); i++)
+                                targetIds[i] = kindlings.get(i).getId();
+                            Mod.hud.getWorld().getServerConnection().sendAction(
+                                    targetIds[0], targetIds, PlayerAction.COMBINE);
+                            successfullStartOfBurning = false;
+                            int counter = 0;
+                            while (kindlingBurning && !successfullStartOfBurning && counter++ < 50) {
+                                if (verbose) Utils.consolePrint("successfullStartOfBurning counter=" + counter);
+                                Mod.hud.getWorld().getServerConnection().sendAction(
+                                        biggestKindling.getId(), new long[]{forgeId}, new PlayerAction((short) 117, PlayerAction.ANYTHING));
+                                sleep(300);
+                            }
+                            successfullStartOfBurning = true;
+                        }
                     }
                 }
             }
