@@ -1,7 +1,9 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickableUnit;
+import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
 import com.wurmonline.shared.util.MaterialUtilities;
@@ -131,11 +133,26 @@ public class ImproverBot extends Bot {
                 } else {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
-                    if (pickableUnit == null) {
+                    if (pickableUnit == null || !(pickableUnit instanceof GroundItemCellRenderable)) {
                         Utils.consolePrint("No selected item!");
                         sleep(timeout);
                         continue;
                     }
+
+                    GroundItemData pickableItem = ReflectionUtil.getPrivateField(pickableUnit, ReflectionUtil.getField(GroundItemCellRenderable.class, "item"));
+                    if(pickableItem==null){
+                        sleep(timeout);
+                        continue;
+                    }
+
+                    ToolSkill groundSkill = ToolSkill.getSkillForItem(pickableItem.getMaterialId());
+                    if(groundSkill== ToolSkill.UNKNOWN){
+                        sleep(timeout);
+                        continue;
+                    }
+
+                    toolSkill=(groundSkill!=ToolSkill.UNKNOWN && groundSkill!=toolSkill)?groundSkill:toolSkill;
+
                     improveActionFinished = false;
                     Mod.hud.sendAction(PlayerAction.REPAIR, pickableUnit.getId());
                     for (Tool tool : getToolsBySkill(toolSkill)) {
@@ -178,6 +195,9 @@ public class ImproverBot extends Bot {
     private Tool findToolForImprove(InventoryMetaItem item) {
         if (item == null) return null;
         Tool returnTool = null;
+        if(!this.groundMode)
+            toolSkill = ToolSkill.getSkillForItem(item.getMaterialId());
+
         for(Tool tool : getToolsBySkill(toolSkill))
             if (tool.improveIconId == item.getImproveIconId()) {
                 //leather/pelt fix
@@ -302,10 +322,10 @@ public class ImproverBot extends Bot {
             groundMode = false;
             Utils.consolePrint("Ground mode is off!");
         } else {
-            if (toolSkill == ToolSkill.UNKNOWN) {
+            /*if (toolSkill == ToolSkill.UNKNOWN) {
                 Utils.consolePrint("Choose the skill first with \"" + ImproverBot.InputKey.ss.name() + "\" key");
                 return;
-            }
+            }*/
             groundMode = true;
             Utils.consolePrint("Ground mode is on!");
         }
@@ -420,6 +440,21 @@ public class ImproverBot extends Bot {
             for(ToolSkill toolSkill : values())
                 if (toolSkill.abbreviation.equals(abbreviation))
                     return toolSkill;
+            return UNKNOWN;
+        }
+        static ToolSkill getSkillForItem(byte materialId){
+            if(MaterialUtilities.isWood(materialId))
+                return ToolSkill.CARPENTRY;
+            if(MaterialUtilities.isMetal(materialId))
+                return ToolSkill.BLACKSMITHING;
+            if(MaterialUtilities.isLeather(materialId))
+                return ToolSkill.LEATHERWORKING;
+            if(MaterialUtilities.isCloth(materialId))
+                return ToolSkill.CLOTH_TAILORING;
+            if(MaterialUtilities.isStone(materialId))
+                return ToolSkill.MASONRY;
+            if(MaterialUtilities.isClay(materialId))
+                return ToolSkill.POTTERY;
             return UNKNOWN;
         }
     }
