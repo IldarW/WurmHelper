@@ -12,6 +12,7 @@ import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +33,8 @@ public class DiggerBot extends Bot{
     private Set<Pair<Integer, Integer>> invalidCorners;
     private boolean surfaceMiningMode;
     private InventoryMetaItem pickaxeItem;
+
+    public static Tiles.Tile[] DirtList = {Tiles.Tile.TILE_DIRT, Tiles.Tile.TILE_GRASS, Tiles.Tile.TILE_SAND, Tiles.Tile.TILE_MYCELIUM, Tiles.Tile.TILE_TUNDRA, Tiles.Tile.TILE_STEPPE};
 
     public static BotRegistration getRegistration() {
         return new BotRegistration(DiggerBot.class,
@@ -240,6 +243,7 @@ public class DiggerBot extends Bot{
     private boolean doDigActions() {
         int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
         int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
+        Tiles.Tile tileType = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x, y);
         if (isCornerInvalid(x, y))
             return false;
         int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(x, y)* 10);
@@ -249,9 +253,15 @@ public class DiggerBot extends Bot{
             int neededClicks = Math.min(h - diggingHeightLimit, clicks);
             if (surfaceMiningMode) {
                 for (int i = 0; i < neededClicks; i++) {
-                    Mod.hud.getWorld().getServerConnection().sendAction(pickaxeItem.getId(),
-                            new long[]{Tiles.getTileId(x, y, 0)},
-                            PlayerAction.MINE_FORWARD);
+                    if(isTileRock(tileType)) {
+                        Mod.hud.getWorld().getServerConnection().sendAction(pickaxeItem.getId(),
+                                new long[]{Tiles.getTileId(x, y, 0)},
+                                PlayerAction.MINE_FORWARD);
+                    }else if(isTileDirt(tileType)){
+                        Mod.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
+                                new long[]{Tiles.getTileId(x, y, 0)},
+                                digAction);
+                    }
                 }
                 return true;
             } else {
@@ -310,10 +320,25 @@ public class DiggerBot extends Bot{
         return false;
     }
 
+    private boolean isTileRock(int x, int y){
+        Tiles.Tile t = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
+        return isTileRock(t);
+    }
+    private boolean isTileRock(Tiles.Tile t){
+        return t == Tiles.Tile.TILE_ROCK;
+    }
+    private boolean isTileDirt(int x, int y){
+        Tiles.Tile t = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
+        return isTileDirt(t);
+    }
+    private boolean isTileDirt(Tiles.Tile t){
+        return Arrays.asList(DirtList).contains(t);
+    }
+
     private boolean isCornerInvalid(int x, int y) {
         if (invalidCorners.contains(new Pair<>(x, y)))
             return true;
-        if (surfaceMiningMode && !areSurroundingTilesRocks(x, y))
+        if (surfaceMiningMode && !areSurroundingTilesRocks(x, y) && isTileRock(x,y) )
             return true;
         if (!surfaceMiningMode && isRockTileNear(x, y))
             return true;
