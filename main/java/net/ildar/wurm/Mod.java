@@ -18,6 +18,7 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
 import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
 import org.gotti.wurmunlimited.modloader.interfaces.Initable;
+import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 
 import java.io.FileInputStream;
@@ -26,7 +27,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Mod implements WurmClientMod, Initable, Configurable {
+public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
     public static HeadsUpDisplay hud;
     public static List<WurmComponent> components;
 
@@ -396,11 +397,49 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             Mod.noBlessings = true;
     }
 
-    public void init() {
+    @Override
+    public void preInit() {
         try {
             final ClassPool classPool = HookManager.getInstance().getClassPool();
             final CtClass ctWurmConsole = classPool.getCtClass("com.wurmonline.client.console.WurmConsole");
             ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z").insertBefore("if (net.ildar.wurm.Mod.handleInput($1,$2)) return true;");
+
+            final CtClass ctSocketConnection = classPool.getCtClass("com.wurmonline.communication.SocketConnection");
+            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
+            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
+            ctSocketConnection.getMethod("getBuffer", "()Ljava/nio/ByteBuffer;").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
+            ctSocketConnection.getMethod("flush", "()V").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
+
+            final CtClass ctConsoleComponent = classPool.getCtClass("com.wurmonline.client.renderer.gui.ConsoleComponent");
+            CtMethod consoleGameTickMethod = CtNewMethod.make("public void gameTick() {\n" +
+                    "        while(!net.ildar.wurm.Utils.consoleMessages.isEmpty()) addLine((String)net.ildar.wurm.Utils.consoleMessages.poll(), 1.0F, 1.0F, 1.0F);\n" +
+                    "        super.gameTick();\n" +
+                    "    };", ctConsoleComponent);
+            ctConsoleComponent.addMethod(consoleGameTickMethod);
+
+            final CtClass ctWurmChat = classPool.getCtClass("com.wurmonline.client.renderer.gui.ChatPanelComponent");
+            ctWurmChat.getMethod("addText", "(Ljava/lang/String;Ljava/util/List;Z)V").insertBefore("net.ildar.wurm.Chat.onMessage($1,$2,$3);");
+            ctWurmChat.getMethod("addText", "(Ljava/lang/String;Ljava/lang/String;FFFZ)V").insertBefore("net.ildar.wurm.Chat.onMessage($1,$2,$6);");
+
+            CtClass cellRenderableClass = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
+            cellRenderableClass.defrost();
+            CtMethod cellRenderableInitializeMethod = CtNewMethod.make("public void initialize() {\n" +
+                    "        net.ildar.wurm.bot.GroundItemGetterBot gigBot = net.ildar.wurm.BotController.getInstance().getInstance(net.ildar.wurm.bot.GroundItemGetterBot.class);\n" +
+                    "                if (gigBot != null) {\n" +
+                    "                    gigBot.processNewItem(this);\n" +
+                    "                }\n" +
+                    "        super.initialize();\n" +
+                    "    };", cellRenderableClass);
+            cellRenderableClass.addMethod(cellRenderableInitializeMethod);
+
+        } catch (Exception e) {
+            Mod.logger.log(Level.SEVERE, "Error loading mod", e);
+            Mod.logger.log(Level.SEVERE, e.toString());
+        }
+    }
+
+    public void init() {
+        try {
             HookManager.getInstance().registerHook("com.wurmonline.client.renderer.gui.HeadsUpDisplay", "init", "(II)V", () -> (proxy, method, args) -> {
                 method.invoke(proxy, args);
                 Mod.hud = (HeadsUpDisplay)proxy;
@@ -432,27 +471,6 @@ public class Mod implements WurmClientMod, Initable, Configurable {
                 components = new ArrayList<>(ReflectionUtil.getPrivateField(proxy, ReflectionUtil.getField(proxy.getClass(), "components")));
                 return null;
             });
-
-            final CtClass ctSocketConnection = classPool.getCtClass("com.wurmonline.communication.SocketConnection");
-            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
-            ctSocketConnection.getMethod("tickWriting", "(J)Z").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
-            ctSocketConnection.getMethod("getBuffer", "()Ljava/nio/ByteBuffer;").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
-            ctSocketConnection.getMethod("flush", "()V").insertAfter("net.ildar.wurm.Utils.serverCallLock.unlock();");
-
-            final CtClass ctConsoleComponent = classPool.getCtClass("com.wurmonline.client.renderer.gui.ConsoleComponent");
-            CtMethod consoleGameTickMethod = CtNewMethod.make("public void gameTick() {\n" +
-                    "        while(!net.ildar.wurm.Utils.consoleMessages.isEmpty()) addLine((String)net.ildar.wurm.Utils.consoleMessages.poll(), 1.0F, 1.0F, 1.0F);\n" +
-                    "        super.gameTick();\n" +
-                    "    };", ctConsoleComponent);
-            ctConsoleComponent.addMethod(consoleGameTickMethod);
-
-            final CtClass ctGroundItemCellRenderable = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
-            ctGroundItemCellRenderable.getMethod("initialize", "()V").insertBefore("net.ildar.wurm.bot.GroundItemGetterBot.processNewItem($0);");
-
-            final CtClass ctWurmChat = classPool.getCtClass("com.wurmonline.client.renderer.gui.ChatPanelComponent");
-            ctWurmChat.getMethod("addText", "(Ljava/lang/String;Ljava/util/List;Z)V").insertBefore("net.ildar.wurm.Chat.onMessage($1,$2,$3);");
-            ctWurmChat.getMethod("addText", "(Ljava/lang/String;Ljava/lang/String;FFFZ)V").insertBefore("net.ildar.wurm.Chat.onMessage($1,$2,$6);");
-
 
             HookManager.getInstance().registerHook("com.wurmonline.client.startup.ServerBrowserDirectConnect", "loadOptions", "()V", () -> (proxy, method, args) -> {
                 method.invoke(proxy, args);
@@ -492,10 +510,8 @@ public class Mod implements WurmClientMod, Initable, Configurable {
             logger.info("Loaded");
         }
         catch (Exception e) {
-            if (Mod.logger != null) {
-                Mod.logger.log(Level.SEVERE, "Error loading mod", e);
-                Mod.logger.log(Level.SEVERE, e.toString());
-            }
+            Mod.logger.log(Level.SEVERE, "Error loading mod", e);
+            Mod.logger.log(Level.SEVERE, e.toString());
         }
     }
 
@@ -569,6 +585,7 @@ public class Mod implements WurmClientMod, Initable, Configurable {
         }
     }
 
+    @SuppressWarnings("unused")
     private enum Action{
         Butcher("bu", "butchering knife", PlayerAction.BUTCHER),
         Bury("br", "shovel", PlayerAction.BURY),
