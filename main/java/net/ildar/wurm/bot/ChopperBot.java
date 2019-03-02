@@ -28,10 +28,10 @@ public class ChopperBot extends Bot {
 
     public ChopperBot() {
         registerInputHandler(ChopperBot.InputKey.s, this::setStaminaThreshold);
-        registerInputHandler(ChopperBot.InputKey.d, this::toggleDistance);
+        registerInputHandler(ChopperBot.InputKey.d, this::setDistance);
         registerInputHandler(ChopperBot.InputKey.c, this::setClickNumber);
         registerInputHandler(ChopperBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ChopperBot.InputKey.area_speed, this::toggleAreaModeSpeed);
+        registerInputHandler(ChopperBot.InputKey.area_speed, this::setAreaModeSpeed);
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
@@ -95,7 +95,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private void toggleDistance(String input[]) {
+    private void setDistance(String input[]) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(ChopperBot.InputKey.d);
             return;
@@ -150,7 +150,7 @@ public class ChopperBot extends Bot {
             printInputKeyUsageString(ChopperBot.InputKey.area);
     }
 
-    private void toggleAreaModeSpeed(String []input) {
+    private void setAreaModeSpeed(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ChopperBot.InputKey.area_speed);
             return;
