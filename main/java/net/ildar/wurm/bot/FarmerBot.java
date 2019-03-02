@@ -46,9 +46,6 @@ public class FarmerBot extends Bot {
         registerInputHandler(FarmerBot.InputKey.and, this::addDropItemName);
         registerInputHandler(FarmerBot.InputKey.r, input -> toggleRepairing());
         registerInputHandler(FarmerBot.InputKey.dl, this::setDropLimit);
-
-        registerInputHandler(FarmerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(FarmerBot.InputKey.area_speed, this::setMovementSpeed);
     }
 
     @Override
@@ -270,12 +267,6 @@ public class FarmerBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(FarmerBot.InputKey.area);
-    }
-
     private void setDropLimit(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(FarmerBot.InputKey.dl);
@@ -289,29 +280,6 @@ public class FarmerBot extends Bot {
         }
     }
 
-    private void setMovementSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(FarmerBot.InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
@@ -322,9 +290,7 @@ public class FarmerBot extends Bot {
         c("Toggle the dirt cultivation", ""),
         and("Add new item name to drop on the ground", "itemName"),
         d("Toggle the dropping of harvested items. Add item names to drop by \"" + and.name() + "\" key", ""),
-        dl("Set the drop limit, configured number of harvests won't be dropped", "number"),
-        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+        dl("Set the drop limit, configured number of harvests won't be dropped", "number");
 
         private String description;
         private String usage;
