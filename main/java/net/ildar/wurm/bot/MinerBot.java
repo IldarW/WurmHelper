@@ -87,7 +87,7 @@ public class MinerBot extends Bot {
             waitOnPause();
             if (shardsCombining) {
                 List<ItemListWindow> piles = new ArrayList<>();
-                for (WurmComponent wurmComponent : Mod.components)
+                for (WurmComponent wurmComponent : Mod.getInstance().components)
                     if (wurmComponent instanceof ItemListWindow
                             && !(wurmComponent instanceof InventoryWindow)) {
                         if (Utils.getRootItem(ReflectionUtil.getPrivateField(wurmComponent,
