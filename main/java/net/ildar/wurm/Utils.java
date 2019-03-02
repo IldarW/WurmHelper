@@ -270,7 +270,7 @@ public class Utils {
             
             // if not found by startsWith lets try to find by contains
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().contains(item)) {
+                if (invItem.getBaseName().contains(item) || item.contains(",") && invItem.getDisplayName().contains(item)) {
                     return invItem;
                 }
             }
@@ -498,4 +498,5 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
 }
