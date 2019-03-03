@@ -6,23 +6,27 @@ public class Creature {
     private long id;
     private String modelName;
     private String hoverName;
-    private CreatureCellRenderable creature;
-    private int status;
+    private CreatureCellRenderable creatureCellRenderable;
+    private boolean groomed;
     private long lastGroom;
-
-    public static final int PROCESSED = 1;
+    private long lastAction;
+    private boolean available;
 
     public Creature(long id, CreatureCellRenderable creature, String modelName, String hoverName) {
         this.id = id;
-        this.creature = creature;
+        this.creatureCellRenderable = creature;
         this.modelName = modelName;
         this.hoverName = hoverName;
+        this.available = true;
     }
 
     @Override
     public boolean equals(Object obj) {
-        Creature creature = (Creature)obj;
-        return creature.getId() == this.getId();
+        if (obj instanceof Creature) {
+            Creature creature = (Creature) obj;
+            return creature.getId() == this.getId();
+        }
+        return super.equals(obj);
     }
 
 
@@ -30,12 +34,12 @@ public class Creature {
         return this.id;
     }
 
-    public int getStatus() {
-        return status;
+    public boolean isGroomed() {
+        return groomed;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setGroomed(boolean groomed) {
+        this.groomed = groomed;
     }
 
     public long getLastGroom() {
@@ -50,23 +54,43 @@ public class Creature {
         return this.hoverName;
     }
 
-    public String getModelName() {
+    private String getModelName() {
         return this.modelName;
     }
 
     public boolean isPlayer() {
-        return (this.getModelName().contains("model.creature.humanoid.human.player") && !this.getModelName().contains("zombie"));
+        return (this.getModelName().contains("model.creature.humanoid.human.player")
+                && !this.getModelName().contains("zombie"));
     }
 
     public boolean isGroomableMob() {
-        return this.getModelName().contains("model.creature") && !this.getModelName().contains("humanoid.human") && !this.getModelName().contains("zombie");
+        return this.getModelName().contains("model.creature")
+                && !this.getModelName().contains("humanoid.human")
+                && !this.getModelName().contains("zombie");
     }
 
-    public float getX(){
-        return creature.getXPos();
+    public float getX() {
+        return creatureCellRenderable.getXPos();
     }
-    public float getY(){
-        return creature.getYPos();
+
+    public float getY() {
+        return creatureCellRenderable.getYPos();
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
+    public long getLastAction() {
+        return lastAction;
+    }
+
+    public void setLastAction(long lastAction) {
+        this.lastAction = lastAction;
     }
 }
 
