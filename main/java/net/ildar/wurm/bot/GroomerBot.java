@@ -22,7 +22,6 @@ public class GroomerBot extends Bot {
     private static float distance = 4;
     private static boolean verbose;
     private AreaAssistant areaAssistant = new AreaAssistant(this);
-    private float staminaThreshold;
     private List<Creature> creatures = new ArrayList<>();
     private int queue;
     private ServerConnectionListenerClass listenerClass;
@@ -30,7 +29,6 @@ public class GroomerBot extends Bot {
 
 
     public GroomerBot() {
-        registerInputHandler(GroomerBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(GroomerBot.InputKey.d, this::setDistance);
         registerInputHandler(GroomerBot.InputKey.v, inputData -> toggleVerbose());
 
@@ -102,7 +100,7 @@ public class GroomerBot extends Bot {
 
     private void setDistance(String[] input) {
         if (input == null || input.length == 0) {
-            printInputKeyUsageString(GroomerBot.InputKey.d);
+            printInputKeyUsageString(InputKey.d);
             return;
         }
         try {
@@ -111,24 +109,6 @@ public class GroomerBot extends Bot {
         } catch (NumberFormatException e) {
             consolePrint("Wrong distance value!");
         }
-    }
-
-    private void setStaminaThreshold(String[] input) {
-        if (input == null || input.length != 1)
-            printInputKeyUsageString(GroomerBot.InputKey.s);
-        else {
-            try {
-                float threshold = Float.parseFloat(input[0]);
-                setStaminaThreshold(threshold);
-            } catch (Exception e) {
-                consolePrint("Wrong threshold value!");
-            }
-        }
-    }
-
-    private void setStaminaThreshold(float s) {
-        staminaThreshold = s;
-        consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
     private void scanTerritory() {
@@ -206,8 +186,7 @@ public class GroomerBot extends Bot {
 
     private enum InputKey implements Bot.InputKey {
         d("Set the distance the bot should look around player in search", "distance(in meters))"),
-        v("Verbose mode", ""),
-        s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold", "threshold(float value between 0 and 1)");
+        v("Verbose mode", "");
 
         private String description;
         private String usage;

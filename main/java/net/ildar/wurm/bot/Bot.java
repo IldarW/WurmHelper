@@ -12,6 +12,12 @@ public abstract class Bot extends Thread {
      * A timeout an each bot implementation should use between iterations
      */
     long timeout = 1000;
+
+    /**
+     *
+     */
+    float staminaThreshold;
+
     /**
      * The bot implementation should register his input handlers with {@link #registerInputHandler(InputKey, InputHandler)}
      */
@@ -184,6 +190,24 @@ public abstract class Bot extends Thread {
         Utils.consolePrint("Current timeout is " + timeout + " milliseconds");
     }
 
+    void setStaminaThreshold(String[] input) {
+        if (input == null || input.length != 1)
+            printInputKeyUsageString(InputKeyBase.s);
+        else {
+            try {
+                float threshold = Float.parseFloat(input[0]);
+                setStaminaThreshold(threshold);
+            } catch (Exception e) {
+                Utils.consolePrint("Wrong threshold value!");
+            }
+        }
+    }
+
+    void setStaminaThreshold(float s) {
+        staminaThreshold = s;
+        Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
+    }
+
     /**
      * The enumeration type of the key must have a usage and description string fields for each item
      */
@@ -226,6 +250,8 @@ public abstract class Bot extends Thread {
                 ""),
         pause("Pause/resume the bot",
                 ""),
+        s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
+                "threshold(float value between 0 and 1)"),
         info("Get information about configuration key",
                 "key");
 
