@@ -28,10 +28,8 @@ public class ChopperBot extends Bot {
 
     public ChopperBot() {
         registerInputHandler(ChopperBot.InputKey.s, this::setStaminaThreshold);
-        registerInputHandler(ChopperBot.InputKey.d, this::toggleDistance);
+        registerInputHandler(ChopperBot.InputKey.d, this::setDistance);
         registerInputHandler(ChopperBot.InputKey.c, this::setClickNumber);
-        registerInputHandler(ChopperBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ChopperBot.InputKey.area_speed, this::toggleAreaModeSpeed);
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
@@ -95,7 +93,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private void toggleDistance(String input[]) {
+    private void setDistance(String[] input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(ChopperBot.InputKey.d);
             return;
@@ -108,7 +106,7 @@ public class ChopperBot extends Bot {
         }
     }
 
-    private void setStaminaThreshold(String input[]) {
+    private void setStaminaThreshold(String[] input) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ChopperBot.InputKey.s);
         else {
@@ -126,7 +124,7 @@ public class ChopperBot extends Bot {
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void setClickNumber(String input[]) {
+    private void setClickNumber(String[] input) {
         if (input == null || input.length != 1)
             printInputKeyUsageString(ChopperBot.InputKey.c);
         else {
@@ -144,43 +142,12 @@ public class ChopperBot extends Bot {
         Utils.consolePrint(getClass().getSimpleName() + " will do " + clicks + " chops each time");
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(ChopperBot.InputKey.area);
-    }
-
-    private void toggleAreaModeSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(ChopperBot.InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
         d("Set the distance the bot should look around player in search for a felled tree",
                 "distance(in meters)"),
-        c("Set the amount of chops the bot will do each time", "c(integer value)"),
-        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+        c("Set the amount of chops the bot will do each time", "c(integer value)");
 
         private String description;
         private String usage;

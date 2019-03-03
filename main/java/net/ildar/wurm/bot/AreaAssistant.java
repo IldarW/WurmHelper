@@ -3,8 +3,8 @@ package net.ildar.wurm.bot;
 import net.ildar.wurm.Mod;
 import net.ildar.wurm.Utils;
 
-public class AreaAssistant {
-    private final int STEPS_IN_MOVE = 5;//each moving is divided to this number of steps for each tile
+class AreaAssistant {
+    private final static int STEPS_IN_MOVE = 5;//each moving is divided to this number of steps for each tile
 
     private int moveAheadDistance = 3;//in tiles
     private int moveRightDistance = 3;//in tiles
@@ -22,8 +22,10 @@ public class AreaAssistant {
 
     AreaAssistant(Bot bot) {
         this.bot = bot;
+        bot.registerInputHandler(InputKey.area, this::toggleAreaTour);
+        bot.registerInputHandler(InputKey.area_speed, this::setAreaModeSpeed);
     }
-    public void areaNextPosition() throws InterruptedException{
+    void areaNextPosition() throws InterruptedException{
         if (!areaTourActivated()) return;
         recalculateBiases();
         if (movedAhead < 0 || movedAhead > height - 1 || movedToRight < 0 || movedToRight > width - 1) {
@@ -102,7 +104,7 @@ public class AreaAssistant {
         turnedRight = false;
     }
 
-    public boolean areaTourActivated() {
+    boolean areaTourActivated() {
         return height != 0 && width != 0;
     }
 
@@ -117,38 +119,79 @@ public class AreaAssistant {
         startDirection = Math.round(Mod.hud.getWorld().getPlayerRotX() / 90);
     }
 
-    public void setMoveAheadDistance(int moveAheadDistance) {
+    void setMoveAheadDistance(int moveAheadDistance) {
         this.moveAheadDistance = moveAheadDistance;
     }
 
-    public void setMoveRightDistance(int moveRightDistance) {
+    void setMoveRightDistance(int moveRightDistance) {
         this.moveRightDistance = moveRightDistance;
     }
 
-    /**
-     * @return true on success
-     */
-    public boolean toggleAreaTour(String[] input) {
+    void toggleAreaTour(String[] input) {
         if (areaTourActivated()) {
             stopAreaTour();
-            return true;
         } else  {
             if (input != null && input.length == 2) {
                 try {
                     startAreaTour(Integer.parseInt(input[0]), Integer.parseInt(input[1]));
                     Utils.consolePrint("Activated area mode for " + bot.getClass().getSimpleName());
-                    return true;
                 } catch (NumberFormatException e) {
                     Utils.consolePrint("Wrong area size!");
-                    return false;
+                    bot.printInputKeyUsageString(InputKey.area);
                 }
             }
             else
-                return false;
+                bot.printInputKeyUsageString(InputKey.area);
         }
     }
 
-    public void setStepTimeout(long stepTimeout) {
-        this.stepTimeout = stepTimeout;
+    private void setAreaModeSpeed(String []input) {
+        if (input == null || input.length != 1) {
+            bot.printInputKeyUsageString(InputKey.area_speed);
+            return;
+        }
+        float speed;
+        try {
+            speed = Float.parseFloat(input[0]);
+            if (speed < 0) {
+                Utils.consolePrint("Speed can not be negative");
+                return;
+            }
+            if (speed == 0) {
+                Utils.consolePrint("Speed can not be equal to 0");
+                return;
+            }
+            this.stepTimeout = (long) (1000 / speed);
+            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
+        } catch (NumberFormatException e) {
+            Utils.consolePrint("Wrong speed value");
+        }
+    }
+
+    private enum InputKey implements Bot.InputKey {
+        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
+        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+
+        private String description;
+        private String usage;
+        InputKey(String description, String usage) {
+            this.description = description;
+            this.usage = usage;
+        }
+
+        @Override
+        public String getName() {
+            return name();
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getUsage() {
+            return usage;
+        }
     }
 }

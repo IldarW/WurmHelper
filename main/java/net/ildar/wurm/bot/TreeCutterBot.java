@@ -49,8 +49,6 @@ public class TreeCutterBot extends Bot{
     public TreeCutterBot(){
         registerInputHandler(InputKey.s, this::setStaminaThreshold);
         registerInputHandler(InputKey.c, this::setMaxActions);
-        registerInputHandler(InputKey.area, this::toggleAreaMode);
-        registerInputHandler(InputKey.area_speed, this::setAreaModeSpeed);
         registerInputHandler(InputKey.a, this::setMinAge);
         registerInputHandler(InputKey.axe, input->setAxe());
         registerInputHandler(InputKey.al, input-> showAgesList());
@@ -235,53 +233,22 @@ public class TreeCutterBot extends Bot{
         Utils.consolePrint("Current threshold for stamina is " + staminaThreshold);
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(InputKey.area);
-    }
-
     private void showAgesList() {
         Utils.consolePrint("Age abbreviation");
         for(TreeAge age : TreeAge.values())
             Utils.consolePrint(age.name + " " + age.name());
     }
 
-    private void setAreaModeSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     private enum InputKey implements Bot.InputKey {
         s("Set the stamina threshold. Player will not do any actions if his stamina is lower than specified threshold",
                 "threshold(float value between 0 and 1)"),
-        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
         tt("Set tree types for chopping. Chop all trees by default", "birch oak"),
         c("Set chops number", "1"),
         a("Set minimal tree age for chopping. Chop all trees by default", "ov"),
         axe("Set axe-like item for chopping. Useful for leveling weapontype skill.", "axe"),
         al("Get ages abbreviation list", ""),
         b("Toggle bush cutting. Disabled by default", ""),
-        sp("Toggle sprouting trees cutting. Enabled by default", ""),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+        sp("Toggle sprouting trees cutting. Enabled by default", "");
 
         public String description;
         public String usage;

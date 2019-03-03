@@ -386,8 +386,8 @@ public class Utils {
         int x = Mod.hud.getWorld().getClient().getXMouse();
         int y = Mod.hud.getWorld().getClient().getYMouse();
         try {
-            for (int i = 0; i < Mod.components.size(); i++) {
-                WurmComponent wurmComponent = Mod.components.get(i);
+            for (int i = 0; i < Mod.getInstance().components.size(); i++) {
+                WurmComponent wurmComponent = Mod.getInstance().components.get(i);
                 if (wurmComponent.contains(x, y)) {
                     if (filter != null && !filter.apply(wurmComponent))
                         continue;
