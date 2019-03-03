@@ -33,10 +33,10 @@ public class GroomerBot extends Bot {
 
     public GroomerBot() {
         registerInputHandler(GroomerBot.InputKey.s, this::setStaminaThreshold);
-        registerInputHandler(GroomerBot.InputKey.d, this::toggleDistance);
+        registerInputHandler(GroomerBot.InputKey.d, this::setDistance);
         registerInputHandler(GroomerBot.InputKey.v, inputData -> toggleVerbose());
         registerInputHandler(GroomerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(GroomerBot.InputKey.area_speed, this::toggleAreaModeSpeed);
+        registerInputHandler(GroomerBot.InputKey.area_speed, this::setAreaModeSpeed);
 
         areaAssistant.setMoveAheadDistance(1);
         areaAssistant.setMoveRightDistance(1);
@@ -110,7 +110,7 @@ public class GroomerBot extends Bot {
 
     }
 
-    private void toggleDistance(String[] input) {
+    private void setDistance(String[] input) {
         if (input == null || input.length == 0) {
             printInputKeyUsageString(GroomerBot.InputKey.d);
             return;
@@ -148,7 +148,7 @@ public class GroomerBot extends Bot {
         }
     }
 
-    private void toggleAreaModeSpeed(String[] input) {
+    private void setAreaModeSpeed(String[] input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(GroomerBot.InputKey.area_speed);
             return;
@@ -178,10 +178,10 @@ public class GroomerBot extends Bot {
             for (Map.Entry<Long, CreatureCellRenderable> entry : aCreatures.entrySet()) {
 
                 Creature creature = new Creature(entry.getKey(), entry.getValue(), entry.getValue().getModelName().toString(), entry.getValue().getHoverName());
-                if (!creature.isMob()) {
+                if (!creature.isGroomableMob()) {
                     continue;
                 }
-                long currDistance = getDistance(creature.getX(), creature.getY());
+                long currDistance = (long) getDistance(creature.getX(), creature.getY());
                 if (currDistance < distance) {
                     if (!creatures.contains(creature)) {
                         creatures.add(creature);

@@ -517,17 +517,17 @@ public class Utils {
     /**
      * Gets distance between objects
      */
-    public static long getDistance(float x, float y, float x2, float y2) {
-        return (long) Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
+    public static double getDistance(float x, float y, float x2, float y2) {
+        return Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
     }
 
     /**
      * Gets distance between player and some object
      */
-    public static long getDistance(float x2, float y2) {
+    public static double getDistance(float x2, float y2) {
         float x = Mod.hud.getWorld().getPlayerPosX();
         float y = Mod.hud.getWorld().getPlayerPosY();
-        return (long) Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
+        return Math.floor(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)));
     }
 
 }

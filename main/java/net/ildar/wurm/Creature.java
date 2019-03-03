@@ -58,8 +58,8 @@ public class Creature {
         return (this.getModelName().contains("model.creature.humanoid.human.player") && !this.getModelName().contains("zombie"));
     }
 
-    public boolean isMob() {
-        return this.getModelName().contains("model.creature") && !this.getModelName().contains("humanoid.human");
+    public boolean isGroomableMob() {
+        return this.getModelName().contains("model.creature") && !this.getModelName().contains("humanoid.human") && !this.getModelName().contains("zombie");
     }
 
     public float getX(){
