@@ -192,8 +192,35 @@ public class Utils {
         return quality * quality / 500 * c;
     }
 
+    private static Object getInventoryRootNode(InventoryListComponent ilc) throws NoSuchFieldException, IllegalAccessException {
+        WurmTreeList wtl = ReflectionUtil.getPrivateField(ilc,
+                ReflectionUtil.getField(ilc.getClass(), "itemList"));
+        return ReflectionUtil.getPrivateField(wtl,
+                ReflectionUtil.getField(wtl.getClass(), "rootNode"));
+    }
+
+    private static List<Object> getNodeChildren(Object node) throws NoSuchFieldException, IllegalAccessException {
+        return new ArrayList<>(ReflectionUtil.getPrivateField(node,
+                ReflectionUtil.getField(node.getClass(), "children")));
+    }
+
     public static List<InventoryMetaItem>  getSelectedItems() {
-        return getSelectedItems(Mod.hud.getInventoryWindow().getInventoryListComponent());
+        return getSelectedItems(false, true);
+    }
+    public static List<InventoryMetaItem> getSelectedItems(boolean getAll, boolean recursive) {
+        InventoryListComponent ilc = Mod.hud.getInventoryWindow().getInventoryListComponent();
+        List<InventoryMetaItem> selItems = new ArrayList<>();
+        try {
+            Object rootNode = getInventoryRootNode(ilc);
+            List lines = getNodeChildren(rootNode);
+            Object invNode = lines.get(1);
+            List invLines = getNodeChildren(invNode);
+            selItems =  getSelectedItems(invLines, getAll, recursive);
+        } catch(Exception e){
+            consolePrint("Unexpected error while getting selected items - " + e.getMessage());
+            consolePrint(e.toString());
+        }
+        return selItems;
     }
     public static List<InventoryMetaItem> getSelectedItems(InventoryListComponent ilc) {
         return getSelectedItems(ilc, false, true);
@@ -201,32 +228,24 @@ public class Utils {
     public static List<InventoryMetaItem> getSelectedItems(InventoryListComponent ilc, boolean getAll, boolean recursive) {
         List<InventoryMetaItem> selItems = new ArrayList<>();
         try {
-            WurmTreeList wtl = ReflectionUtil.getPrivateField(ilc,
-                    ReflectionUtil.getField(ilc.getClass(), "itemList"));
-            Object rootNode = ReflectionUtil.getPrivateField(wtl,
-                    ReflectionUtil.getField(wtl.getClass(), "rootNode"));
-            @SuppressWarnings("unchecked")
-            List lines = new ArrayList(ReflectionUtil.getPrivateField(rootNode,
-                    ReflectionUtil.getField(rootNode.getClass(), "children")));
-            selItems =  getSelectedItems(lines, getAll, recursive);
+            Object rootNode = getInventoryRootNode(ilc);
+            selItems =  getSelectedItems(getNodeChildren(rootNode), getAll, recursive);
         } catch(Exception e){
             consolePrint("Unexpected error while getting selected items - " + e.getMessage());
             consolePrint(e.toString());
         }
         return selItems;
     }
-    public static List<InventoryMetaItem> getSelectedItems(List lines, boolean getAll, boolean recursive) {
-        //List<WTreeListNode<InventoryListComponent.InventoryTreeListItem>> lines
+    public static List<InventoryMetaItem> getSelectedItems(List nodes, boolean getAll, boolean recursive) {
+        //List<WTreeListNode<InventoryListComponent.InventoryTreeListItem>> nodes
         List<InventoryMetaItem> selItems = new ArrayList<>();
         try {
-            for (Object currentLine : lines) {
-                boolean isSelected = ReflectionUtil.getPrivateField(currentLine,
-                        ReflectionUtil.getField(currentLine.getClass(), "isSelected"));
-                @SuppressWarnings("unchecked")
-                List children = new ArrayList(ReflectionUtil.getPrivateField(currentLine,
-                        ReflectionUtil.getField(currentLine.getClass(), "children")));
-                Object lineItem = ReflectionUtil.getPrivateField(currentLine,
-                        ReflectionUtil.getField(currentLine.getClass(), "item"));
+            for (Object currentNode : nodes) {
+                boolean isSelected = ReflectionUtil.getPrivateField(currentNode,
+                        ReflectionUtil.getField(currentNode.getClass(), "isSelected"));
+                List children = getNodeChildren(currentNode);
+                Object lineItem = ReflectionUtil.getPrivateField(currentNode,
+                        ReflectionUtil.getField(currentNode.getClass(), "item"));
                 InventoryMetaItem item = ReflectionUtil.getPrivateField(lineItem,
                         ReflectionUtil.getField(lineItem.getClass(), "item"));
                 if (item == null) continue;
@@ -251,54 +270,62 @@ public class Utils {
         return selItems;
     }
 
-    public static InventoryMetaItem getInventoryItem(String item) {
-        return getInventoryItem(Mod.hud.getInventoryWindow().getInventoryListComponent(), item);
+    public static InventoryMetaItem getInventoryItem(String itemName) {
+        List<InventoryMetaItem> allItems = getSelectedItems(true, true);
+        return getInventoryItem(allItems, itemName);
     }
-    public static InventoryMetaItem getInventoryItem(InventoryListComponent ilc, String item) {
+    public static InventoryMetaItem getInventoryItem(InventoryListComponent ilc, String itemName) {
+        List<InventoryMetaItem> allItems = getSelectedItems(ilc, true, true);
+        return getInventoryItem(allItems, itemName);
+    }
+    public static InventoryMetaItem getInventoryItem(List<InventoryMetaItem> items, String itemName) {
         try {
-            List<InventoryMetaItem> items = getSelectedItems(ilc, true, true);
             if (items == null || items.size() == 0) {
                 return null;
             }
 
             // first try to find by startsWith 
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().startsWith(item)) {
+                if (invItem.getBaseName().startsWith(itemName)) {
                     return invItem;
                 }
             }
-            
+
             // if not found by startsWith lets try to find by contains
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().contains(item)) {
+                if (invItem.getBaseName().contains(itemName)) {
                     return invItem;
                 }
             }
-            
+
         } catch (Exception e) {
-            consolePrint("Got error while searching for " + item + " in your inventory. Error - " + e.getMessage());
+            consolePrint("Got error while searching for " + itemName + " in your inventory. Error - " + e.getMessage());
             consolePrint( e.toString());
         }
         return null;
     }
 
-    public static List<InventoryMetaItem> getInventoryItems(String item) {
-        return getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), item);
+    public static List<InventoryMetaItem> getInventoryItems(String itemName) {
+        List<InventoryMetaItem> allItems = getSelectedItems(true, true);
+        return getInventoryItems(allItems, itemName);
     }
-    public static List<InventoryMetaItem> getInventoryItems(InventoryListComponent ilc, String item) {
+    public static List<InventoryMetaItem> getInventoryItems(InventoryListComponent ilc, String itemName) {
+        List<InventoryMetaItem> allItems = getSelectedItems(ilc, true, true);
+        return getInventoryItems(allItems, itemName);
+    }
+    public static List<InventoryMetaItem> getInventoryItems(List<InventoryMetaItem> items, String itemName) {
         List<InventoryMetaItem> targets = new ArrayList<>();
         try {
-            List<InventoryMetaItem> items = getSelectedItems(ilc, true, true);
             if (items == null || items.size() == 0) {
                 return targets;
             }
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().contains(item)) {
+                if (invItem.getBaseName().contains(itemName)) {
                     targets.add(invItem);
                 }
             }
         } catch (Exception e) {
-            consolePrint("Got error while searching for " + item + " in your inventory. Error - " + e.getMessage());
+            consolePrint("Got error while searching for " + itemName + " in your inventory. Error - " + e.getMessage());
             consolePrint( e.toString());
         }
         return targets;
@@ -316,8 +343,7 @@ public class Utils {
             getNodeAt.setAccessible(true);
             Object hoveredNode = getNodeAt.invoke(wtl, x, y);
             if (hoveredNode != null) {
-                List childLines = new ArrayList(ReflectionUtil.getPrivateField(hoveredNode,
-                        ReflectionUtil.getField(hoveredNode.getClass(), "children")));
+                List childLines = getNodeChildren(hoveredNode);
                 itemList = Utils.getSelectedItems(childLines, true, true);
                 Object lineItem = ReflectionUtil.getPrivateField(hoveredNode,
                         ReflectionUtil.getField(hoveredNode.getClass(), "item"));
@@ -333,18 +359,12 @@ public class Utils {
         }
         return itemList;
     }
+
     public static List<InventoryMetaItem> getFirstLevelItems() {
-        return getFirstLevelItems(Mod.hud.getInventoryWindow().getInventoryListComponent());
-    }
-    public static List<InventoryMetaItem> getFirstLevelItems(InventoryListComponent ilc) {
+        InventoryListComponent ilc = Mod.hud.getInventoryWindow().getInventoryListComponent();
         try {
-            WurmTreeList wtl = ReflectionUtil.getPrivateField(ilc,
-                    ReflectionUtil.getField(ilc.getClass(), "itemList"));
-            Object rootNode = ReflectionUtil.getPrivateField(wtl,
-                    ReflectionUtil.getField(wtl.getClass(), "rootNode"));
-            @SuppressWarnings("unchecked")
-            List lines = new ArrayList(ReflectionUtil.getPrivateField(rootNode,
-                    ReflectionUtil.getField(rootNode.getClass(), "children")));
+            Object rootNode = getInventoryRootNode(ilc);
+            List lines = getNodeChildren(rootNode);
             Object nodeLineItem = ReflectionUtil.getPrivateField(lines.get(1),
                     ReflectionUtil.getField(lines.get(1).getClass(), "item"));
             InventoryMetaItem nodeItem = ReflectionUtil.getPrivateField(nodeLineItem,
@@ -389,7 +409,7 @@ public class Utils {
     }
 
     public static int[][] getAreaCoordinates() {
-        int area[][] = new int[9][2];
+        int[][] area = new int[9][2];
         int x = Mod.hud.getWorld().getPlayerCurrentTileX();
         int y = Mod.hud.getWorld().getPlayerCurrentTileY();
         int direction = Math.round(Mod.hud.getWorld().getPlayerRotX() / 90);
