@@ -51,8 +51,6 @@ public class DiggerBot extends Bot{
         registerInputHandler(DiggerBot.InputKey.la, this::toggleLevellingArea);
         registerInputHandler(DiggerBot.InputKey.tr, input -> toggleToolRepairing());
         registerInputHandler(DiggerBot.InputKey.sm, input -> toggleSurfaceMining());
-        registerInputHandler(DiggerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(DiggerBot.InputKey.area_speed, this::setMovementSpeed);
 
         areaAssistant = new AreaAssistant(this);
         areaAssistant.setMoveAheadDistance(1);
@@ -534,36 +532,6 @@ public class DiggerBot extends Bot{
         Utils.consolePrint("The repairing of the tool is " + (toolRepairing ?"on":"off"));
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(DiggerBot.InputKey.area);
-    }
-
-    private void setMovementSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(DiggerBot.InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            stepDuration /= speed;
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     private enum WorkMode{
         Unknown,
         Digging,
@@ -587,9 +555,7 @@ public class DiggerBot extends Bot{
         l("Toggle the levelling of selected tile", ""),
         la("Toggle the levelling of area around player", "height(in slopes)"),
         tr("Toggle the repairing of the tool", ""),
-        sm("Toggle the surface mining. The bot will do the same but with the pickaxe on the rock", ""),
-        area("Toggle the area processing mode. Works only when digging a tile(see \"" + dtile.name() + "\" key)", "tiles_ahead tiles_to_the_right"),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+        sm("Toggle the surface mining. The bot will do the same but with the pickaxe on the rock", "");
 
         private String description;
         private String usage;

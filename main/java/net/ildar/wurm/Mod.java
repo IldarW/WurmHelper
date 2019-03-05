@@ -28,40 +28,46 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
+    private final long BLESS_TIMEOUT = 1800000;
+
     public static HeadsUpDisplay hud;
-    public static List<WurmComponent> components;
+    private static Mod instance;
 
-    private static Logger logger;
-    private static Map<ConsoleCommand, ConsoleCommandHandler> consoleCommandHandlers;
+    public List<WurmComponent> components;
+    private Logger logger;
+    private Map<ConsoleCommand, ConsoleCommandHandler> consoleCommandHandlers;
+    private long lastBless = 0L;
+    private boolean noBlessings = false;
 
-    private static final long BLESS_TIMEOUT = 1800000;
-    private static long lastBless = 0L;
-    private static boolean noBlessings = false;
-
-    static {
+    public Mod() {
         logger = Logger.getLogger("IldarMod");
         consoleCommandHandlers = new HashMap<>();
-        consoleCommandHandlers.put(ConsoleCommand.sleep, Mod::handleSleepCommand);
-        consoleCommandHandlers.put(ConsoleCommand.look, Mod::handleLookCommand);
+        consoleCommandHandlers.put(ConsoleCommand.sleep, this::handleSleepCommand);
+        consoleCommandHandlers.put(ConsoleCommand.look, this::handleLookCommand);
         consoleCommandHandlers.put(ConsoleCommand.combine, input -> handleCombineCommand());
-        consoleCommandHandlers.put(ConsoleCommand.move, Mod::handleMoveCommand);
+        consoleCommandHandlers.put(ConsoleCommand.move, this::handleMoveCommand);
         consoleCommandHandlers.put(ConsoleCommand.stabilize, input -> Utils.stabilizePlayer());
-        consoleCommandHandlers.put(ConsoleCommand.bot, BotController.getInstance()::handleInput);
-        consoleCommandHandlers.put(ConsoleCommand.mts, Mod::handleMtsCommand);
-        consoleCommandHandlers.put(ConsoleCommand.info, Mod::handleInfoCommand);
+        consoleCommandHandlers.put(ConsoleCommand.bot, this::handleBotCommand);
+        consoleCommandHandlers.put(ConsoleCommand.mts, this::handleMtsCommand);
+        consoleCommandHandlers.put(ConsoleCommand.info, this::handleInfoCommand);
         consoleCommandHandlers.put(ConsoleCommand.actionlist, input -> showActionList());
-        consoleCommandHandlers.put(ConsoleCommand.action, Mod::handleActionCommand);
+        consoleCommandHandlers.put(ConsoleCommand.action, this::handleActionCommand);
         consoleCommandHandlers.put(ConsoleCommand.getid, input -> copyIdToClipboard());
         consoleCommandHandlers.put(ConsoleCommand.mtcenter, input -> Utils.moveToCenter());
         consoleCommandHandlers.put(ConsoleCommand.mtcorner, input -> Utils.moveToNearestCorner());
         consoleCommandHandlers.put(ConsoleCommand.stabilizelook, input -> Utils.stabilizeLook());
+        Mod.instance = this;
+    }
+
+    public static Mod getInstance() {
+        return instance;
     }
 
     /**
      * Handle console commands
      */
     @SuppressWarnings("unused")
-    public static boolean handleInput(final String cmd, final String[] data) {
+    public boolean handleInput(final String cmd, final String[] data) {
         ConsoleCommand consoleCommand = ConsoleCommand.getByName(cmd);
         if (consoleCommand == ConsoleCommand.unknown)
             return false;
@@ -81,7 +87,11 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         return true;
     }
 
-    private static void printConsoleCommandUsage(ConsoleCommand consoleCommand) {
+    private void handleBotCommand(String[] input) {
+        BotController.getInstance().handleInput(input);
+    }
+
+    private void printConsoleCommandUsage(ConsoleCommand consoleCommand) {
         if (consoleCommand == ConsoleCommand.look) {
             Utils.consolePrint("Usage: " + ConsoleCommand.look.name() + " {" + getCardinalDirectionsList() + "}");
             return;
@@ -93,7 +103,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         Utils.consolePrint("Usage: " + consoleCommand.name() + " " + consoleCommand.getUsage());
     }
 
-    private static void copyIdToClipboard() {
+    private void copyIdToClipboard() {
         int x = hud.getWorld().getClient().getXMouse();
         int y = hud.getWorld().getClient().getYMouse();
         long[] ids = hud.getCommandTargetsFrom(x, y);
@@ -111,7 +121,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         }
     }
 
-    private static void handleInfoCommand(String [] input) {
+    private void handleInfoCommand(String [] input) {
         if (input.length != 1) {
             printConsoleCommandUsage(ConsoleCommand.info);
             printAvailableConsoleCommands();
@@ -127,13 +137,13 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         Utils.consolePrint(command.description);
     }
 
-    private static void showActionList() {
+    private void showActionList() {
         for(Action action: Action.values()) {
             Utils.consolePrint("\"" + action.abbreviation + "\" is to " + action.name() + " with tool \"" + action.toolName + "\"");
         }
     }
 
-    private static void handleActionCommand(String [] input) {
+    private void handleActionCommand(String [] input) {
         if (input == null || input.length == 0) {
             printConsoleCommandUsage(ConsoleCommand.action);
             return;
@@ -171,7 +181,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         }
     }
 
-    private static void printItemInformation() {
+    private void printItemInformation() {
         WurmComponent inventoryComponent = Utils.getTargetComponent(c -> c instanceof ItemListWindow || c instanceof InventoryWindow);
         if (inventoryComponent == null) {
             Utils.consolePrint("Didn't find an inventory");
@@ -194,7 +204,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             printItemInfo(item);
     }
 
-    private static void printTileInformation() {
+    private void printTileInformation() {
         int checkedtiles[][] = Utils.getAreaCoordinates();
         for (int[] checkedtile : checkedtiles) {
             Tiles.Tile tileType = hud.getWorld().getNearTerrainBuffer().getTileType(checkedtile[0], checkedtile[1]);
@@ -202,7 +212,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         }
     }
 
-    private static void printPlayerInformation() {
+    private void printPlayerInformation() {
         Utils.consolePrint("Player \"" + hud.getWorld().getPlayer().getPlayerName() + "\"");
         Utils.consolePrint("Stamina: " + hud.getWorld().getPlayer().getStamina());
         Utils.consolePrint("Damage: " + hud.getWorld().getPlayer().getDamage());
@@ -213,7 +223,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         Utils.consolePrint("Layer: " + hud.getWorld().getPlayerLayer());
     }
 
-    private static void printItemInfo(InventoryMetaItem item) {
+    private void printItemInfo(InventoryMetaItem item) {
         if (item == null) {
             Utils.consolePrint("Null item");
             return;
@@ -230,7 +240,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         Utils.consolePrint(" Color override:" + item.isColorOverride() + " Marked for update:" + item.isMarkedForUpdate() + " Unfinished:" + item.isUnfinished());
     }
 
-    private static void handleMtsCommand(String []input) {
+    private void handleMtsCommand(String []input) {
         if (input.length < 2)  {
             printConsoleCommandUsage(ConsoleCommand.mts);
             return;
@@ -255,7 +265,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         moveToSacrifice(input[0], favorLevel, coefficient);
     }
 
-    private static void handleMoveCommand(String []input) {
+    private void handleMoveCommand(String []input) {
         if (input.length == 1) {
             try {
                 float d = Float.parseFloat(input[0]);
@@ -268,7 +278,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             printConsoleCommandUsage(ConsoleCommand.move);
     }
 
-    private static void handleCombineCommand() {
+    private void handleCombineCommand() {
         long[] itemsToCombine = hud.getInventoryWindow().getInventoryListComponent().getSelectedCommandTargets();
         if (itemsToCombine == null || itemsToCombine.length == 0) {
             Utils.consolePrint("No selected items!");
@@ -277,7 +287,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         hud.getWorld().getServerConnection().sendAction(itemsToCombine[0], itemsToCombine, PlayerAction.COMBINE);
     }
 
-    private static void handleSleepCommand(String [] input) {
+    private void handleSleepCommand(String [] input) {
         if (input.length == 1) {
             try {
                 Thread.sleep(Long.parseLong(input[0]));
@@ -289,7 +299,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         } else printConsoleCommandUsage(ConsoleCommand.sleep);
     }
 
-    private static void handleLookCommand(String []input) {
+    private void handleLookCommand(String []input) {
         if (input.length == 1) {
             CardinalDirection direction = CardinalDirection.getByName(input[0]);
             if (direction == CardinalDirection.unknown) {
@@ -305,7 +315,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             printConsoleCommandUsage(ConsoleCommand.look);
     }
 
-    private static String getCardinalDirectionsList() {
+    private String getCardinalDirectionsList() {
         StringBuilder directions = new StringBuilder();
         for(CardinalDirection direction : CardinalDirection.values())
             directions.append(direction.name()).append("|");
@@ -313,7 +323,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         return directions.toString();
     }
 
-    private static void printAvailableConsoleCommands() {
+    private void printAvailableConsoleCommands() {
         StringBuilder commands = new StringBuilder();
         for(ConsoleCommand consoleCommand : consoleCommandHandlers.keySet())
             commands.append(consoleCommand.name()).append(", ");
@@ -323,7 +333,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
     }
 
     //move items to altar for a sacrifice
-    private static void moveToSacrifice(String itemName, float favorLevel, float coefficient) {
+    private void moveToSacrifice(String itemName, float favorLevel, float coefficient) {
         WurmComponent inventoryComponent = Utils.getTargetComponent(c -> c instanceof ItemListWindow || c instanceof InventoryWindow);
         if (inventoryComponent == null) {
             Utils.consolePrint("Didn't find an inventory under the mouse cursor");
@@ -394,7 +404,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         }
         String noBlessings = properties.getProperty("NoBlessings");
         if (noBlessings != null && noBlessings.equals("true"))
-            Mod.noBlessings = true;
+            this.noBlessings = true;
     }
 
     @Override
@@ -402,7 +412,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         try {
             final ClassPool classPool = HookManager.getInstance().getClassPool();
             final CtClass ctWurmConsole = classPool.getCtClass("com.wurmonline.client.console.WurmConsole");
-            ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z").insertBefore("if (net.ildar.wurm.Mod.handleInput($1,$2)) return true;");
+            ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z").insertBefore("if (net.ildar.wurm.Mod.getInstance().handleInput($1,$2)) return true;");
 
             final CtClass ctSocketConnection = classPool.getCtClass("com.wurmonline.communication.SocketConnection");
             ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
@@ -424,17 +434,17 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             CtClass cellRenderableClass = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
             cellRenderableClass.defrost();
             CtMethod cellRenderableInitializeMethod = CtNewMethod.make("public void initialize() {\n" +
-                    "        net.ildar.wurm.bot.GroundItemGetterBot gigBot = net.ildar.wurm.BotController.getInstance().getInstance(net.ildar.wurm.bot.GroundItemGetterBot.class);\n" +
-                    "                if (gigBot != null) {\n" +
-                    "                    gigBot.processNewItem(this);\n" +
+                    "                if (net.ildar.wurm.BotController.getInstance().isInstantiated(net.ildar.wurm.bot.GroundItemGetterBot.class)) {\n" +
+                    "                   net.ildar.wurm.bot.Bot gigBot = net.ildar.wurm.BotController.getInstance().getInstance(net.ildar.wurm.bot.GroundItemGetterBot.class);" +
+                    "                   ((net.ildar.wurm.bot.GroundItemGetterBot)gigBot).processNewItem(this);\n" +
                     "                }\n" +
                     "        super.initialize();\n" +
                     "    };", cellRenderableClass);
             cellRenderableClass.addMethod(cellRenderableInitializeMethod);
 
         } catch (Exception e) {
-            Mod.logger.log(Level.SEVERE, "Error loading mod", e);
-            Mod.logger.log(Level.SEVERE, e.toString());
+            logger.log(Level.SEVERE, "Error loading mod", e);
+            logger.log(Level.SEVERE, e.toString());
         }
     }
 
@@ -510,8 +520,8 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             logger.info("Loaded");
         }
         catch (Exception e) {
-            Mod.logger.log(Level.SEVERE, "Error loading mod", e);
-            Mod.logger.log(Level.SEVERE, e.toString());
+            logger.log(Level.SEVERE, "Error loading mod", e);
+            logger.log(Level.SEVERE, e.toString());
         }
     }
 

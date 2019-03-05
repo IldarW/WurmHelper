@@ -81,9 +81,6 @@ public class ForagerBot extends Bot {
         registerInputHandler(ForagerBot.InputKey.v, input -> toggleVerboseMode());
         registerInputHandler(ForagerBot.InputKey.scn, this::setContainerName);
         registerInputHandler(ForagerBot.InputKey.na, this::setMaxActions);
-        registerInputHandler(ForagerBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ForagerBot.InputKey.area_speed, this::setMovementSpeed);
-
     }
 
     @Override
@@ -339,35 +336,6 @@ public class ForagerBot extends Bot {
         this.botanizeType = botanizeType;
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(ForagerBot.InputKey.area);
-    }
-
-    private void setMovementSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(ForagerBot.InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     private void setMaxActions(String [] input) {
         if (input.length != 1 ){
             printInputKeyUsageString(ForagerBot.InputKey.na);
@@ -565,10 +533,7 @@ public class ForagerBot extends Bot {
         v("Toggle the verbose mode. " +
                 "Additional information will be shown in console during the work of the bot in verbose mode", ""),
         scn("Set the new name for containers to put sprouts/harvest", "container_name"),
-        na("Set the number of actions bot will do each time", "number"),
-        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
-
+        na("Set the number of actions bot will do each time", "number");
 
         private String description;
         private String usage;
