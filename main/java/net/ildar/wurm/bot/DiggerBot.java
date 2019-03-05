@@ -114,6 +114,7 @@ public class DiggerBot extends Bot{
                         if (!actionsMade) {
                             workMode = WorkMode.Unknown;
                             Utils.showOnScreenMessage("Digging is over");
+                            clearInvalidCorners();
                         }
                         break;
                     }
@@ -301,6 +302,10 @@ public class DiggerBot extends Bot{
         int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
         int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
         invalidCorners.add(new Pair<>(x, y));
+    }
+
+    private void clearInvalidCorners(){
+        invalidCorners.clear();
     }
 
     private boolean validCornersExists() {
