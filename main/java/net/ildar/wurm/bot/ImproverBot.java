@@ -128,7 +128,7 @@ public class ImproverBot extends Bot {
                             continue;
                         }
                         if (tool.itemId == 0 || !tool.fixed) {
-                            boolean toolItemFound = assignItemForTool(tool);
+                            boolean toolItemFound = assignItemForTool(tool, itemToImprove.getWeight());
                             if (!toolItemFound)
                                 continue;
                         }
@@ -178,7 +178,7 @@ public class ImproverBot extends Bot {
                             if(MaterialUtilities.isMetal(pickableItem.getMaterialId()) && !tool.name.contains(MaterialUtilities.getMaterialString(pickableItem.getMaterialId())) && tool.name.contains("lump"))
                                 continue;
 
-                            boolean toolItemFound = assignItemForTool(tool);
+                            boolean toolItemFound = assignItemForTool(tool,-1);
                             if (!toolItemFound)
                                 continue;
                         }
@@ -241,13 +241,23 @@ public class ImproverBot extends Bot {
     /**
      * @return true on success
      */
-    private boolean assignItemForTool(Tool tool) {
+    private boolean assignItemForTool(Tool tool, float weight) {
         InventoryMetaItem toolItem = null;
         if (tool.exactName) {
-            Optional<InventoryMetaItem> toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
+            Optional<InventoryMetaItem> toolOptionalItem;
+            toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
             if (toolOptionalItem.isPresent())
                 toolItem = toolOptionalItem.get();
-        } else
+        } else if (!tool.fixed) {
+            Optional<InventoryMetaItem> toolOptionalItem;
+            if (weight != -1)
+                toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getWeight() > 0.5 || item.getWeight() > weight * 0.05).max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
+            else
+                toolOptionalItem = Utils.getInventoryItems(tool.name).stream().max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
+            if (toolOptionalItem.isPresent())
+                toolItem = toolOptionalItem.get();
+        }
+        else
             toolItem = Utils.getInventoryItem(tool.name);
         if (toolItem == null) {
             Utils.consolePrint("Can't find an item for a tool \"" + tool.name + "\"");
