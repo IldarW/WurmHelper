@@ -434,9 +434,9 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             CtClass cellRenderableClass = classPool.getCtClass("com.wurmonline.client.renderer.cell.GroundItemCellRenderable");
             cellRenderableClass.defrost();
             CtMethod cellRenderableInitializeMethod = CtNewMethod.make("public void initialize() {\n" +
-                    "        net.ildar.wurm.bot.Bot gigBot = net.ildar.wurm.BotController.getInstance().getInstance(net.ildar.wurm.bot.GroundItemGetterBot.class);\n" +
-                    "                if (gigBot != null) {\n" +
-                    "                    ((net.ildar.wurm.bot.GroundItemGetterBot)gigBot).processNewItem(this);\n" +
+                    "                if (net.ildar.wurm.BotController.getInstance().isInstantiated(net.ildar.wurm.bot.GroundItemGetterBot.class)) {\n" +
+                    "                   net.ildar.wurm.bot.Bot gigBot = net.ildar.wurm.BotController.getInstance().getInstance(net.ildar.wurm.bot.GroundItemGetterBot.class);" +
+                    "                   ((net.ildar.wurm.bot.GroundItemGetterBot)gigBot).processNewItem(this);\n" +
                     "                }\n" +
                     "        super.initialize();\n" +
                     "    };", cellRenderableClass);
