@@ -63,7 +63,7 @@ public class PileCollector extends Bot {
 
                     }
                 } catch (ConcurrentModificationException ignored) {}
-                for(WurmComponent wurmComponent : Mod.components) {
+                for(WurmComponent wurmComponent : Mod.getInstance().components) {
                     if (wurmComponent instanceof ItemListWindow) {
                         InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
                                 ReflectionUtil.getField(wurmComponent.getClass(), "component"));

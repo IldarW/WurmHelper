@@ -144,10 +144,14 @@ public class BotController {
         }
     }
 
-    private synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
+    //this method is being invoked from com.wurmonline.client.renderer.cell.GroundItemCellRenderable
+    @SuppressWarnings("WeakerAccess")
+    public synchronized boolean isInstantiated(Class<? extends Bot> botClass) {
         return activeBots.stream().anyMatch(bot -> bot.getClass().equals(botClass));
     }
 
+    //this method is being invoked from com.wurmonline.client.renderer.cell.GroundItemCellRenderable
+    @SuppressWarnings("WeakerAccess")
     public synchronized <T extends Bot> T getInstance(Class<T> botClass) {
         T instance = null;
         try {

@@ -59,8 +59,6 @@ public class ForesterBot extends Bot {
         registerInputHandler(ForesterBot.InputKey.scn, this::setContainerName);
         registerInputHandler(ForesterBot.InputKey.na, this::setMaxActions);
         registerInputHandler(ForesterBot.InputKey.aim, this::addItemToMove);
-        registerInputHandler(ForesterBot.InputKey.area, this::toggleAreaMode);
-        registerInputHandler(ForesterBot.InputKey.area_speed, this::setMovementSpeed);
     }
 
     @Override
@@ -252,35 +250,6 @@ public class ForesterBot extends Bot {
         lastActionFinishedTime = System.currentTimeMillis();
     }
 
-    private void toggleAreaMode(String []input) {
-        boolean successfullAreaModeChange = areaAssistant.toggleAreaTour(input);
-        if (!successfullAreaModeChange)
-            printInputKeyUsageString(ForesterBot.InputKey.area);
-    }
-
-    private void setMovementSpeed(String []input) {
-        if (input == null || input.length != 1) {
-            printInputKeyUsageString(ForesterBot.InputKey.area_speed);
-            return;
-        }
-        float speed;
-        try {
-            speed = Float.parseFloat(input[0]);
-            if (speed < 0) {
-                Utils.consolePrint("Speed can not be negative");
-                return;
-            }
-            if (speed == 0) {
-                Utils.consolePrint("Speed can not be equal to 0");
-                return;
-            }
-            areaAssistant.setStepTimeout((long) (1000 / speed));
-            Utils.consolePrint(String.format("The speed for area mode was set to %.2f", speed));
-        } catch (NumberFormatException e) {
-            Utils.consolePrint("Wrong speed value");
-        }
-    }
-
     private void addItemToMove(String []input) {
         if (input == null || input.length != 1) {
             printInputKeyUsageString(ForesterBot.InputKey.aim);
@@ -417,9 +386,7 @@ public class ForesterBot extends Bot {
         p("Toggle the planting", ""),
         scn("Set the new name for containers to put sprouts/harvest", "container_name"),
         na("Set the number of actions bot will do each time", "number"),
-        aim("Add new item name for moving into containers", "item_name"),
-        area("Toggle the area processing mode. ", "tiles_ahead tiles_to_the_right"),
-        area_speed("Set the speed of moving for area mode. Default value is 1 second per tile.", "speed(float value)");
+        aim("Add new item name for moving into containers", "item_name");
 
         private String description;
         private String usage;
