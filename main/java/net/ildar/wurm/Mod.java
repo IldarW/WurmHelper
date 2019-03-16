@@ -49,7 +49,6 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         consoleCommandHandlers.put(ConsoleCommand.bot, BotController.getInstance()::handleInput);
         consoleCommandHandlers.put(ConsoleCommand.mts, Mod::handleMtsCommand);
         consoleCommandHandlers.put(ConsoleCommand.info, Mod::handleInfoCommand);
-        consoleCommandHandlers.put(ConsoleCommand.iteminfo, input -> handleItemInfo());
         consoleCommandHandlers.put(ConsoleCommand.actionlist, input -> showActionList());
         consoleCommandHandlers.put(ConsoleCommand.action, Mod::handleActionCommand);
         consoleCommandHandlers.put(ConsoleCommand.getid, input -> copyIdToClipboard());
@@ -212,16 +211,6 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         Utils.consolePrint("X: " + hud.getWorld().getPlayerPosX() / 4 + " Y: " + hud.getWorld().getPlayerPosY() / 4 + " H: " + hud.getWorld().getPlayerPosH());
         Utils.consolePrint("XRot: " + hud.getWorld().getPlayerRotX() + " YRot: " + hud.getWorld().getPlayerRotY());
         Utils.consolePrint("Layer: " + hud.getWorld().getPlayerLayer());
-    }
-
-    private static void handleItemInfo(){
-        List<InventoryMetaItem> selectedItems = Utils.getSelectedItems();
-        if (selectedItems == null || selectedItems.size() == 0) {
-            Utils.consolePrint("Select the item first!");
-            return;
-        }
-        InventoryMetaItem item = selectedItems.get(0);
-        printItemInfo(item);
     }
 
     private static void printItemInfo(InventoryMetaItem item) {
