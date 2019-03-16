@@ -27,8 +27,9 @@ public class BotController {
     private void initBotRegistrations() {
         String classResourcePath = Mod.class.getName().replace('.', '/');
         String jarFileName = Utils.getResource("/" + classResourcePath + ".class").toString();
+        final String jarFilePrefix = "jar:file:/";
         jarFileName = jarFileName
-                .substring(jarFileName.lastIndexOf(':') - 1, jarFileName.lastIndexOf("!/"))
+                .substring(jarFileName.indexOf(jarFilePrefix) + jarFilePrefix.length(), jarFileName.lastIndexOf("!/"))
                 .replaceAll("%.{2}", " ");
         try {
             JarFile jarFile = new JarFile(jarFileName);
