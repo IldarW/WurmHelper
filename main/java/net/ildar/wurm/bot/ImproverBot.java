@@ -245,20 +245,20 @@ public class ImproverBot extends Bot {
         InventoryMetaItem toolItem = null;
         if (tool.exactName) {
             Optional<InventoryMetaItem> toolOptionalItem;
-            toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
+            toolOptionalItem = Utils.getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
             if (toolOptionalItem.isPresent())
                 toolItem = toolOptionalItem.get();
         } else if (!tool.fixed) {
             Optional<InventoryMetaItem> toolOptionalItem;
             if (weight != -1)
-                toolOptionalItem = Utils.getInventoryItems(tool.name).stream().filter(item -> item.getWeight() > 0.5 || item.getWeight() > weight * 0.05).max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
+                toolOptionalItem = Utils.getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getWeight() > 0.5 || item.getWeight() > weight * 0.05).max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
             else
                 toolOptionalItem = Utils.getInventoryItems(tool.name).stream().max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
             if (toolOptionalItem.isPresent())
                 toolItem = toolOptionalItem.get();
         }
         else
-            toolItem = Utils.getInventoryItem(tool.name);
+            toolItem = Utils.getInventoryItem(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name);
         if (toolItem == null) {
             Utils.consolePrint("Can't find an item for a tool \"" + tool.name + "\"");
             return false;
@@ -293,7 +293,9 @@ public class ImproverBot extends Bot {
                         || message.contains("needs some holes punched with an awl")
                         || message.contains("has some holes and must be tailored with an iron needle to improve")
                         || message.contains("in order to smooth out a quirk")
-                        || message.contains("some flaws that must be fixed with a clay shaper")
+                        || message.contains("some flaws that must be fixed")
+                        || message.contains("some flaws that must be removed")
+                        || message.contains("needs water")
                         || message.contains("needs to be sharpened")
                         || message.contains("has some dents that must be flattened")
                         || message.contains("dipping it in water")
