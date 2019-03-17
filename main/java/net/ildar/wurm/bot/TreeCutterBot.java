@@ -87,6 +87,7 @@ public class TreeCutterBot extends Bot{
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
 
         ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
+        registerEventProcessors();
         while (isActive()) {
             waitOnPause();
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
@@ -151,6 +152,29 @@ public class TreeCutterBot extends Bot{
 
             }
             sleep(timeout);
+        }
+    }
+
+    private void registerEventProcessors() {
+        registerEventProcessor(message -> message.contains("You are too far away") ,
+                this::actionNotQueued);
+        registerEventProcessor(message -> (message.contains("You stop cutting down.")
+                        || message.contains("You cut down the ")
+                        || message.contains("You chip away some wood")),
+                this::actionFinished);
+    }
+
+    private void actionFinished() {
+        if (queuedTiles.size() > 0) {
+            queuedTiles.remove(0);
+            lastActionFinishedTime = System.currentTimeMillis();
+        }
+    }
+
+    private void actionNotQueued() {
+        if (queuedTiles.size() > 0) {
+            queuedTiles.remove(queuedTiles.size()  - 1);
+            lastActionFinishedTime = System.currentTimeMillis();
         }
     }
 
