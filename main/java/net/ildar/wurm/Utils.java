@@ -293,7 +293,7 @@ public class Utils {
 
             // if not found by startsWith lets try to find by contains
             for (InventoryMetaItem invItem : items) {
-                if (invItem.getBaseName().contains(itemName)) {
+                if (invItem.getBaseName().contains(itemName) || itemName.contains(",") && invItem.getDisplayName().contains(itemName)) {
                     return invItem;
                 }
             }
