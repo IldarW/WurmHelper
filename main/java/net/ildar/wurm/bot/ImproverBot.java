@@ -68,22 +68,22 @@ public class ImproverBot extends Bot {
         tools.add(new Tool(742, "hammer", true, true, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));
         tools.add(new Tool(803, "whetstone", true, true, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));
 
-        tools.add(new Tool(633, "lump, iron", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//iron
-        tools.add(new Tool(636, "lump, copper", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//copper
-        tools.add(new Tool(632, "lump, silver", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//silver
-        tools.add(new Tool(631, "lump, electrum", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//electrum
-        tools.add(new Tool(631, "lump, gold", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//gold
-        tools.add(new Tool(637, "lump, tin", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//tin
-        tools.add(new Tool(635, "lump, zinc", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//zinc
-        tools.add(new Tool(634, "lump, lead", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//lead
+        tools.add(new Tool(633, "'lump, iron'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//iron
+        tools.add(new Tool(636, "'lump, copper'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//copper
+        tools.add(new Tool(632, "'lump, silver'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//silver
+        tools.add(new Tool(631, "'lump, electrum'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//electrum
+        tools.add(new Tool(631, "'lump, gold'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//gold
+        tools.add(new Tool(637, "'lump, tin'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//tin
+        tools.add(new Tool(635, "'lump, zinc'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//zinc
+        tools.add(new Tool(634, "'lump, lead'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//lead
 
-        tools.add(new Tool(672, "lump, steel", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//steel
-        tools.add(new Tool(673, "lump, brass", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//brass
-        tools.add(new Tool(671, "lump, bronze", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//bronze
+        tools.add(new Tool(672, "'lump, steel'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//steel
+        tools.add(new Tool(673, "'lump, brass'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//brass
+        tools.add(new Tool(671, "'lump, bronze'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//bronze
 
-        tools.add(new Tool(638, "lump, glimmersteel", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//glimmersteel
-        tools.add(new Tool(639, "lump, adamantine", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//adamantine
-        tools.add(new Tool(630, "lump, seryll", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//seryll
+        tools.add(new Tool(638, "'lump, glimmersteel'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//glimmersteel
+        tools.add(new Tool(639, "'lump, adamantine'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//adamantine
+        tools.add(new Tool(630, "'lump, seryll'", false, false, new HashSet<>(Arrays.asList(ToolSkill.BLACKSMITHING))));//seryll
 
     }
 
