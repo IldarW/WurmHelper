@@ -89,6 +89,8 @@ public class FisherBot extends Bot
                         Utils.consolePrint("You don't have any fishing line");
                     }
                 }
+                if (fishingRod.getDamage() > 1)
+                    Mod.hud.sendAction(PlayerAction.REPAIR, fishingRod.getId());
 
                 world.getServerConnection().sendAction(
                         fishingRod.getId(),
