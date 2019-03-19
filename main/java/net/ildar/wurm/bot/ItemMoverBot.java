@@ -87,6 +87,7 @@ public class ItemMoverBot extends Bot {
     }
 
     public ItemMoverBot() {
+        registerInputHandler(ItemMoverBot.InputKey.clear, input -> clearItemList());
         registerInputHandler(ItemMoverBot.InputKey.st, input -> setTargetItem());
         registerInputHandler(ItemMoverBot.InputKey.stid, this::setTargetById);
         registerInputHandler(ItemMoverBot.InputKey.str, input -> setTargetContainerRoot());
@@ -266,7 +267,15 @@ public class ItemMoverBot extends Bot {
         Utils.consolePrint("Current item set - " + itemNames.toString());
     }
 
+    private void clearItemList(){
+        itemNames.clear();
+        itemMaximumWeights.clear();
+        lastItemName="";
+        Utils.consolePrint("Current item set - " + itemNames.toString());
+    }
+
     private enum InputKey implements Bot.InputKey {
+        clear("Clear item list",""),
         st("Set the target item(under mouse pointer). Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", ""),
         stid("Set the id of target item. Items from your inventory will be moved inside this item if it is a container or next to it otherwise.", "id"),
         str("Set the target container(under mouse pointer). Items from your inventory will be moved to the root directory of that container.", ""),
