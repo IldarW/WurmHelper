@@ -244,13 +244,25 @@ public class ItemMoverBot extends Bot {
     }
 
     private void addItem(String item) {
+        String matchList = "(\\s*,\\s*)(?=(?:(?:[^']*'){2})*[^']*$)";
         if (itemNames == null)
             itemNames = new HashSet<>();
         if (itemMaximumWeights == null)
             itemMaximumWeights = new HashMap<>();
-        itemNames.add(item);
-        itemMaximumWeights.put(item, 0f);
-        lastItemName = item;
+        if(item.contains(",")){
+            String[] items = item.split(matchList);
+            for(String it: items){
+                if(!it.equals("")){
+                    itemNames.add(it);
+                    itemMaximumWeights.put(it, 0f);
+                    lastItemName = it;
+                }
+            }
+        }else{
+            itemNames.add(item);
+            itemMaximumWeights.put(item, 0f);
+            lastItemName = item;
+        }
         Utils.consolePrint("Current item set - " + itemNames.toString());
     }
 
