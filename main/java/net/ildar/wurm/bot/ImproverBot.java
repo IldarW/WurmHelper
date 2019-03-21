@@ -1,8 +1,10 @@
 package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
+import com.wurmonline.client.renderer.CreatureData;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickableUnit;
+import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
@@ -150,19 +152,28 @@ public class ImproverBot extends Bot {
                 } else {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
-                    if (pickableUnit == null || !(pickableUnit instanceof GroundItemCellRenderable)) {
+                    boolean isCreatureCell = pickableUnit instanceof CreatureCellRenderable && ((CreatureCellRenderable)pickableUnit).isItem();
+                    boolean isGroundCell = pickableUnit instanceof GroundItemCellRenderable;
+                    if (pickableUnit == null || (!isCreatureCell && !isGroundCell)) {
                         Utils.consolePrint("No selected item!");
                         sleep(timeout);
                         continue;
                     }
-
-                    GroundItemData pickableItem = ReflectionUtil.getPrivateField(pickableUnit, ReflectionUtil.getField(GroundItemCellRenderable.class, "item"));
-                    if(pickableItem==null){
+                    byte materialId=-1;
+                    if(isCreatureCell){
+                        CreatureData creatureItem=((CreatureCellRenderable)pickableUnit).getCreatureData();
+                        materialId=creatureItem.getMaterialId();
+                    }
+                    if(isGroundCell){
+                        GroundItemData pickableItem = ReflectionUtil.getPrivateField(pickableUnit, ReflectionUtil.getField(GroundItemCellRenderable.class, "item"));
+                        materialId=pickableItem.getMaterialId();
+                    }
+                    if(materialId==-1){
                         sleep(timeout);
                         continue;
                     }
 
-                    ToolSkill groundSkill = ToolSkill.getSkillForItem(pickableItem.getMaterialId());
+                    ToolSkill groundSkill = ToolSkill.getSkillForItem(materialId);
                     if(groundSkill== ToolSkill.UNKNOWN){
                         sleep(timeout);
                         continue;
@@ -175,7 +186,7 @@ public class ImproverBot extends Bot {
                     for (Tool tool : getToolsBySkill(toolSkill)) {
                         if (tool.itemId == 0 || !tool.fixed) {
                             //process metal lumps
-                            if(MaterialUtilities.isMetal(pickableItem.getMaterialId()) && !tool.name.contains(MaterialUtilities.getMaterialString(pickableItem.getMaterialId())) && tool.name.contains("lump"))
+                            if(MaterialUtilities.isMetal(materialId) && !tool.name.contains(MaterialUtilities.getMaterialString(materialId)) && tool.name.contains("lump"))
                                 continue;
 
                             boolean toolItemFound = assignItemForTool(tool,-1);
