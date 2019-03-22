@@ -5,6 +5,7 @@ import com.wurmonline.client.game.World;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.mesh.FoliageAge;
 import com.wurmonline.mesh.Tiles;
+import com.wurmonline.mesh.TreeData;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
 import net.ildar.wurm.BotRegistration;
@@ -69,6 +70,7 @@ public class ForesterBot extends Bot {
         PlayerObj player = world.getPlayer();
         maxActions = Utils.getMaxActionNumber();
         InventoryMetaItem sickle = Utils.getInventoryItem("sickle");
+        InventoryMetaItem bucket = Utils.getInventoryItem("bucket");
         lastActionFinishedTime = System.currentTimeMillis();
         long sickleId;
         if (sickle == null) {
@@ -104,7 +106,12 @@ public class ForesterBot extends Bot {
                         if (harvesting && fage.getAgeId() > FoliageAge.YOUNG_FOUR.getAgeId()
                                 && fage.getAgeId() < FoliageAge.OVERAGED.getAgeId()
                                 && tileType.usesNewData()  && (tileData & 0x8) > 0) {
-                            world.getServerConnection().sendAction(sickleId,
+                            if(tileType.getTreeType(tileData) == TreeData.TreeType.MAPLE && bucket!=null)
+                                world.getServerConnection().sendAction(bucket.getId(),
+                                        new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
+                                        PlayerAction.HARVEST);
+                            else
+                                world.getServerConnection().sendAction(sickleId,
                                     new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
                                     PlayerAction.HARVEST);
                             increaseHarvests(fage);
