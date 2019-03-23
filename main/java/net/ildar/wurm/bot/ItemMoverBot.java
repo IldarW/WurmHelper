@@ -64,16 +64,16 @@ public class ItemMoverBot extends Bot {
                         case Containers:
                             List<InventoryMetaItem> containers = Utils.getInventoryItems(targetComponent, containerName);
                             if (containers != null && containers.size() > 0) {
-                                long targetContainer = 0;
-                                for (int i = 0; i < containers.size(); i++)
-                                    if (containers.get(i).getChildren().size() < containerVolume) {
-                                        targetContainer = containers.get(i).getId();
-                                        break;
+                                for (InventoryMetaItem container : containers)
+                                    if (container.getChildren().size() < containerVolume) {
+                                        int quantityToMove = Math.min(containerVolume - container.getChildren().size(), sources.length);
+                                        Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(
+                                                container.getId(), Arrays.copyOfRange(sources, 0, quantityToMove));
+                                        sources = Arrays.copyOfRange(sources, quantityToMove, sources.length);
+                                        if (sources.length == 0)
+                                            break;
                                     }
-                                if (targetContainer != 0)
-                                    Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(
-                                            targetContainer, sources);
-                                else
+                                if (sources.length > 0)
                                     Utils.consolePrint("All containers are full!");
                             } else
                                 Utils.consolePrint("Didn't find any \"" + containerName + "\" containers inside target container");
