@@ -255,7 +255,12 @@ public class Utils {
                         ReflectionUtil.getField(lineItem.getClass(), "isInventoryGroup"));
                 if (children.size() > 0) {
                     if (isContainer && !isInventoryGroup && (getAll || isSelected)) {
-                        selItems.add(item);
+                        Object firstChildrenLineItem = ReflectionUtil.getPrivateField(children.get(0),
+                                ReflectionUtil.getField(children.get(0).getClass(), "item"));
+                        InventoryMetaItem firstChildrenItem = ReflectionUtil.getPrivateField(firstChildrenLineItem,
+                                ReflectionUtil.getField(firstChildrenLineItem.getClass(), "item"));
+                        if (firstChildrenItem == null || firstChildrenItem.getId() != item.getId())
+                            selItems.add(item);
                         if (recursive || getAll)
                             selItems.addAll(getSelectedItems(children, true, true));
                     } else
