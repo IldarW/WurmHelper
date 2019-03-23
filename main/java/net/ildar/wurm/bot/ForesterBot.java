@@ -81,6 +81,8 @@ public class ForesterBot extends Bot {
             sickleId = sickle.getId();
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + sickle.getDisplayName() + " with QL:" + sickle.getQuality() + " DMG:" + sickle.getDamage());
         }
+        if (bucket != null)
+            Utils.consolePrint(this.getClass().getSimpleName() + " will use " + bucket.getDisplayName() + " with QL:" + bucket.getQuality() + " DMG:" + bucket.getDamage());
         registerEventProcessors();
         while (isActive()) {
             waitOnPause();
