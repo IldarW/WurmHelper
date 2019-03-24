@@ -213,7 +213,16 @@ public class Utils {
         try {
             Object rootNode = getInventoryRootNode(ilc);
             List lines = getNodeChildren(rootNode);
-            Object invNode = lines.get(1);
+            int lineNum = 1;
+            int forEachIdx = 0;
+            for (Object line : lines) {
+                Object item = ReflectionUtil.getPrivateField(line, ReflectionUtil.getField(line.getClass(), "item"));
+                String itemName = ReflectionUtil.getPrivateField(item, ReflectionUtil.getField(item.getClass(), "itemName"));
+                if (itemName.equals("inventory"))
+                    lineNum = forEachIdx;
+                forEachIdx++;
+            }
+            Object invNode = lines.get(lineNum);
             List invLines = getNodeChildren(invNode);
             selItems =  getSelectedItems(invLines, getAll, recursive);
         } catch(Exception e){
