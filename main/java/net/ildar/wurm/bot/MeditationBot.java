@@ -43,7 +43,7 @@ public class MeditationBot extends Bot {
         CreationWindow creationWindow = Mod.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
-        PlayerAction meditationAction = new PlayerAction((short) 384, PlayerAction.ANYTHING);
+        PlayerAction meditationAction = new PlayerAction("",(short) 384, PlayerAction.ANYTHING);
         while (isActive()) {
             waitOnPause();
             if (Math.abs(lastRepair - System.currentTimeMillis()) > repairTimeout) {

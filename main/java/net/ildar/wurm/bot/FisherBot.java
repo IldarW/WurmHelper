@@ -15,10 +15,10 @@ public class FisherBot extends Bot
     private boolean repairInstrument;
     private boolean lineBreaks;
 
-    public static BotRegistration getRegistration() {
+    /*public static BotRegistration getRegistration() {
         return new BotRegistration(FisherBot.class,
                 "Catches and cuts fish", "fsh");
-    }
+    }*/
 
     public FisherBot()
     {
@@ -82,7 +82,7 @@ public class FisherBot extends Bot
                     if (fishingLine != null) 
                     {
                         Mod.hud.getWorld().getServerConnection().sendAction(fishingLine.getId(),
-                                new long[]{fishingRod.getId()}, new PlayerAction((short) 132, PlayerAction.ANYTHING));
+                                new long[]{fishingRod.getId()}, new PlayerAction("",(short) 132, PlayerAction.ANYTHING));
                     }
                     else
                     {

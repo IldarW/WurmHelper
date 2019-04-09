@@ -305,7 +305,7 @@ public class MinerBot extends Bot {
                         if (item != null)
                             Mod.hud.getWorld().getServerConnection().sendAction(item.getId(),
                                         new long[]{Utils.getRootItem(smeltingOptions.smelter).getId()},
-                                        new PlayerAction((short)117, PlayerAction.ANYTHING));
+                                        new PlayerAction("",(short)117, PlayerAction.ANYTHING));
                         else
                             Utils.consolePrint("No fuel in inventory!");
                     }

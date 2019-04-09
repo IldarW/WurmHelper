@@ -155,7 +155,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (drinking && !successfullDrinkingStart && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullDrinkingStart counter=" + counter);
-                            Mod.hud.sendAction(new PlayerAction((short) 183, PlayerAction.ANYTHING), waterId);
+                            Mod.hud.sendAction(new PlayerAction("",(short) 183, PlayerAction.ANYTHING), waterId);
                             sleep(500);
                         }
                         counter = 0;
@@ -182,7 +182,7 @@ public class AssistantBot extends Bot {
                     while (lockpicking && !successfullStartOfLockpicking && counter++ < 50 && !noLock) {
                         if (verbose) Utils.consolePrint("successfullStartOfLockpicking counter=" + counter);
                         Mod.hud.getWorld().getServerConnection().sendAction(lockpickId,
-                                new long[]{chestId}, new PlayerAction((short) 101, PlayerAction.ANYTHING));
+                                new long[]{chestId}, new PlayerAction("",(short) 101, PlayerAction.ANYTHING));
                         sleep(500);
                     }
                     if (counter >= 50) continue;
@@ -205,7 +205,7 @@ public class AssistantBot extends Bot {
                         while (lockpicking && !successfullLocking && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullLocking lockingcounter=" + counter);
                             Mod.hud.getWorld().getServerConnection().sendAction(padlockId,
-                                    new long[]{chestId}, new PlayerAction((short) 161, PlayerAction.ANYTHING));
+                                    new long[]{chestId}, new PlayerAction("",(short) 161, PlayerAction.ANYTHING));
                             sleep(500);
                         }
                     }
@@ -221,7 +221,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (trashCleaning && !successfullStartTrashCleaning && counter++ < 30) {
                             if (verbose) Utils.consolePrint("successfullStartTrashCleaning counter=" + counter);
-                            Mod.hud.sendAction(new PlayerAction((short) 954, PlayerAction.ANYTHING), trashBinId);
+                            Mod.hud.sendAction(new PlayerAction("",(short) 954, PlayerAction.ANYTHING), trashBinId);
                             sleep(1000);
                         }
                         successfullStartTrashCleaning = true;
@@ -277,7 +277,7 @@ public class AssistantBot extends Bot {
                             while (kindlingBurning && !successfullStartOfBurning && counter++ < 50) {
                                 if (verbose) Utils.consolePrint("successfullStartOfBurning counter=" + counter);
                                 Mod.hud.getWorld().getServerConnection().sendAction(
-                                        biggestKindling.getId(), new long[]{forgeId}, new PlayerAction((short) 117, PlayerAction.ANYTHING));
+                                        biggestKindling.getId(), new long[]{forgeId}, new PlayerAction("",(short) 117, PlayerAction.ANYTHING));
                                 sleep(300);
                             }
                             successfullStartOfBurning = true;

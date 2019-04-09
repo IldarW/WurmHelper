@@ -510,7 +510,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
                     PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
                             ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit != null)
-                        Mod.hud.sendAction(new PlayerAction((short) 384, PlayerAction.ANYTHING), pickableUnit.getId());
+                        Mod.hud.sendAction(new PlayerAction("",(short) 384, PlayerAction.ANYTHING), pickableUnit.getId());
                 } catch (Exception e) {
                     Utils.consolePrint("Got exception at the start of meditation " + e.getMessage());
                     Utils.consolePrint(e.toString());
@@ -606,8 +606,8 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         TendField("ft", "rake", PlayerAction.FARM),
         Dig("d", "shovel", PlayerAction.DIG),
         DigToPile("dp", "shovel", PlayerAction.DIG_TO_PILE),
-        Lockpick("l", "lock picks", new PlayerAction((short) 101, PlayerAction.ANYTHING)),
-        LightFire("lf", "steel and flint", new PlayerAction((short) 12, PlayerAction.ANYTHING)),
+        Lockpick("l", "lock picks", new PlayerAction("",(short) 101, PlayerAction.ANYTHING)),
+        LightFire("lf", "steel and flint", new PlayerAction("",(short) 12, PlayerAction.ANYTHING)),
         LeadAnimal("la", "rope", PlayerAction.LEAD),
         Sow("s", "seeds", PlayerAction.SOW);
 

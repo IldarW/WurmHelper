@@ -169,7 +169,7 @@ public class ForagerBot extends Bot {
                             if (GrassData.getFlowerTypeName(tileData).contains("flowers") && !tileType.isTree() && !tileType.isBush() && queuedTiles.size() < maxActions) {
                                 Mod.hud.getWorld().getServerConnection().sendAction(sickleId,
                                         new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
-                                        new PlayerAction((short) 187, PlayerAction.ANYTHING));
+                                        new PlayerAction("",(short) 187, PlayerAction.ANYTHING));
                                 queuedTiles.add(coordsPair);
                                 if (verbose)
                                     Utils.consolePrint("Start cutting flowers at tile - " + checkedtiles[tileIndex][0] + " " + checkedtiles[tileIndex][1]);
