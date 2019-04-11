@@ -282,7 +282,7 @@ public class ItemMoverBot extends Bot {
         stcn("Set the number of items to put inside each container. Use with \"stc\" key", "number"),
         stc("Set the target container(under mouse pointer) with another containers inside. " +
                 "Items from your inventory will be moved to containers with provided name. " +
-                "Bot will try to put 100 items inside each container. But you change this value using \"" + stcn.name() + "\" key.", "container_name"),
+                "Bot will try to put 100 items inside each container. But you can change this value using \"" + stcn.name() + "\" key.", "container_name"),
         sw("Set the maximum weight for item to be moved. Affects the last added item name.", "weight(float number)"),
         a("Add new item name to move to the targets. " +
                 "The maximum weight of moved item can be configured with \"" + sw.name() + "\" key", "name"),
