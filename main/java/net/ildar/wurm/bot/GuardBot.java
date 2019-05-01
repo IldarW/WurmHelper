@@ -3,6 +3,7 @@ package net.ildar.wurm.bot;
 
 import net.ildar.wurm.BotRegistration;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,21 +11,18 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+@BotInfo(description =
+        "Looks for messages in Event and Combat tabs. " +
+        "Raises alarm if no messages were received during configured time. " +
+        "With no provided keywords the bot will be satisfied with every message. " +
+        "If user adds some keywords bot will compare messages only with them.",
+        abbreviation = "g")
 public class GuardBot extends Bot {
     private static Set <String> keywords;
     private static long lastEvent;
 
     private String customSound;
     private long alarmTimeout;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(GuardBot.class,
-                "Looks for messages in Event and Combat tabs. " +
-                        "Raises alarm if no messages were received during configured time. " +
-                        "With no provided keywords the bot will be satisfied with every message. " +
-                        "If user adds some keywords bot will compare messages only with them.",
-                "g");
-    }
 
     public GuardBot() {
         registerInputHandler(GuardBot.InputKey.a, this::addKeyword);

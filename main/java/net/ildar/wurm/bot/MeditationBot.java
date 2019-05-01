@@ -3,22 +3,20 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
+@BotInfo(description =
+        "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.",
+        abbreviation = "md")
 public class MeditationBot extends Bot {
     private long lastRepair;
     private long repairTimeout;
     private float staminaThreshold;
     private int clicks = 3;
     private boolean repairInitiated;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(MeditationBot.class,
-                "Meditates on the carpet. Assumes that there are no restrictions on meditation skill.", "md");
-    }
 
     public MeditationBot() {
         registerInputHandler(MeditationBot.InputKey.s, this::setStaminaThreshold);
@@ -28,8 +26,8 @@ public class MeditationBot extends Bot {
 
     @Override
     protected void work() throws Exception{
-        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
         if (pickableUnit == null || !pickableUnit.getHoverName().contains("meditation rug")) {
             Utils.consolePrint("Select a meditation rug!");
             deactivate();
@@ -40,7 +38,7 @@ public class MeditationBot extends Bot {
         setRepairTimeout(60000);
         setStaminaThreshold(0.5f);
         registerEventProcessors();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         PlayerAction meditationAction = new PlayerAction("",(short) 384, PlayerAction.ANYTHING);
@@ -50,7 +48,7 @@ public class MeditationBot extends Bot {
                 repairInitiated = false;
                 int count = 0;
                 while(!repairInitiated && count++ < 30) {
-                    Mod.hud.sendAction(PlayerAction.REPAIR, carpetId);
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, carpetId);
                     sleep(1000);
                 }
                 if (repairInitiated) {
@@ -58,13 +56,13 @@ public class MeditationBot extends Bot {
                 } else
                     Utils.consolePrint("Couldn't repair a meditation rug!");
             }
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if ((stamina+damage) > staminaThreshold && progress == 0f) {
                 for(int i = 0; i < clicks; i++)
-                    Mod.hud.sendAction(meditationAction, carpetId);
+                    WurmHelper.hud.sendAction(meditationAction, carpetId);
             }
             sleep(timeout);
         }

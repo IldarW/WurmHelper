@@ -6,25 +6,22 @@ import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 
+@BotInfo(description =
+        "Automatically chops felled trees near player",
+        abbreviation = "ch")
 public class ChopperBot extends Bot {
     private static float distance = 4;
     private AreaAssistant areaAssistant = new AreaAssistant(this);
     private float staminaThreshold;
     private int clicks;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ChopperBot.class,
-                "Automatically chops felled trees near player",
-                "ch");
-    }
 
     public ChopperBot() {
         registerInputHandler(ChopperBot.InputKey.s, this::setStaminaThreshold);
@@ -49,21 +46,21 @@ public class ChopperBot extends Bot {
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + hatchet.getDisplayName() + " to chop shriveled trees.");
             Utils.consolePrint("QL:" + hatchet.getQuality() + " DMG:" + hatchet.getDamage());
         }
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
-        ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
+        ServerConnectionListenerClass sscc = WurmHelper.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
             waitOnPause();
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if ((stamina+damage) > staminaThreshold && progress == 0f) {
                 Map<Long, GroundItemCellRenderable> groundItems = ReflectionUtil.getPrivateField(sscc,
                         ReflectionUtil.getField(sscc.getClass(), "groundItems"));
-                float x = Mod.hud.getWorld().getPlayerPosX();
-                float y = Mod.hud.getWorld().getPlayerPosY();
+                float x = WurmHelper.hud.getWorld().getPlayerPosX();
+                float y = WurmHelper.hud.getWorld().getPlayerPosY();
                 boolean didSomething = false;
                 if (groundItems.size() > 0) {
                     try {
@@ -75,7 +72,7 @@ public class ChopperBot extends Bot {
                             if (Math.sqrt(Math.pow(itemX - x, 2) + Math.pow(itemY - y, 2)) <= distance)
                                 if (groundItemData.getName().contains("felled tree")) {
                                     for (int i = 0; i < clicks; i++)
-                                        Mod.hud.getWorld().getServerConnection().sendAction(hatchetId, new long[]{groundItemData.getId()}, PlayerAction.CHOP_UP);
+                                        WurmHelper.hud.getWorld().getServerConnection().sendAction(hatchetId, new long[]{groundItemData.getId()}, PlayerAction.CHOP_UP);
                                     didSomething = true;
                                     break;
                                 }

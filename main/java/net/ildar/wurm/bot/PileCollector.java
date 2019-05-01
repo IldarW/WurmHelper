@@ -8,14 +8,17 @@ import com.wurmonline.client.renderer.gui.InventoryListComponent;
 import com.wurmonline.client.renderer.gui.ItemListWindow;
 import com.wurmonline.client.renderer.gui.WurmComponent;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "Collects piles of items to bulk containers. Default name for target items is \"dirt\"",
+        abbreviation = "pc")
 public class PileCollector extends Bot {
     private final float MAX_DISTANCE = 4;
     private Set<Long> openedPiles = new HashSet<>();
@@ -23,11 +26,6 @@ public class PileCollector extends Bot {
     private String containerName = "large crate";
     private int containerCapacity = 300;
     private String targetItemName = "dirt";
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(PileCollector.class,
-                "Collects piles of items to bulk containers. Default name for target items is \"dirt\"", "pc");
-    }
 
     public PileCollector() {
         registerInputHandler(PileCollector.InputKey.stn, this::setTargetName);
@@ -38,14 +36,14 @@ public class PileCollector extends Bot {
     @Override
     protected void work() throws Exception {
         setTimeout(500);
-        ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
+        ServerConnectionListenerClass sscc = WurmHelper.hud.getWorld().getServerConnection().getServerConnectionListener();
         while (isActive()) {
             waitOnPause();
             Map<Long, GroundItemCellRenderable> groundItemsMap = ReflectionUtil.getPrivateField(sscc,
                     ReflectionUtil.getField(sscc.getClass(), "groundItems"));
             List<GroundItemCellRenderable> groundItems = groundItemsMap.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
-            float x = Mod.hud.getWorld().getPlayerPosX();
-            float y = Mod.hud.getWorld().getPlayerPosY();
+            float x = WurmHelper.hud.getWorld().getPlayerPosX();
+            float y = WurmHelper.hud.getWorld().getPlayerPosY();
             if (groundItems.size() > 0 && targetLc != null) {
                 try {
                     for (GroundItemCellRenderable groundItem : groundItems) {
@@ -55,15 +53,15 @@ public class PileCollector extends Bot {
                         float itemY = groundItemData.getY();
                         if ((Math.sqrt(Math.pow(itemX - x, 2) + Math.pow(itemY - y, 2)) <= MAX_DISTANCE)) {
                             if (groundItemData.getName().toLowerCase().contains("pile of ") && !openedPiles.contains(groundItemData.getId()))
-                                Mod.hud.sendAction(PlayerAction.OPEN, groundItemData.getId());
+                                WurmHelper.hud.sendAction(PlayerAction.OPEN, groundItemData.getId());
                             else if (groundItemData.getName().contains(targetItemName))
-                                Mod.hud.sendAction(PlayerAction.TAKE, groundItemData.getId());
+                                WurmHelper.hud.sendAction(PlayerAction.TAKE, groundItemData.getId());
 
                         }
 
                     }
                 } catch (ConcurrentModificationException ignored) {}
-                for(WurmComponent wurmComponent : Mod.getInstance().components) {
+                for(WurmComponent wurmComponent : WurmHelper.getInstance().components) {
                     if (wurmComponent instanceof ItemListWindow) {
                         InventoryListComponent ilc = ReflectionUtil.getPrivateField(wurmComponent,
                                 ReflectionUtil.getField(wurmComponent.getClass(), "component"));
@@ -103,7 +101,7 @@ public class PileCollector extends Bot {
                     }
                 }
                 if (itemsCount < containerCapacity) {
-                    Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(container.getId(), Utils.getItemIds(targetItems));
+                    WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(container.getId(), Utils.getItemIds(targetItems));
                     return;
                 }
             }

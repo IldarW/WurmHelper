@@ -6,9 +6,9 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.client.renderer.gui.PaperDollInventory;
 import com.wurmonline.client.renderer.gui.PaperDollSlot;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.Comparator;
@@ -16,6 +16,9 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "Assists player in various ways",
+        abbreviation = "a")
 public class AssistantBot extends Bot {
     private Enchant spellToCast = Enchant.DISPEL;
     private boolean casting;
@@ -67,12 +70,6 @@ public class AssistantBot extends Bot {
 
     private boolean verbose = false;
 
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(AssistantBot.class,
-                "Assists player in various ways",
-                "a");
-    }
-
     public AssistantBot() {
         registerInputHandler(AssistantBot.InputKey.w, input -> toggleDrinking(0));
         registerInputHandler(AssistantBot.InputKey.wid, this::toggleDrinkingByTargetId);
@@ -100,22 +97,22 @@ public class AssistantBot extends Bot {
     @Override
     public void work() throws Exception{
         registerEventProcessors();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
             waitOnPause();
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if (progress == 0f && creationWindow.getActionInUse() == 0){
                 if (casting) {
-                    float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                    float favor = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
                     if (favor > spellToCast.favorCap) {
                         successfullCasting = false;
                         successfullCastStart = false;
                         int counter = 0;
                         while (casting && !successfullCastStart && counter++ < 50 && favor > spellToCast.favorCap) {
                             if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
-                            Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, spellToCast.playerAction);
-                            favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, spellToCast.playerAction);
+                            favor = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
                             sleep(500);
                         }
                         counter = 0;
@@ -125,7 +122,7 @@ public class AssistantBot extends Bot {
                         }
                     }
                 } else if (wovCasting && Math.abs(lastWOV - System.currentTimeMillis()) > 1810000) {
-                    float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+                    float favor = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
                     if (favor > 30) {
                         successfullCasting = false;
                         successfullCastStart = false;
@@ -133,7 +130,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (wovCasting && !successfullCastStart && counter++ < 50 && !needWaitWov) {
                             if (verbose) Utils.consolePrint("successfullCastStart counter=" + counter);
-                            Mod.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, PlayerAction.WISDOM_OF_VYNORA);
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(statuetteId, new long[]{bodyId}, PlayerAction.WISDOM_OF_VYNORA);
                             sleep(500);
                         }
                         counter = 0;
@@ -148,14 +145,14 @@ public class AssistantBot extends Bot {
                     }
                 }
                 if (drinking) {
-                    float thirst = Mod.hud.getWorld().getPlayer().getThirst();
+                    float thirst = WurmHelper.hud.getWorld().getPlayer().getThirst();
                     if (thirst > 0.1) {
                         successfullDrinking = false;
                         successfullDrinkingStart = false;
                         int counter = 0;
                         while (drinking && !successfullDrinkingStart && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullDrinkingStart counter=" + counter);
-                            Mod.hud.sendAction(new PlayerAction("",(short) 183, PlayerAction.ANYTHING), waterId);
+                            WurmHelper.hud.sendAction(new PlayerAction("",(short) 183, PlayerAction.ANYTHING), waterId);
                             sleep(500);
                         }
                         counter = 0;
@@ -181,7 +178,7 @@ public class AssistantBot extends Bot {
                     int counter = 0;
                     while (lockpicking && !successfullStartOfLockpicking && counter++ < 50 && !noLock) {
                         if (verbose) Utils.consolePrint("successfullStartOfLockpicking counter=" + counter);
-                        Mod.hud.getWorld().getServerConnection().sendAction(lockpickId,
+                        WurmHelper.hud.getWorld().getServerConnection().sendAction(lockpickId,
                                 new long[]{chestId}, new PlayerAction("",(short) 101, PlayerAction.ANYTHING));
                         sleep(500);
                     }
@@ -204,7 +201,7 @@ public class AssistantBot extends Bot {
                         counter = 0;
                         while (lockpicking && !successfullLocking && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullLocking lockingcounter=" + counter);
-                            Mod.hud.getWorld().getServerConnection().sendAction(padlockId,
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(padlockId,
                                     new long[]{chestId}, new PlayerAction("",(short) 161, PlayerAction.ANYTHING));
                             sleep(500);
                         }
@@ -221,7 +218,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (trashCleaning && !successfullStartTrashCleaning && counter++ < 30) {
                             if (verbose) Utils.consolePrint("successfullStartTrashCleaning counter=" + counter);
-                            Mod.hud.sendAction(new PlayerAction("",(short) 954, PlayerAction.ANYTHING), trashBinId);
+                            WurmHelper.hud.sendAction(new PlayerAction("",(short) 954, PlayerAction.ANYTHING), trashBinId);
                             sleep(1000);
                         }
                         successfullStartTrashCleaning = true;
@@ -235,7 +232,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (praying && !successfullStartOfPraying && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullStartOfPraying counter=" + counter);
-                            Mod.hud.sendAction(PlayerAction.PRAY, altarId);
+                            WurmHelper.hud.sendAction(PlayerAction.PRAY, altarId);
                             sleep(1000);
                         }
                         successfullStartOfPraying = true;
@@ -249,7 +246,7 @@ public class AssistantBot extends Bot {
                         int counter = 0;
                         while (sacrificing && !successfullStartOfSacrificing && counter++ < 50) {
                             if (verbose) Utils.consolePrint("successfullStartOfSacrificing counter=" + counter);
-                            Mod.hud.sendAction(PlayerAction.SACRIFICE, sacrificeAltarId);
+                            WurmHelper.hud.sendAction(PlayerAction.SACRIFICE, sacrificeAltarId);
                             sleep(1000);
                         }
                         successfullStartOfSacrificing = true;
@@ -270,13 +267,13 @@ public class AssistantBot extends Bot {
                             long[] targetIds = new long[kindlings.size()];
                             for (int i = 0; i < Math.min(kindlings.size(), 64); i++)
                                 targetIds[i] = kindlings.get(i).getId();
-                            Mod.hud.getWorld().getServerConnection().sendAction(
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(
                                     targetIds[0], targetIds, PlayerAction.COMBINE);
                             successfullStartOfBurning = false;
                             int counter = 0;
                             while (kindlingBurning && !successfullStartOfBurning && counter++ < 50) {
                                 if (verbose) Utils.consolePrint("successfullStartOfBurning counter=" + counter);
-                                Mod.hud.getWorld().getServerConnection().sendAction(
+                                WurmHelper.hud.getWorld().getServerConnection().sendAction(
                                         biggestKindling.getId(), new long[]{forgeId}, new PlayerAction("",(short) 117, PlayerAction.ANYTHING));
                                 sleep(300);
                             }
@@ -534,8 +531,8 @@ public class AssistantBot extends Bot {
         if (trashCleaning) {
             if (trashBinId == 0) {
                 try {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit == null || !pickableUnit.getHoverName().contains("trash heap")) {
                         Utils.consolePrint("Select trash bin!");
                         trashCleaning = false;
@@ -567,7 +564,7 @@ public class AssistantBot extends Bot {
         casting = !casting;
         if (casting) {
             try {
-                PaperDollInventory pdi = Mod.hud.getPaperDollInventory();
+                PaperDollInventory pdi = WurmHelper.hud.getPaperDollInventory();
                 PaperDollSlot pds = ReflectionUtil.getPrivateField(pdi,
                         ReflectionUtil.getField(pdi.getClass(), "bodyItem"));
                 bodyId = pds.getItemId();
@@ -599,8 +596,8 @@ public class AssistantBot extends Bot {
         if (praying) {
             if (altarId == 0) {
                 try {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit == null || !pickableUnit.getHoverName().toLowerCase().contains("altar")) {
                         Utils.consolePrint("Select an altar!");
                         praying = false;
@@ -627,8 +624,8 @@ public class AssistantBot extends Bot {
         if (sacrificing) {
             if (altarId == 0) {
                 try {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit == null || !pickableUnit.getHoverName().contains("altar")) {
                         Utils.consolePrint("Select an altar!");
                         sacrificing = false;
@@ -655,8 +652,8 @@ public class AssistantBot extends Bot {
         if (kindlingBurning) {
             if (forgeId == 0) {
                 try {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit == null) {
                         Utils.consolePrint("Select a forge first!");
                         kindlingBurning = false;
@@ -683,7 +680,7 @@ public class AssistantBot extends Bot {
         if (wovCasting) {
             casting = false;
             try {
-                PaperDollInventory pdi = Mod.hud.getPaperDollInventory();
+                PaperDollInventory pdi = WurmHelper.hud.getPaperDollInventory();
                 PaperDollSlot pds = ReflectionUtil.getPrivateField(pdi,
                         ReflectionUtil.getField(pdi.getClass(), "bodyItem"));
                 bodyId = pds.getItemId();
@@ -707,9 +704,9 @@ public class AssistantBot extends Bot {
         lockpicking = !lockpicking;
         if (lockpicking) {
             if(chestId == 0) {
-                int x = Mod.hud.getWorld().getClient().getXMouse();
-                int y = Mod.hud.getWorld().getClient().getYMouse();
-                long[] targets = Mod.hud.getCommandTargetsFrom(x, y);
+                int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+                int y = WurmHelper.hud.getWorld().getClient().getYMouse();
+                long[] targets = WurmHelper.hud.getCommandTargetsFrom(x, y);
                 if (targets != null && targets.length > 0) {
                     chestId = targets[0];
                 } else {
@@ -730,9 +727,9 @@ public class AssistantBot extends Bot {
         drinking = !drinking;
         if (drinking) {
             if (targetId == 0) {
-                int x = Mod.hud.getWorld().getClient().getXMouse();
-                int y = Mod.hud.getWorld().getClient().getYMouse();
-                long[] targets = Mod.hud.getCommandTargetsFrom(x, y);
+                int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+                int y = WurmHelper.hud.getWorld().getClient().getYMouse();
+                long[] targets = WurmHelper.hud.getCommandTargetsFrom(x, y);
                 if (targets != null && targets.length > 0) {
                     targetId = targets[0];
                 } else {

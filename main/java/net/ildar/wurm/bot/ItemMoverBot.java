@@ -2,13 +2,16 @@ package net.ildar.wurm.bot;
 
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.*;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
 
+@BotInfo(description =
+        "Moves items from your inventory to the target destination.",
+        abbreviation = "im")
 public class ItemMoverBot extends Bot {
     private Set <String> itemNames;
     private TargetType targetType;
@@ -21,11 +24,6 @@ public class ItemMoverBot extends Bot {
     private String lastItemName;
     private boolean onlyFirstLevelItems = true;
 
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ItemMoverBot.class,
-                "Moves items from your inventory to the target destination.", "im");
-    }
-
     @Override
     public void work() throws Exception{
         setTimeout(15000);
@@ -36,7 +34,7 @@ public class ItemMoverBot extends Bot {
                 if (onlyFirstLevelItems)
                     invItems = Utils.getFirstLevelItems();
                 else
-                    invItems = Utils.getSelectedItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), true, true);
+                    invItems = Utils.getSelectedItems(WurmHelper.hud.getInventoryWindow().getInventoryListComponent(), true, true);
                 List<InventoryMetaItem> itemsToMove = new ArrayList<>();
                 for (InventoryMetaItem invItem : invItems) {
                     boolean notRare = invItem.getRarity() == 0;
@@ -52,12 +50,12 @@ public class ItemMoverBot extends Bot {
                     long [] sources = Utils.getItemIds(itemsToMove);
                     switch (targetType) {
                         case Item:
-                            Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(target, sources);
+                            WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(target, sources);
                             break;
                         case ContainerRoot:
                             InventoryMetaItem rootItem = Utils.getRootItem(targetComponent);
                             if (rootItem != null)
-                                Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(rootItem.getId(), sources);
+                                WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(rootItem.getId(), sources);
                             else
                                 Utils.consolePrint("Unable to move items to the target container");
                             break;
@@ -67,7 +65,7 @@ public class ItemMoverBot extends Bot {
                                 for (InventoryMetaItem container : containers)
                                     if (container.getChildren().size() < containerVolume) {
                                         int quantityToMove = Math.min(containerVolume - container.getChildren().size(), sources.length);
-                                        Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(
+                                        WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(
                                                 container.getId(), Arrays.copyOfRange(sources, 0, quantityToMove));
                                         sources = Arrays.copyOfRange(sources, quantityToMove, sources.length);
                                         if (sources.length == 0)
@@ -229,9 +227,9 @@ public class ItemMoverBot extends Bot {
     }
     private void setTargetItem() {
         try {
-            int x = Mod.hud.getWorld().getClient().getXMouse();
-            int y = Mod.hud.getWorld().getClient().getYMouse();
-            long [] targets = Mod.hud.getCommandTargetsFrom(x,y);
+            int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+            int y = WurmHelper.hud.getWorld().getClient().getYMouse();
+            long [] targets = WurmHelper.hud.getCommandTargetsFrom(x,y);
             if (targets != null && targets.length > 0) {
                 target = targets[0];
                 targetType = TargetType.Item;

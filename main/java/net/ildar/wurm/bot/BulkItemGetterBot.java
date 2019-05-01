@@ -1,23 +1,20 @@
 package net.ildar.wurm.bot;
 
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@BotInfo(description =
+        "Automatically transfers items to player's inventory from configured bulk storages. " +
+        "The n-th  source item will be transferred to the n-th target item",
+        abbreviation = "big")
 public class BulkItemGetterBot extends Bot {
     public static boolean closeBMLWindow;
     private List<SourceItem> sources = new ArrayList<>();
     private List<Long> targets = new ArrayList<>();
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(BulkItemGetterBot.class,
-                "Automatically transfers items to player's inventory from configured bulk storages. " +
-                        "The n-th  source item will be transferred to the n-th target item",
-                "big");
-    }
 
     @Override
     public void work() throws Exception{
@@ -32,7 +29,7 @@ public class BulkItemGetterBot extends Bot {
                 for(int i = 0; i < moves; i++) {
                     SourceItem sourceItem = sources.get(i);
                     if (sourceItem.fixedPoint) {
-                        long[] items = Mod.hud.getCommandTargetsFrom(sourceItem.x, sourceItem.y);
+                        long[] items = WurmHelper.hud.getCommandTargetsFrom(sourceItem.x, sourceItem.y);
                         if (items != null && items.length > 0) {
                             sourceItem.id = items[0];
                         } else {
@@ -42,7 +39,7 @@ public class BulkItemGetterBot extends Bot {
                     }
                     closeBMLWindow = true;
                     //Utils.consolePrint(i + " - moving " + sources.get(i) + " to " + targets.get(i));
-                    Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(targets.get(i), new long[]{sourceItem.id});
+                    WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(targets.get(i), new long[]{sourceItem.id});
                     int counter = 0;
                     while(closeBMLWindow && counter++ < 50)
                         sleep(100);
@@ -93,9 +90,9 @@ public class BulkItemGetterBot extends Bot {
 
     private void addSource() {
         try {
-            int x = Mod.hud.getWorld().getClient().getXMouse();
-            int y = Mod.hud.getWorld().getClient().getYMouse();
-            long [] items = Mod.hud.getCommandTargetsFrom(x, y);
+            int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+            int y = WurmHelper.hud.getWorld().getClient().getYMouse();
+            long [] items = WurmHelper.hud.getCommandTargetsFrom(x, y);
             if (items == null || items.length == 0)
                 Utils.consolePrint(this.getClass().getSimpleName() + " is unable to set a source item");
             else {
@@ -113,9 +110,9 @@ public class BulkItemGetterBot extends Bot {
 
     private void addTarget() {
         try {
-            int x = Mod.hud.getWorld().getClient().getXMouse();
-            int y = Mod.hud.getWorld().getClient().getYMouse();
-            long []target = Mod.hud.getCommandTargetsFrom(x,y);
+            int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+            int y = WurmHelper.hud.getWorld().getClient().getYMouse();
+            long []target = WurmHelper.hud.getCommandTargetsFrom(x,y);
             if (target != null && target.length > 0) {
                 targets.add(target[0]);
                 Utils.consolePrint("New target is " + target[0]);
@@ -128,8 +125,8 @@ public class BulkItemGetterBot extends Bot {
     }
 
     private void addFixedPointSource() {
-        int x = Mod.hud.getWorld().getClient().getXMouse();
-        int y = Mod.hud.getWorld().getClient().getYMouse();
+        int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+        int y = WurmHelper.hud.getWorld().getClient().getYMouse();
         SourceItem sourceItem = new SourceItem();
         sourceItem.x = x;
         sourceItem.y = y;

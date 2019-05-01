@@ -7,15 +7,18 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+@BotInfo(description =
+        "Does the dirty job",
+        abbreviation = "d")
 public class DiggerBot extends Bot{
     private final int STEPS = 5;
 
@@ -35,11 +38,6 @@ public class DiggerBot extends Bot{
     private InventoryMetaItem pickaxeItem;
 
     public static Tiles.Tile[] DirtList = {Tiles.Tile.TILE_DIRT, Tiles.Tile.TILE_GRASS, Tiles.Tile.TILE_SAND, Tiles.Tile.TILE_MYCELIUM, Tiles.Tile.TILE_TUNDRA, Tiles.Tile.TILE_STEPPE};
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(DiggerBot.class,
-                "Does the dirty job for you", "d");
-    }
 
     public DiggerBot() {
         registerInputHandler(DiggerBot.InputKey.s, this::setStaminaThreshold);
@@ -91,19 +89,19 @@ public class DiggerBot extends Bot{
         setStaminaThreshold(0.95f);
         setTimeout(500);
         clicks = Utils.getMaxActionNumber();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         registerEventProcessors();
         while (isActive()) {
             waitOnPause();
             if (toolRepairing) {
                 if (surfaceMiningMode && pickaxeItem.getDamage() > 10)
-                    Mod.hud.sendAction(PlayerAction.REPAIR, pickaxeItem.getId());
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, pickaxeItem.getId());
                 if (!surfaceMiningMode && shovelItem.getDamage() > 10)
-                    Mod.hud.sendAction(PlayerAction.REPAIR, shovelItem.getId());
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, shovelItem.getId());
             }
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             stopDiggingIfHeightIsLower(progressBar);
@@ -128,8 +126,8 @@ public class DiggerBot extends Bot{
                                 if (areaAssistant.areaTourActivated()) {
                                     while(areaAssistant.areaTourActivated()) {
                                         areaAssistant.areaNextPosition();
-                                        diggingTileInfo.x = (int)(Mod.hud.getWorld().getPlayerPosX() / 4);
-                                        diggingTileInfo.y = (int)(Mod.hud.getWorld().getPlayerPosY() / 4);
+                                        diggingTileInfo.x = (int)(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+                                        diggingTileInfo.y = (int)(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
                                         if (validCornersExists()) {
                                             moveToNextTileCorner();
                                             break;
@@ -148,14 +146,14 @@ public class DiggerBot extends Bot{
                             finishLeveling();
                             break;
                         }
-                        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                                ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                                ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                         if (pickableUnit != null && pickableUnit instanceof TilePicker) {
                             if (pickableUnit.getHoverName().contains("(flat)")) {
                                 finishLeveling();
                                 break;
                             }
-                            Mod.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
                                     new long[]{pickableUnit.getId()},
                                     PlayerAction.LEVEL);
                         } else {
@@ -168,10 +166,10 @@ public class DiggerBot extends Bot{
                         boolean actionTaken = false;
                         for (int i = 0; i < area.length; i += 2) {
                             if (i == 4) continue;
-                            Tiles.Tile tileType = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(area[i][0], area[i][1]);
+                            Tiles.Tile tileType = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(area[i][0], area[i][1]);
                             boolean levelableTile = tileType == Tiles.Tile.TILE_DIRT || tileType == Tiles.Tile.TILE_GRASS;
                             if (levelableTile && needLevelling(area[i][0], area[i][1])) {
-                                Mod.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
+                                WurmHelper.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
                                         new long[]{Tiles.getTileId(area[i][0], area[i][1], 1)},
                                         PlayerAction.LEVEL);
                                 actionTaken = true;
@@ -201,7 +199,7 @@ public class DiggerBot extends Bot{
         boolean highCornerSurroundedWithDirt = true;
         for(int dx = 0; dx < 2; dx++) {
             for(int dy = 0; dy < 2; dy++) {
-                int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(x + dx, y + dy) * 10);
+                int h = (int) (WurmHelper.hud.getWorld().getNearTerrainBuffer().getHeight(x + dx, y + dy) * 10);
                 if (h > maxH) {
                     maxH = h;
                     if (maxH > diggingHeightLimit && highCornerSurroundedWithDirt) {
@@ -223,9 +221,9 @@ public class DiggerBot extends Bot{
     }
 
     private void stopDiggingIfHeightIsLower(Object progressBar) throws Exception{
-        int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
-        int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
-        int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(x, y)* 10);
+        int x = Math.round(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+        int y = Math.round(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
+        int h = (int) (WurmHelper.hud.getWorld().getNearTerrainBuffer().getHeight(x, y)* 10);
         String actionKey = "digging";
         if (surfaceMiningMode)
             actionKey = "mining";
@@ -233,7 +231,7 @@ public class DiggerBot extends Bot{
             String actionName = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "title"));
             if (actionName != null && actionName.contains(actionKey))
-                Mod.hud.sendAction(PlayerAction.STOP, 0);
+                WurmHelper.hud.sendAction(PlayerAction.STOP, 0);
         }
     }
 
@@ -242,24 +240,24 @@ public class DiggerBot extends Bot{
      * @return true if actions were made
      */
     private boolean doDigActions() {
-        int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
-        int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
-        Tiles.Tile tileType = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x, y);
+        int x = Math.round(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+        int y = Math.round(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
+        Tiles.Tile tileType = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(x, y);
         if (isCornerInvalid(x, y))
             return false;
-        int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(x, y)* 10);
+        int h = (int) (WurmHelper.hud.getWorld().getNearTerrainBuffer().getHeight(x, y)* 10);
         if (h > diggingHeightLimit) {
-            if (Mod.hud.getWorld().getPlayerLayer() < 0)
+            if (WurmHelper.hud.getWorld().getPlayerLayer() < 0)
                 return false;
             int neededClicks = Math.min(h - diggingHeightLimit, clicks);
             if (surfaceMiningMode) {
                 for (int i = 0; i < neededClicks; i++) {
                     if(isTileRock(tileType)) {
-                        Mod.hud.getWorld().getServerConnection().sendAction(pickaxeItem.getId(),
+                        WurmHelper.hud.getWorld().getServerConnection().sendAction(pickaxeItem.getId(),
                                 new long[]{Tiles.getTileId(x, y, 0)},
                                 PlayerAction.MINE_FORWARD);
                     }else if(isTileDirt(tileType)){
-                        Mod.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
+                        WurmHelper.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
                                 new long[]{Tiles.getTileId(x, y, 0)},
                                 digAction);
                     }
@@ -267,7 +265,7 @@ public class DiggerBot extends Bot{
                 return true;
             } else {
                 for (int i = 0; i < neededClicks; i++) {
-                    Mod.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
+                    WurmHelper.hud.getWorld().getServerConnection().sendAction(shovelItem.getId(),
                             new long[]{Tiles.getTileId(x, y, 0)},
                             digAction);
                 }
@@ -280,7 +278,7 @@ public class DiggerBot extends Bot{
     private boolean areSurroundingTilesRocks(int x, int y) {
         for(int dx = 0; dx < 2; dx++)
             for(int dy = 0; dy < 2; dy++) {
-                Tiles.Tile tileType = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x-dx, y-dy);
+                Tiles.Tile tileType = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(x-dx, y-dy);
                 if (tileType != Tiles.Tile.TILE_ROCK)
                     return false;
             }
@@ -290,7 +288,7 @@ public class DiggerBot extends Bot{
     private boolean isRockTileNear(int x, int y) {
         for(int dx = 0; dx < 2; dx++)
             for(int dy = 0; dy < 2; dy++) {
-                Tiles.Tile tileType = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x-dx, y-dy);
+                Tiles.Tile tileType = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(x-dx, y-dy);
                 if (tileType == Tiles.Tile.TILE_ROCK) {
                     return true;
                 }
@@ -299,8 +297,8 @@ public class DiggerBot extends Bot{
     }
 
     private void handleInvalidCorner() {
-        int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
-        int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
+        int x = Math.round(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+        int y = Math.round(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
         invalidCorners.add(new Pair<>(x, y));
     }
 
@@ -318,7 +316,7 @@ public class DiggerBot extends Bot{
                 if (isCornerInvalid(x, y)) {
                     continue;
                 }
-                int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(x, y) * 10);
+                int h = (int) (WurmHelper.hud.getWorld().getNearTerrainBuffer().getHeight(x, y) * 10);
                 if (h > diggingHeightLimit)
                     return true;
             }
@@ -326,14 +324,14 @@ public class DiggerBot extends Bot{
     }
 
     private boolean isTileRock(int x, int y){
-        Tiles.Tile t = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
+        Tiles.Tile t = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
         return isTileRock(t);
     }
     private boolean isTileRock(Tiles.Tile t){
         return t == Tiles.Tile.TILE_ROCK;
     }
     private boolean isTileDirt(int x, int y){
-        Tiles.Tile t = Mod.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
+        Tiles.Tile t = WurmHelper.hud.getWorld().getNearTerrainBuffer().getTileType(x,y);
         return isTileDirt(t);
     }
     private boolean isTileDirt(Tiles.Tile t){
@@ -353,8 +351,8 @@ public class DiggerBot extends Bot{
     private void moveToNextTileCorner() throws InterruptedException{
         if (workMode != WorkMode.DiggingTile)
             return;
-        int x = Math.round(Mod.hud.getWorld().getPlayerPosX() / 4);
-        int y = Math.round(Mod.hud.getWorld().getPlayerPosY() / 4);
+        int x = Math.round(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+        int y = Math.round(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
         if (Math.abs(x - diggingTileInfo.x) > 1 || Math.abs(y - diggingTileInfo.y) > 1) {
             workMode = WorkMode.Unknown;
             Utils.showOnScreenMessage("You moved from tile too far away");
@@ -375,7 +373,7 @@ public class DiggerBot extends Bot{
                 --destY;
             if (isCornerInvalid(destX, destY))
                 continue;
-            int h = (int) (Mod.hud.getWorld().getNearTerrainBuffer().getHeight(destX, destY) * 10);
+            int h = (int) (WurmHelper.hud.getWorld().getNearTerrainBuffer().getHeight(destX, destY) * 10);
             if (h > diggingHeightLimit) {
                 cornerFound = true;
                 break;
@@ -476,8 +474,8 @@ public class DiggerBot extends Bot{
             }
             try {
                 diggingTileInfo = new DiggingTileInfo();
-                diggingTileInfo.x = (int)(Mod.hud.getWorld().getPlayerPosX() / 4);
-                diggingTileInfo.y = (int)(Mod.hud.getWorld().getPlayerPosY() / 4);
+                diggingTileInfo.x = (int)(WurmHelper.hud.getWorld().getPlayerPosX() / 4);
+                diggingTileInfo.y = (int)(WurmHelper.hud.getWorld().getPlayerPosY() / 4);
                 moveToNextTileCorner();
                 workMode = WorkMode.DiggingTile;
                 Utils.consolePrint("The digging of tile (" +diggingTileInfo.x + "," + diggingTileInfo.y + ") is on");

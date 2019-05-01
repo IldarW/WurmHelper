@@ -47,10 +47,6 @@ public abstract class Bot extends Thread {
         Utils.consolePrint(this.getClass().getSimpleName() + " was stopped");
     }
 
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(Bot.class, "Bot didn't provide a description", "?");
-    }
-
     /**
      * The bot is stopping by interruption(see {@link #deactivate()}.
      * Sometimes the interruption status of a thread is cleared(ignored,lost) in the bot(the bot developer should avoid that),
@@ -77,7 +73,7 @@ public abstract class Bot extends Thread {
     public void setPaused() {
         paused = true;
         for (int i = 0; i < Utils.getMaxActionNumber(); i++) {
-            Mod.hud.sendAction(PlayerAction.STOP, 0);
+            WurmHelper.hud.sendAction(PlayerAction.STOP, 0);
         }
         Utils.consolePrint(getClass().getSimpleName() + " is paused.");
     }
@@ -107,7 +103,7 @@ public abstract class Bot extends Thread {
         StringBuilder output = new StringBuilder();
         output
                 .append("Usage: ")
-                .append(Mod.ConsoleCommand.bot.name())
+                .append(WurmHelper.ConsoleCommand.bot.name())
                 .append(" ")
                 .append(getAbbreviation())
                 .append(" {");
@@ -125,7 +121,7 @@ public abstract class Bot extends Thread {
     }
 
     void printInputKeyUsageString(InputKey inputKey) {
-        Utils.consolePrint("Usage: " + Mod.ConsoleCommand.bot.name() + " " + getAbbreviation() + " " + inputKey.getName() + " " + inputKey.getUsage());
+        Utils.consolePrint("Usage: " + WurmHelper.ConsoleCommand.bot.name() + " " + getAbbreviation() + " " + inputKey.getName() + " " + inputKey.getUsage());
     }
 
     /**

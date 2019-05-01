@@ -1,12 +1,10 @@
 package net.ildar.wurm;
 
 import com.wurmonline.shared.util.MulticolorLineSegment;
-import net.ildar.wurm.bot.ArcherBot;
 import net.ildar.wurm.bot.GuardBot;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class Chat {
     private static List<MessageProcessor> messageProcessors = new ArrayList<>();

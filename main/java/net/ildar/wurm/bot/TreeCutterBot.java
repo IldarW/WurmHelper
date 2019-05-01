@@ -12,9 +12,9 @@ import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.TreeData;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.ArrayList;
@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
+@BotInfo(description =
+        "Cuts trees",
+        abbreviation = "tc")
 public class TreeCutterBot extends Bot{
     private float staminaThreshold;
     private int maxActions;
@@ -40,11 +42,6 @@ public class TreeCutterBot extends Bot{
 
     private AreaAssistant areaAssistant = new AreaAssistant(this);
     private List<Pair<Integer, Integer>> queuedTiles = new ArrayList<>();
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(TreeCutterBot.class,
-                "Cut trees", "tc");
-    }
 
     public TreeCutterBot(){
         registerInputHandler(InputKey.s, this::setStaminaThreshold);
@@ -69,7 +66,7 @@ public class TreeCutterBot extends Bot{
     public void work() throws Exception {
         setStaminaThreshold(0.96f);
         setMaxActions(Utils.getMaxActionNumber());
-        World world = Mod.hud.getWorld();
+        World world = WurmHelper.hud.getWorld();
         PlayerObj player = world.getPlayer();
         lastActionFinishedTime = System.currentTimeMillis();
 
@@ -83,10 +80,10 @@ public class TreeCutterBot extends Bot{
             hatchetId = hatchet.getId();
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + hatchet.getDisplayName() + " with QL:" + hatchet.getQuality() + " DMG:" + hatchet.getDamage());
         }
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
 
-        ServerConnectionListenerClass sscc = Mod.hud.getWorld().getServerConnection().getServerConnectionListener();
+        ServerConnectionListenerClass sscc = WurmHelper.hud.getWorld().getServerConnection().getServerConnectionListener();
         registerEventProcessors();
         while (isActive()) {
             waitOnPause();

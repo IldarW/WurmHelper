@@ -1,7 +1,5 @@
 package net.ildar.wurm;
 
-import net.ildar.wurm.bot.Bot;
-
 public class BotRegistration {
     private Class botClass;
     private String description;

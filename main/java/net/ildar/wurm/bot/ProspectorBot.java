@@ -4,21 +4,19 @@ import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.InputMismatchException;
 
+@BotInfo(description =
+        "Prospects selected tile",
+        abbreviation = "pr")
 public class ProspectorBot extends Bot {
     private float staminaThreshold;
     private int clicks;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ProspectorBot.class,
-                "Prospect selected tile", "pr");
-    }
 
     public ProspectorBot() {
         registerInputHandler(ProspectorBot.InputKey.s, this::setStaminaThreshold);
@@ -37,8 +35,8 @@ public class ProspectorBot extends Bot {
             pickaxeId = pickaxe.getId();
             Utils.consolePrint(this.getClass().getSimpleName() + " will use " + pickaxe.getBaseName());
         }
-        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+        PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
         if (pickableUnit == null) {
             Utils.consolePrint("Select cave wall!");
             deactivate();
@@ -46,22 +44,22 @@ public class ProspectorBot extends Bot {
         } else
             Utils.consolePrint(this.getClass().getSimpleName() + " will prospect " + pickableUnit.getHoverName());
         long caveWallId = pickableUnit.getId();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow,
                 ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         setStaminaThreshold(0.9f);
         setClicks(3);
         while (isActive()) {
             waitOnPause();
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
             if ((stamina+damage) > staminaThreshold && progress == 0f) {
                 if (pickaxe.getDamage() > 10)
-                    Mod.hud.sendAction(PlayerAction.REPAIR, pickaxeId);
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, pickaxeId);
                 for(int i = 0; i < clicks; i++)
-                    Mod.hud.getWorld().getServerConnection().sendAction(pickaxeId, new long[]{caveWallId}, PlayerAction.PROSPECT);
+                    WurmHelper.hud.getWorld().getServerConnection().sendAction(pickaxeId, new long[]{caveWallId}, PlayerAction.PROSPECT);
             }
             sleep(timeout);
         }

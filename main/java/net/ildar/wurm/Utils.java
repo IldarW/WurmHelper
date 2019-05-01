@@ -35,7 +35,7 @@ public class Utils {
         showOnScreenMessage(message, 1, 1, 1);
     }
     public static void showOnScreenMessage(String message, float r, float g, float b) {
-        Mod.hud.addOnscreenMessage(message, r, g, b, (byte)1);
+        WurmHelper.hud.addOnscreenMessage(message, r, g, b, (byte)1);
         consolePrint(message);
     }
 
@@ -45,12 +45,12 @@ public class Utils {
      */
     public static void turnPlayer(float dxRot) {
         try{
-            float xRot = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
+            float xRot = ReflectionUtil.getPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
             xRot = (xRot + dxRot)%360;
             if (xRot < 0 ) xRot = (xRot + 360)%360;
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
         } catch (Exception e) {
             consolePrint("Unexpected error while turning - " + e.getMessage());
         }
@@ -63,10 +63,10 @@ public class Utils {
      */
     public static void turnPlayer(float xRot, float yRot) {
         try{
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yRotUsed"), yRot);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "yRotUsed"), yRot);
         } catch (Exception e) {
             consolePrint("Unexpected error while turning - " + e.getMessage());
         }
@@ -78,10 +78,10 @@ public class Utils {
      */
     public static void movePlayer(float d) {
         try{
-            float x = Mod.hud.getWorld().getPlayerPosX();
-            float y = Mod.hud.getWorld().getPlayerPosY();
-            float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
+            float x = WurmHelper.hud.getWorld().getPlayerPosX();
+            float y = WurmHelper.hud.getWorld().getPlayerPosY();
+            float xr = ReflectionUtil.getPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
             float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
             float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
             movePlayer(x+dx, y+dy);
@@ -93,10 +93,10 @@ public class Utils {
 
     public static void movePlayerBySteps(float d, int steps, long duration) throws InterruptedException{
         try{
-            float x = Mod.hud.getWorld().getPlayerPosX();
-            float y = Mod.hud.getWorld().getPlayerPosY();
-            float xr = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
+            float x = WurmHelper.hud.getWorld().getPlayerPosX();
+            float y = WurmHelper.hud.getWorld().getPlayerPosY();
+            float xr = ReflectionUtil.getPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
             float dx = (float)(d*Math.sin((double)xr/180*Math.PI));
             float dy = (float)(-d*Math.cos((double)xr/180*Math.PI));
             movePlayerBySteps(x+dx, y+dy, steps, duration);
@@ -109,8 +109,8 @@ public class Utils {
     }
 
     public static void movePlayerBySteps(float x, float y, int steps, long duration) throws InterruptedException{
-        float curX = Mod.hud.getWorld().getPlayerPosX();
-        float curY = Mod.hud.getWorld().getPlayerPosY();
+        float curX = WurmHelper.hud.getWorld().getPlayerPosX();
+        float curY = WurmHelper.hud.getWorld().getPlayerPosY();
         float xStep = (x - curX) / steps;
         float yStep = (y - curY) / steps;
         for (int stepIndex = 0; stepIndex < steps; stepIndex++) {
@@ -121,10 +121,10 @@ public class Utils {
 
     public static void movePlayer(float x, float y) {
         try{
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
             consolePrint( e.toString());
@@ -144,13 +144,13 @@ public class Utils {
      */
     public static void stabilizeLook() {
         try{
-            float xRot = ReflectionUtil.getPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
+            float xRot = ReflectionUtil.getPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"));
             xRot = Math.round(xRot/90)*90;
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yRotUsed"), (float)0.0);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xRotUsed"), xRot);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "yRotUsed"), (float)0.0);
         } catch (Exception e) {
             consolePrint("Unexpected error while turning - " + e.getMessage());
         }
@@ -158,14 +158,14 @@ public class Utils {
 
     public static void moveToCenter() {
         try{
-            float x = Mod.hud.getWorld().getPlayerPosX();
-            float y = Mod.hud.getWorld().getPlayerPosY();
+            float x = WurmHelper.hud.getWorld().getPlayerPosX();
+            float y = WurmHelper.hud.getWorld().getPlayerPosY();
             x = (float)(Math.floor((double)x/4)*4 + 2);
             y = (float)(Math.floor((double)y/4)*4 + 2);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
 
         } catch (Exception e) {
             consolePrint("Unexpected error while moving - " + e.getMessage());
@@ -174,14 +174,14 @@ public class Utils {
 
     public static void moveToNearestCorner() {
         try {
-            float x = Mod.hud.getWorld().getPlayerPosX();
-            float y = Mod.hud.getWorld().getPlayerPosY();
+            float x = WurmHelper.hud.getWorld().getPlayerPosX();
+            float y = WurmHelper.hud.getWorld().getPlayerPosY();
             x = Math.round(x / 4) * 4;
             y = Math.round(y / 4) * 4;
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
-            ReflectionUtil.setPrivateField(Mod.hud.getWorld().getPlayer(),
-                    ReflectionUtil.getField(Mod.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "xPosUsed"), x);
+            ReflectionUtil.setPrivateField(WurmHelper.hud.getWorld().getPlayer(),
+                    ReflectionUtil.getField(WurmHelper.hud.getWorld().getPlayer().getClass(), "yPosUsed"), y);
         } catch(Exception e) {
             consolePrint("Error on moving to the corner");
         }
@@ -208,7 +208,7 @@ public class Utils {
         return getSelectedItems(false, true);
     }
     public static List<InventoryMetaItem> getSelectedItems(boolean getAll, boolean recursive) {
-        InventoryListComponent ilc = Mod.hud.getInventoryWindow().getInventoryListComponent();
+        InventoryListComponent ilc = WurmHelper.hud.getInventoryWindow().getInventoryListComponent();
         List<InventoryMetaItem> selItems = new ArrayList<>();
         try {
             Object rootNode = getInventoryRootNode(ilc);
@@ -347,7 +347,7 @@ public class Utils {
     }
 
     public static List<InventoryMetaItem> getInventoryItemsAtPoint(int x, int y) {
-        return getInventoryItemsAtPoint(Mod.hud.getInventoryWindow().getInventoryListComponent(), x, y);
+        return getInventoryItemsAtPoint(WurmHelper.hud.getInventoryWindow().getInventoryListComponent(), x, y);
     }
     public static List<InventoryMetaItem> getInventoryItemsAtPoint(InventoryListComponent ilc, int x, int y) {
         List<InventoryMetaItem> itemList = new ArrayList<>();
@@ -376,7 +376,7 @@ public class Utils {
     }
 
     public static List<InventoryMetaItem> getFirstLevelItems() {
-        InventoryListComponent ilc = Mod.hud.getInventoryWindow().getInventoryListComponent();
+        InventoryListComponent ilc = WurmHelper.hud.getInventoryWindow().getInventoryListComponent();
         try {
             Object rootNode = getInventoryRootNode(ilc);
             List lines = getNodeChildren(rootNode);
@@ -405,11 +405,11 @@ public class Utils {
     }
 
     public static WurmComponent getTargetComponent(Function<WurmComponent, Boolean> filter) {
-        int x = Mod.hud.getWorld().getClient().getXMouse();
-        int y = Mod.hud.getWorld().getClient().getYMouse();
+        int x = WurmHelper.hud.getWorld().getClient().getXMouse();
+        int y = WurmHelper.hud.getWorld().getClient().getYMouse();
         try {
-            for (int i = 0; i < Mod.getInstance().components.size(); i++) {
-                WurmComponent wurmComponent = Mod.getInstance().components.get(i);
+            for (int i = 0; i < WurmHelper.getInstance().components.size(); i++) {
+                WurmComponent wurmComponent = WurmHelper.getInstance().components.get(i);
                 if (wurmComponent.contains(x, y)) {
                     if (filter != null && !filter.apply(wurmComponent))
                         continue;
@@ -425,9 +425,9 @@ public class Utils {
 
     public static int[][] getAreaCoordinates() {
         int[][] area = new int[9][2];
-        int x = Mod.hud.getWorld().getPlayerCurrentTileX();
-        int y = Mod.hud.getWorld().getPlayerCurrentTileY();
-        int direction = Math.round(Mod.hud.getWorld().getPlayerRotX() / 90);
+        int x = WurmHelper.hud.getWorld().getPlayerCurrentTileX();
+        int y = WurmHelper.hud.getWorld().getPlayerCurrentTileY();
+        int direction = Math.round(WurmHelper.hud.getWorld().getPlayerRotX() / 90);
         switch (direction) {
             case 1:
                 for (int i = 0; i < 3; i++)
@@ -461,9 +461,9 @@ public class Utils {
     }
 
     public static URL getResource(String r) {
-        URL url = Mod.class.getClassLoader().getResource(r);
-        if (url == null && Mod.class.getClassLoader() == HookManager.getInstance().getLoader()) {
-            url = HookManager.getInstance().getClassPool().find(Mod.class.getName());
+        URL url = WurmHelper.class.getClassLoader().getResource(r);
+        if (url == null && WurmHelper.class.getClassLoader() == HookManager.getInstance().getLoader()) {
+            url = HookManager.getInstance().getClassPool().find(WurmHelper.class.getName());
             if (url != null) {
                 String path = url.toString();
                 int pos = path.lastIndexOf('!');
@@ -483,7 +483,7 @@ public class Utils {
     }
 
     public static float getTotalWeight() {
-        PaperDollInventory paperDollInventory = Mod.hud.getPaperDollInventory();
+        PaperDollInventory paperDollInventory = WurmHelper.hud.getPaperDollInventory();
         try {
             PaperDollSlot equippedWeightItem = ReflectionUtil.getPrivateField(paperDollInventory,
                     ReflectionUtil.getField(paperDollInventory.getClass(), "equippedWeightItem"));
@@ -513,8 +513,8 @@ public class Utils {
     public static int getMaxActionNumber() {
         MindLogicCalculator mlc;
         try {
-            mlc = ReflectionUtil.getPrivateField(Mod.hud,
-                    ReflectionUtil.getField(Mod.hud.getClass(), "mindLogicCalculator"));
+            mlc = ReflectionUtil.getPrivateField(WurmHelper.hud,
+                    ReflectionUtil.getField(WurmHelper.hud.getClass(), "mindLogicCalculator"));
         } catch (IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
             return 0;
@@ -524,7 +524,7 @@ public class Utils {
 
     public static void writeToConsoleInputLine(String s) {
         try {
-            Object consoleComponent = ReflectionUtil.getPrivateField(Mod.hud, ReflectionUtil.getField(Mod.hud.getClass(), "consoleComponent"));
+            Object consoleComponent = ReflectionUtil.getPrivateField(WurmHelper.hud, ReflectionUtil.getField(WurmHelper.hud.getClass(), "consoleComponent"));
             Object inputField = ReflectionUtil.getPrivateField(consoleComponent, ReflectionUtil.getField(consoleComponent.getClass(), "inputField"));
             Method method = inputField.getClass().getDeclaredMethod("setTextMoveToEnd", String.class);
             method.setAccessible(true);

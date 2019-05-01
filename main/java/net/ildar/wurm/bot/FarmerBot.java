@@ -7,14 +7,17 @@ import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.mesh.FieldData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "Tends the fields, plants the seeds, cultivates the ground, collects harvests",
+        abbreviation = "f")
 public class FarmerBot extends Bot {
     private float staminaThreshold;
     private AreaAssistant areaAssistant = new AreaAssistant(this);
@@ -30,11 +33,6 @@ public class FarmerBot extends Bot {
     private boolean repairing = true;
     private List<String> dropNamesList;
     private int dropLimit;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(FarmerBot.class,
-                "Tends the fields, plants the seeds, cultivates the ground, collects harvests", "f");
-    }
 
     public FarmerBot() {
         registerInputHandler(FarmerBot.InputKey.s, this::setStaminaThreshold);
@@ -53,9 +51,9 @@ public class FarmerBot extends Bot {
         setStaminaThreshold(0.9f);
         setTimeout(500);
         int maxActions = Utils.getMaxActionNumber();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
-        World world = Mod.hud.getWorld();
+        World world = WurmHelper.hud.getWorld();
         PlayerObj player = world.getPlayer();
         Set<String> cultivatedTiles = new HashSet<>(Arrays.asList(
                 Tiles.Tile.TILE_STEPPE.tilename, Tiles.Tile.TILE_MOSS.tilename, Tiles.Tile.TILE_DIRT_PACKED.tilename));
@@ -141,7 +139,7 @@ public class FarmerBot extends Bot {
                     }
                     droplist = droplist.stream().filter(item -> item.getRarity() == 0).collect(Collectors.toList());
                     if (droplist.size() > 0)
-                        Mod.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
+                        WurmHelper.hud.sendAction(PlayerAction.DROP, Utils.getItemIds(droplist));
                 }
             }
             sleep(timeout);
@@ -150,7 +148,7 @@ public class FarmerBot extends Bot {
 
     private void checkToolDamage(InventoryMetaItem toolItem) {
         if (repairing && toolItem.getDamage() > 10)
-            Mod.hud.sendAction(PlayerAction.REPAIR, toolItem.getId());
+            WurmHelper.hud.sendAction(PlayerAction.REPAIR, toolItem.getId());
     }
 
     private void addDropItemName(String []input) {

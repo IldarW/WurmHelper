@@ -8,9 +8,9 @@ import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.TreeData;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,6 +18,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "A forester bot. Can pick and plant sprouts, cut trees/bushes and gather the harvest in 3x3 area around player. " +
+        "Bot can be configured to process rectangular area of any size. " +
+        "Sprouts, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
+        "Containers only in root directory of player's inventory will be taken into account. " +
+        "New item names can be added(harvested fruits for example) to be moved to containers too. " +
+        "Steppe and moss tiles will be cultivated if planting is enabled and player have shovel in his inventory. ",
+        abbreviation = "fr")
 public class ForesterBot extends Bot {
     static String DEFAULT_CONTAINER_NAME = "backpack";
     private float staminaThreshold;
@@ -39,17 +47,6 @@ public class ForesterBot extends Bot {
     private boolean deforesting;
     private static int toHarvest;
 
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ForesterBot.class,
-                "A forester bot. Can pick and plant sprouts, cut trees/bushes and gather the harvest in 3x3 area around player. " +
-                        "Bot can be configured to process rectangular area of any size. " +
-                        "Sprouts, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
-                        "Default container name is \"" + ForesterBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
-                        "New item names can be added(harvested fruits for example) to be moved to containers too. " +
-                        "Steppe and moss tiles will be cultivated if planting is enabled and player have shovel in his inventory. ",
-                "fr");
-    }
-
     public ForesterBot() {
         registerInputHandler(ForesterBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(ForesterBot.InputKey.ca, input -> toggleAllTreesCutting());
@@ -66,7 +63,7 @@ public class ForesterBot extends Bot {
     public void work() throws Exception {
         setStaminaThreshold(0.95f);
         setTimeout(300);
-        World world = Mod.hud.getWorld();
+        World world = WurmHelper.hud.getWorld();
         PlayerObj player = world.getPlayer();
         maxActions = Utils.getMaxActionNumber();
         InventoryMetaItem sickle = Utils.getInventoryItem("sickle");
@@ -191,7 +188,7 @@ public class ForesterBot extends Bot {
                                 long[] sproutIds = new long[sprouts.size()];
                                 for (tileIndex = 0; tileIndex < sprouts.size(); tileIndex++)
                                     sproutIds[tileIndex] = sprouts.get(tileIndex).getId();
-                                Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(
+                                WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(
                                         container.getId(), sproutIds);
                                 break;
                             }
@@ -230,7 +227,7 @@ public class ForesterBot extends Bot {
     }
 
     private void increaseHarvests(FoliageAge fage) {
-        float f = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("forestry");
+        float f = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("forestry");
         int maxHarvest = 1;
         if (f > 80)
             maxHarvest = 4;

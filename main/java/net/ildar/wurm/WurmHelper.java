@@ -27,11 +27,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
+public class WurmHelper implements WurmClientMod, Initable, Configurable, PreInitable {
     private final long BLESS_TIMEOUT = 1800000;
 
     public static HeadsUpDisplay hud;
-    private static Mod instance;
+    private static WurmHelper instance;
 
     public List<WurmComponent> components;
     private Logger logger;
@@ -39,8 +39,8 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
     private long lastBless = 0L;
     private boolean noBlessings = false;
 
-    public Mod() {
-        logger = Logger.getLogger("IldarMod");
+    public WurmHelper() {
+        logger = Logger.getLogger("WurmHelper");
         consoleCommandHandlers = new HashMap<>();
         consoleCommandHandlers.put(ConsoleCommand.sleep, this::handleSleepCommand);
         consoleCommandHandlers.put(ConsoleCommand.look, this::handleLookCommand);
@@ -56,10 +56,10 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         consoleCommandHandlers.put(ConsoleCommand.mtcenter, input -> Utils.moveToCenter());
         consoleCommandHandlers.put(ConsoleCommand.mtcorner, input -> Utils.moveToNearestCorner());
         consoleCommandHandlers.put(ConsoleCommand.stabilizelook, input -> Utils.stabilizeLook());
-        Mod.instance = this;
+        WurmHelper.instance = this;
     }
 
-    public static Mod getInstance() {
+    public static WurmHelper getInstance() {
         return instance;
     }
 
@@ -353,7 +353,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
             return;
         }
         List<InventoryMetaItem> itemsToMove = new ArrayList<>();
-        float favor = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
+        float favor = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("favor");
         for (InventoryMetaItem item : items) {
             if (favor >= favorLevel) break;
             itemsToMove.add(item);
@@ -386,8 +386,8 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
                     Utils.showOnScreenMessage("An altar is not empty!");
                     return;
                 }
-                Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(rootItem.getId(), Utils.getItemIds(itemsToMove));
-                Mod.hud.sendAction(PlayerAction.SACRIFICE, rootItem.getId());
+                WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(rootItem.getId(), Utils.getItemIds(itemsToMove));
+                WurmHelper.hud.sendAction(PlayerAction.SACRIFICE, rootItem.getId());
                 return;
             }
         }
@@ -412,7 +412,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         try {
             final ClassPool classPool = HookManager.getInstance().getClassPool();
             final CtClass ctWurmConsole = classPool.getCtClass("com.wurmonline.client.console.WurmConsole");
-            ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z").insertBefore("if (net.ildar.wurm.Mod.getInstance().handleInput($1,$2)) return true;");
+            ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z").insertBefore("if (net.ildar.wurm.WurmHelper.getInstance().handleInput($1,$2)) return true;");
 
             final CtClass ctSocketConnection = classPool.getCtClass("com.wurmonline.communication.SocketConnection");
             ctSocketConnection.getMethod("tickWriting", "(J)Z").insertBefore("net.ildar.wurm.Utils.serverCallLock.lock();");
@@ -452,7 +452,7 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
         try {
             HookManager.getInstance().registerHook("com.wurmonline.client.renderer.gui.HeadsUpDisplay", "init", "(II)V", () -> (proxy, method, args) -> {
                 method.invoke(proxy, args);
-                Mod.hud = (HeadsUpDisplay)proxy;
+                WurmHelper.hud = (HeadsUpDisplay)proxy;
                 return null;
             });
 
@@ -507,10 +507,10 @@ public class Mod implements WurmClientMod, Initable, Configurable, PreInitable {
 
             Chat.registerMessageProcessor(":Event", message -> message.contains("You fail to relax"), () -> {
                 try {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     if (pickableUnit != null)
-                        Mod.hud.sendAction(new PlayerAction("",(short) 384, PlayerAction.ANYTHING), pickableUnit.getId());
+                        WurmHelper.hud.sendAction(new PlayerAction("",(short) 384, PlayerAction.ANYTHING), pickableUnit.getId());
                 } catch (Exception e) {
                     Utils.consolePrint("Got exception at the start of meditation " + e.getMessage());
                     Utils.consolePrint(e.toString());

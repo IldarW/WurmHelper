@@ -1,5 +1,4 @@
-# WurmBot
-A client helper mod
+# WurmHelper
 
 **Attention!!**
 

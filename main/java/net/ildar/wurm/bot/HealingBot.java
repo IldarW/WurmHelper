@@ -3,21 +3,19 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.CreationWindow;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
 
+@BotInfo(description =
+        "Heals the player's wounds with cotton found in inventory",
+        abbreviation = "h")
 public class HealingBot extends Bot {
     private final Set<String> WOUND_NAMES = new HashSet<>(Arrays.asList("Cut", "Bite", "Bruise", "Burn", "Hole", "Acid", "Infection"));
     private float minDamage = 0;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(HealingBot.class,
-                "Heals the player's wounds with cotton found in inventory", "h");
-    }
 
     public HealingBot() {
         registerInputHandler(HealingBot.InputKey.md, this::setMinimumDamage);
@@ -26,7 +24,7 @@ public class HealingBot extends Bot {
     @Override
     protected void work() throws Exception{
         setTimeout(500);
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
             waitOnPause();
@@ -36,7 +34,7 @@ public class HealingBot extends Bot {
                 sleep(timeout);
                 continue;
             }
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             if (damage == 0) {
                 Utils.consolePrint("The player is fully healed");
                 return;
@@ -47,7 +45,7 @@ public class HealingBot extends Bot {
                 return;
             }
             List<InventoryMetaItem> inventoryItems = new ArrayList<>();
-            inventoryItems.add(Utils.getRootItem(Mod.hud.getInventoryWindow().getInventoryListComponent()));
+            inventoryItems.add(Utils.getRootItem(WurmHelper.hud.getInventoryWindow().getInventoryListComponent()));
             List<InventoryMetaItem> wounds = new ArrayList<>();
             while (inventoryItems.size() > 0) {
                 InventoryMetaItem item = inventoryItems.get(0);
@@ -67,7 +65,7 @@ public class HealingBot extends Bot {
             int maxActionNumber = Utils.getMaxActionNumber();
             int i = 0;
             for (InventoryMetaItem wound : wounds) {
-                Mod.hud.getWorld().getServerConnection().sendAction(cottonItem.getId(), new long[]{wound.getId()}, PlayerAction.FIRSTAID);
+                WurmHelper.hud.getWorld().getServerConnection().sendAction(cottonItem.getId(), new long[]{wound.getId()}, PlayerAction.FIRSTAID);
                 if (++i >= maxActionNumber)
                     break;
             }

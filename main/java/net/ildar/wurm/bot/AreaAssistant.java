@@ -1,6 +1,6 @@
 package net.ildar.wurm.bot;
 
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
 
 class AreaAssistant {
@@ -71,8 +71,8 @@ class AreaAssistant {
     }
 
     private void recalculateBiases() {
-        int x = Mod.hud.getWorld().getPlayerCurrentTileX();
-        int y = Mod.hud.getWorld().getPlayerCurrentTileY();
+        int x = WurmHelper.hud.getWorld().getPlayerCurrentTileX();
+        int y = WurmHelper.hud.getWorld().getPlayerCurrentTileY();
         switch (startDirection) {
             case 1://east, x is increasing
                 movedAhead = x - startX;
@@ -112,11 +112,11 @@ class AreaAssistant {
         height = tilesForward;
         width = tilesToRight;
         movedAhead = movedToRight = 0;
-        startX = Mod.hud.getWorld().getPlayerCurrentTileX();
-        startY = Mod.hud.getWorld().getPlayerCurrentTileY();
+        startX = WurmHelper.hud.getWorld().getPlayerCurrentTileX();
+        startY = WurmHelper.hud.getWorld().getPlayerCurrentTileY();
         turnedRight = false;
         Utils.stabilizePlayer();
-        startDirection = Math.round(Mod.hud.getWorld().getPlayerRotX() / 90);
+        startDirection = Math.round(WurmHelper.hud.getWorld().getPlayerRotX() / 90);
     }
 
     void setMoveAheadDistance(int moveAheadDistance) {

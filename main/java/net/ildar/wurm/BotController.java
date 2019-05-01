@@ -2,60 +2,22 @@ package net.ildar.wurm;
 
 import net.ildar.wurm.bot.Bot;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.jar.JarFile;
 
 public class BotController {
     private static BotController instance;
-    //The list of all bot implementations.
-    private List<BotRegistration> botList = new ArrayList<>();
+    private List<BotRegistration> botList;
     private List<Bot> activeBots = new ArrayList<>();
     private boolean gPaused = false;
 
-    public static BotController getInstance() {
+    public static synchronized BotController getInstance() {
         if (instance == null)
             instance = new BotController();
         return instance;
     }
 
     private BotController() {
-        initBotRegistrations();
-    }
-
-
-    private void initBotRegistrations() {
-        String classResourcePath = Mod.class.getName().replace('.', '/');
-        String jarFileName = Utils.getResource("/" + classResourcePath + ".class").toString();
-        final String jarFilePrefix = "jar:file:/";
-        jarFileName = jarFileName
-                .substring(jarFileName.indexOf(jarFilePrefix) + jarFilePrefix.length(), jarFileName.lastIndexOf("!/"))
-                .replaceAll("%.{2}", " ");
-        try {
-            JarFile jarFile = new JarFile(jarFileName);
-            jarFile.stream().forEach((jarEntry) -> {
-                int extPos = jarEntry.getName().lastIndexOf(".class");
-                if (extPos == -1)
-                    return;
-                String jarEntryClassName = jarEntry.getName().substring(0, extPos).replaceAll("/", ".");
-                try {
-                    Class<?> jarEntryClass = Class.forName(jarEntryClassName);
-                    if (jarEntryClass.equals(Bot.class))
-                        return;
-                    if (Bot.class.isAssignableFrom(jarEntryClass)) {
-                        botList.add((BotRegistration) jarEntryClass.getDeclaredMethod("getRegistration").invoke(null));
-                    }
-                } catch (ClassNotFoundException e) {
-                    Utils.consolePrint("Couldn't find a class with name " + jarEntryClassName);
-                } catch (Exception e) {
-                    Utils.consolePrint(e.toString());
-                    e.printStackTrace();
-                }
-            });
-        } catch (IOException e) {
-            Utils.consolePrint(e.toString());
-            e.printStackTrace();
-        }
+        botList = BotRegistrationProvider.getBotList();
     }
 
     public void handleInput(String data[]) {
@@ -63,7 +25,7 @@ public class BotController {
 
         if (data.length < 1) {
             Utils.consolePrint(usageString);
-            Utils.writeToConsoleInputLine(Mod.ConsoleCommand.bot.name() + " ");
+            Utils.writeToConsoleInputLine(WurmHelper.ConsoleCommand.bot.name() + " ");
             return;
         }
         if (data[0].equals("off")) {
@@ -72,7 +34,7 @@ public class BotController {
         }
         if (data[0].equals("pause")) {
             pauseAllBots();
-            Utils.writeToConsoleInputLine(Mod.ConsoleCommand.bot.name() + " pause");
+            Utils.writeToConsoleInputLine(WurmHelper.ConsoleCommand.bot.name() + " pause");
             return;
         }
         Class<? extends Bot> botClass = getBotClass(data[0]);
@@ -84,7 +46,7 @@ public class BotController {
 
         if (data.length == 1) {
             printBotDescription(botClass);
-            Utils.writeToConsoleInputLine(Mod.ConsoleCommand.bot.name() + " " + data[0] + " ");
+            Utils.writeToConsoleInputLine(WurmHelper.ConsoleCommand.bot.name() + " " + data[0] + " ");
             return;
         }
         if (isInstantiated(botClass)) {
@@ -115,7 +77,7 @@ public class BotController {
                 Utils.consolePrint(botClass.getSimpleName() + " is not running!");
             }
         }
-        Utils.writeToConsoleInputLine(Mod.ConsoleCommand.bot.name() + " " + data[0] + " ");
+        Utils.writeToConsoleInputLine(WurmHelper.ConsoleCommand.bot.name() + " " + data[0] + " ");
     }
 
     public synchronized boolean isActive(Bot bot) {
@@ -183,12 +145,12 @@ public class BotController {
             String abbreviation = "*";
             if (botRegistration != null)
                 abbreviation = botRegistration.getAbbreviation();
-            Utils.consolePrint("Type \"" + Mod.ConsoleCommand.bot.name() + " " + abbreviation + " " + "on\" to activate the bot");
+            Utils.consolePrint("Type \"" + WurmHelper.ConsoleCommand.bot.name() + " " + abbreviation + " " + "on\" to activate the bot");
         }
     }
 
     public String getBotUsageString() {
-        StringBuilder result = new StringBuilder("Usage: " + Mod.ConsoleCommand.bot.name() + " {");
+        StringBuilder result = new StringBuilder("Usage: " + WurmHelper.ConsoleCommand.bot.name() + " {");
         for (BotRegistration botRegistration : botList)
             result.append(botRegistration.getAbbreviation()).append("|");
         result.append("pause|off}");

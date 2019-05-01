@@ -9,13 +9,21 @@ import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
 import com.wurmonline.shared.util.MaterialUtilities;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.util.*;
 
+@BotInfo(description =
+        "Improves selected items in provided inventories. Tools searched from player's inventory. " +
+                "Items like water or stone searched before each improve, " +
+                "actual instruments searched one time before improve of the first item that must be improved with this tool. " +
+                "Tool for improving is determined by improve icon that you see on the right side of item row in inventory. " +
+                "For example improve icons for stone chisel and carving knife are equal, and sometimes bot can choose wrong tool. " +
+                "Use \"ci\" key to change the chosen instrument.",
+        abbreviation = "i")
 public class ImproverBot extends Bot {
     private List<Tool> tools = new ArrayList<>();
     private List<InventoryListComponent> targets = new ArrayList<>();
@@ -23,17 +31,6 @@ public class ImproverBot extends Bot {
     private boolean improveActionFinished;
     private boolean groundMode;
     private ToolSkill toolSkill = ToolSkill.UNKNOWN;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ImproverBot.class,
-        "Improves selected items in provided inventories. Tools searched from player's inventory. " +
-                "Items like water or stone searched before each improve, " +
-                "actual instruments searched one time before improve of the first item that must be improved with this tool. " +
-                "Tool for improving is determined by improve icon that you see on the right side of item row in inventory. " +
-                "For example improve icons for stone chisel and carving knife are equal, and sometimes bot can choose wrong tool. " +
-                "Use \"" + ImproverBot.InputKey.ci.name() + "\" key to change the chosen instrument.",
-                "i");
-    }
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     public ImproverBot() {
@@ -94,7 +91,7 @@ public class ImproverBot extends Bot {
         setStaminaThreshold(0.8f);
         setTimeout(300);
         registerEventProcessors();
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Object progressBar = ReflectionUtil.getPrivateField(creationWindow, ReflectionUtil.getField(creationWindow.getClass(), "progressBar"));
         while (isActive()) {
             waitOnPause();
@@ -103,8 +100,8 @@ public class ImproverBot extends Bot {
                 continue;
             }
             float progress = ReflectionUtil.getPrivateField(progressBar, ReflectionUtil.getField(progressBar.getClass(), "progress"));
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             boolean improveInitiated = false;
             if ((stamina+damage) > staminaThreshold && progress == 0f && creationWindow.getActionInUse() == 0) {
                 if (!groundMode) {
@@ -142,16 +139,16 @@ public class ImproverBot extends Bot {
                         }
 
                         if (itemToImprove.getDamage() > 0)
-                            Mod.hud.sendAction(PlayerAction.REPAIR, itemToImprove.getId());
+                            WurmHelper.hud.sendAction(PlayerAction.REPAIR, itemToImprove.getId());
                         improveActionFinished = false;
                         improveInitiated = true;
-                        Mod.hud.getWorld().getServerConnection().sendAction(tool.itemId,
+                        WurmHelper.hud.getWorld().getServerConnection().sendAction(tool.itemId,
                                 new long[]{itemToImprove.getId()}, PlayerAction.IMPROVE);
                         break;
                     }
                 } else {
-                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(Mod.hud.getSelectBar(),
-                            ReflectionUtil.getField(Mod.hud.getSelectBar().getClass(), "selectedUnit"));
+                    PickableUnit pickableUnit = ReflectionUtil.getPrivateField(WurmHelper.hud.getSelectBar(),
+                            ReflectionUtil.getField(WurmHelper.hud.getSelectBar().getClass(), "selectedUnit"));
                     boolean isCreatureCell = pickableUnit instanceof CreatureCellRenderable && ((CreatureCellRenderable)pickableUnit).isItem();
                     boolean isGroundCell = pickableUnit instanceof GroundItemCellRenderable;
                     if (pickableUnit == null || (!isCreatureCell && !isGroundCell)) {
@@ -182,7 +179,7 @@ public class ImproverBot extends Bot {
                     toolSkill=(groundSkill!=ToolSkill.UNKNOWN && groundSkill!=toolSkill)?groundSkill:toolSkill;
 
                     improveActionFinished = false;
-                    Mod.hud.sendAction(PlayerAction.REPAIR, pickableUnit.getId());
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, pickableUnit.getId());
                     for (Tool tool : getToolsBySkill(toolSkill)) {
                         if (tool.itemId == 0 || !tool.fixed) {
                             //process metal lumps
@@ -194,7 +191,7 @@ public class ImproverBot extends Bot {
                                 continue;
                         }
                         improveInitiated = true;
-                        Mod.hud.getWorld().getServerConnection().sendAction(tool.itemId,
+                        WurmHelper.hud.getWorld().getServerConnection().sendAction(tool.itemId,
                                 new long[]{pickableUnit.getId()}, PlayerAction.IMPROVE);
                         sleep(100);
                     }
@@ -256,20 +253,20 @@ public class ImproverBot extends Bot {
         InventoryMetaItem toolItem = null;
         if (tool.exactName) {
             Optional<InventoryMetaItem> toolOptionalItem;
-            toolOptionalItem = Utils.getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
+            toolOptionalItem = Utils.getInventoryItems(WurmHelper.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getBaseName().equals(tool.name)).findFirst();
             if (toolOptionalItem.isPresent())
                 toolItem = toolOptionalItem.get();
         } else if (!tool.fixed) {
             Optional<InventoryMetaItem> toolOptionalItem;
             if (weight != -1)
-                toolOptionalItem = Utils.getInventoryItems(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getWeight() > 0.5 || item.getWeight() > weight * 0.05).max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
+                toolOptionalItem = Utils.getInventoryItems(WurmHelper.hud.getInventoryWindow().getInventoryListComponent(), tool.name).stream().filter(item -> item.getWeight() > 0.5 || item.getWeight() > weight * 0.05).max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
             else
                 toolOptionalItem = Utils.getInventoryItems(tool.name).stream().max((item1, item2) -> Float.compare(item1.getWeight(), item2.getWeight()));
             if (toolOptionalItem.isPresent())
                 toolItem = toolOptionalItem.get();
         }
         else
-            toolItem = Utils.getInventoryItem(Mod.hud.getInventoryWindow().getInventoryListComponent(), tool.name);
+            toolItem = Utils.getInventoryItem(WurmHelper.hud.getInventoryWindow().getInventoryListComponent(), tool.name);
         if (toolItem == null) {
             Utils.consolePrint("Can't find an item for a tool \"" + tool.name + "\"");
             return false;

@@ -3,9 +3,9 @@ package net.ildar.wurm.bot;
 import com.wurmonline.client.game.inventory.InventoryMetaItem;
 import com.wurmonline.client.renderer.gui.*;
 import com.wurmonline.shared.constants.PlayerAction;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 
 import java.lang.reflect.Method;
@@ -14,6 +14,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "Automatically does crafting operations using items from crafting window. " +
+        "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ",
+        abbreviation = "c")
 public class CrafterBot extends Bot {
     private float staminaThreshold;
     private boolean repairInstrument = true;
@@ -32,13 +36,6 @@ public class CrafterBot extends Bot {
     private boolean withoutActionsInUse;
     private long lastClick;
     private boolean singleSourceItemMode;
-
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(CrafterBot.class,
-                "Automatically does crafting operations using items from crafting window. " +
-                        "New crafting operations are not starting until an action queue becomes empty. This behaviour can be disabled. ",
-                "c");
-    }
 
     public CrafterBot() {
         registerInputHandler(CrafterBot.InputKey.r, input -> toggleRepairInstrument());
@@ -65,7 +62,7 @@ public class CrafterBot extends Bot {
         long lastSourceCombineTime = 0;
         long lastTargetCombineTime = 0;
 
-        CreationWindow creationWindow = Mod.hud.getCreationWindow();
+        CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
         Method sendCreateAction = ReflectionUtil.getMethod(CreationWindow.class, "sendCreateAction");
         sendCreateAction.setAccessible(true);
         Method requestCreationList = ReflectionUtil.getMethod(creationWindow.getClass(), "requestCreationList");
@@ -79,8 +76,8 @@ public class CrafterBot extends Bot {
         registerEventProcessors();
         while (isActive()) {
             waitOnPause();
-            float stamina = Mod.hud.getWorld().getPlayer().getStamina();
-            float damage = Mod.hud.getWorld().getPlayer().getDamage();
+            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
             float progress = ReflectionUtil.getPrivateField(progressBar,
                     ReflectionUtil.getField(progressBar.getClass(), "progress"));
 
@@ -89,7 +86,7 @@ public class CrafterBot extends Bot {
                 List<InventoryMetaItem> sourceItems = new ArrayList(ReflectionUtil.getPrivateField(source,
                         ReflectionUtil.getField(source.getClass(), "itemList")));
                 if (sourceItems != null && sourceItems.size() > 0 && sourceItems.get(0).getDamage() > 10)
-                    Mod.hud.sendAction(PlayerAction.REPAIR, sourceItems.get(0).getId());
+                    WurmHelper.hud.sendAction(PlayerAction.REPAIR, sourceItems.get(0).getId());
             }
 
             if (craftUnfinishedItemMode) {
@@ -224,7 +221,7 @@ public class CrafterBot extends Bot {
 
         try {
             int num = Integer.parseInt(input[0]);
-            CreationWindow creationWindow = Mod.hud.getCreationWindow();
+            CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
             ReflectionUtil.setPrivateField(creationWindow,
                     ReflectionUtil.getField(creationWindow.getClass(), "selectedActions"), num);
         } catch (Exception e) {
@@ -239,11 +236,11 @@ public class CrafterBot extends Bot {
         }
         try {
             long id = Long.parseLong(input[0]);
-            InventoryListComponent ilc = Mod.hud.getInventoryWindow().getInventoryListComponent();
+            InventoryListComponent ilc = WurmHelper.hud.getInventoryWindow().getInventoryListComponent();
             List <InventoryMetaItem> allItems = Utils.getSelectedItems(ilc, true, true);
             @SuppressWarnings("ConstantConditions")
             InventoryMetaItem sourceItem = allItems.stream().filter(item->item.getId() == id).findAny().get();
-            CreationWindow creationWindow = Mod.hud.getCreationWindow();
+            CreationWindow creationWindow = WurmHelper.hud.getCreationWindow();
             CreationFrame source = ReflectionUtil.getPrivateField(creationWindow,
                     ReflectionUtil.getField(creationWindow.getClass(), "source"));
             List<InventoryMetaItem> newSourceList = new ArrayList<>();
@@ -381,15 +378,15 @@ public class CrafterBot extends Bot {
     }
 
     private void setTargetXY() {
-        targetX = Mod.hud.getWorld().getClient().getXMouse();
-        targetY = Mod.hud.getWorld().getClient().getYMouse();
+        targetX = WurmHelper.hud.getWorld().getClient().getXMouse();
+        targetY = WurmHelper.hud.getWorld().getClient().getYMouse();
         targetName = null;
         Utils.consolePrint("The target was set to X - " + targetX + " Y - " + targetY);
     }
 
     private void setSourceXY() {
-        sourceX = Mod.hud.getWorld().getClient().getXMouse();
-        sourceY = Mod.hud.getWorld().getClient().getYMouse();
+        sourceX = WurmHelper.hud.getWorld().getClient().getXMouse();
+        sourceY = WurmHelper.hud.getWorld().getClient().getYMouse();
         sourceName = null;
         Utils.consolePrint("The source was set to X - " + sourceX + " Y - " + sourceY);
     }

@@ -7,13 +7,20 @@ import com.wurmonline.mesh.GrassData;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.shared.constants.PlayerAction;
 import javafx.util.Pair;
-import net.ildar.wurm.BotRegistration;
-import net.ildar.wurm.Mod;
+import net.ildar.wurm.WurmHelper;
 import net.ildar.wurm.Utils;
+import net.ildar.wurm.annotations.BotInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@BotInfo(description =
+        "Can forage, botanize, collect grass and flowers in an area surrounding player. " +
+        "Bot can be configured to process rectangular area of any size. " +
+        "Picked items, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
+        "Containers only in root directory of player's inventory will be taken into account. " +
+        "Bot can be configured to drop picked items on the floor. ",
+        abbreviation = "fg")
 public class ForagerBot extends Bot {
     static String DEFAULT_CONTAINER_NAME = "backpack";
     private static Set<String> forageSet = new HashSet<>(Arrays.asList(
@@ -55,16 +62,6 @@ public class ForagerBot extends Bot {
     private boolean verbose = false;
     private List<String> filterItemNames = new ArrayList<>();
 
-    public static BotRegistration getRegistration() {
-        return new BotRegistration(ForagerBot.class,
-                "Can forage, botanize, collect grass and flowers in an area surrounding player. " +
-                        "Bot can be configured to process rectangular area of any size. " +
-                        "Picked items, to prevent the inventory overflow, will be put to the containers. The name of containers can be configured. " +
-                        "Default container name is \"" + ForagerBot.DEFAULT_CONTAINER_NAME + "\". Containers only in root directory of player's inventory will be taken into account. " +
-                        "Bot can be configured to drop picked items on the floor. ",
-                "fg");
-    }
-
     public ForagerBot() {
         registerInputHandler(ForagerBot.InputKey.s, this::setStaminaThreshold);
         registerInputHandler(ForagerBot.InputKey.g, input -> toggleGrassGathering());
@@ -88,7 +85,7 @@ public class ForagerBot extends Bot {
         setStaminaThreshold(0.9f);
         setTimeout(300);
 
-        World world = Mod.hud.getWorld();
+        World world = WurmHelper.hud.getWorld();
         PlayerObj player = world.getPlayer();
         maxActions = Utils.getMaxActionNumber();
         registerEventProcessors();
@@ -127,7 +124,7 @@ public class ForagerBot extends Bot {
                                     && (!tileType.tilename.equals("Moss") || botanizeSkill > 35)) {
                                 if (verbose)
                                     Utils.consolePrint("Start botanizing at tile - " + checkedtiles[tileIndex][0] + " " + checkedtiles[tileIndex][1]);
-                                Mod.hud.sendAction(botanizeType.action, Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0));
+                                WurmHelper.hud.sendAction(botanizeType.action, Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0));
                                 queuedTiles.add(coordsPair);
                                 botanizeTilesInProcess.add(coordsPair);
                                 if (tileType.isGrass()){
@@ -151,7 +148,7 @@ public class ForagerBot extends Bot {
                                     && (!tileType.tilename.equals("Marsh") || botanizeSkill > 43)) {
                                 if (verbose)
                                     Utils.consolePrint("Start foraging at tile - " + checkedtiles[tileIndex][0] + " " + checkedtiles[tileIndex][1]);
-                                Mod.hud.sendAction(forageType.action, Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0));
+                                WurmHelper.hud.sendAction(forageType.action, Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0));
                                 queuedTiles.add(coordsPair);
                                 forageTilesInProcess.add(coordsPair);
                                 if (tileType.isGrass()) {
@@ -167,7 +164,7 @@ public class ForagerBot extends Bot {
                         }
                         if (grassGathering && (tileType.isGrass() || tileType.isTree() || tileType.isBush())) {
                             if (GrassData.getFlowerTypeName(tileData).contains("flowers") && !tileType.isTree() && !tileType.isBush() && queuedTiles.size() < maxActions) {
-                                Mod.hud.getWorld().getServerConnection().sendAction(sickleId,
+                                WurmHelper.hud.getWorld().getServerConnection().sendAction(sickleId,
                                         new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
                                         new PlayerAction("",(short) 187, PlayerAction.ANYTHING));
                                 queuedTiles.add(coordsPair);
@@ -178,7 +175,7 @@ public class ForagerBot extends Bot {
                             if (grassGathering && ((tileType.isGrass() && GrassData.GrowthStage.decodeTileData(tileData) != GrassData.GrowthStage.SHORT) ||
                                     ((tileType.isTree() || tileType.isBush()) && GrassData.GrowthTreeStage.decodeTileData(tileData) != GrassData.GrowthTreeStage.LAWN
                                             && GrassData.GrowthTreeStage.decodeTileData(tileData) != GrassData.GrowthTreeStage.SHORT)) && queuedTiles.size() < maxActions) {
-                                Mod.hud.getWorld().getServerConnection().sendAction(sickleId,
+                                WurmHelper.hud.getWorld().getServerConnection().sendAction(sickleId,
                                         new long[]{Tiles.getTileId(checkedtiles[tileIndex][0], checkedtiles[tileIndex][1], 0)},
                                         PlayerAction.GATHER);
                                 queuedTiles.add(coordsPair);
@@ -208,7 +205,7 @@ public class ForagerBot extends Bot {
                             long[] targetIds = new long[forCombining.size()];
                             for(tileIndex = 0; tileIndex < Math.min(forCombining.size(), 64); tileIndex++)
                                 targetIds[tileIndex] = forCombining.get(tileIndex).getId();
-                            Mod.hud.getWorld().getServerConnection().sendAction(
+                            WurmHelper.hud.getWorld().getServerConnection().sendAction(
                                     targetIds[0], targetIds, PlayerAction.COMBINE);
 
                         }
@@ -227,7 +224,7 @@ public class ForagerBot extends Bot {
                     if (foragablesIds != null && foragables.size() > 20) {
                         for (InventoryMetaItem container : containers) {
                             if (container.getChildren().size() < 100) {
-                                Mod.hud.getWorld().getServerConnection().sendMoveSomeItems(
+                                WurmHelper.hud.getWorld().getServerConnection().sendMoveSomeItems(
                                         container.getId(), foragablesIds);
                                 break;
                             }
@@ -262,7 +259,7 @@ public class ForagerBot extends Bot {
             }
             long[] foragablesIds = Utils.getItemIds(foragables);
             if (foragablesIds != null)
-                Mod.hud.sendAction(PlayerAction.DROP, foragablesIds);
+                WurmHelper.hud.sendAction(PlayerAction.DROP, foragablesIds);
         }
     }
 
@@ -447,8 +444,8 @@ public class ForagerBot extends Bot {
         synchronized (queuedTiles) {
             if (queuedTiles.size() > 0) {
                 Pair<Integer, Integer> tile = queuedTiles.get(queuedTiles.size() - 1);
-                float forageSkill = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("foraging");
-                float botanizeSkill = Mod.hud.getWorld().getPlayer().getSkillSet().getSkillValue("botanizing");
+                float forageSkill = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("foraging");
+                float botanizeSkill = WurmHelper.hud.getWorld().getPlayer().getSkillSet().getSkillValue("botanizing");
                 if (forageTilesInProcess.contains(tile)) {
                     forageTilesInProcess.remove(tile);
                     if (forageSkill > 80)
