@@ -107,20 +107,6 @@
             <systemPath>${client.location}\modlauncher.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>SteamClientJni</groupId>
-            <artifactId>SteamClientJni</artifactId>
-            <version>${client.version}</version>
-            <scope>system</scope>
-            <systemPath>${client.location}\lib\SteamClientJni.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>lwjgl-natives-windows</groupId>
-            <artifactId>lwjgl-natives-windows</artifactId>
-            <version>${client.version}</version>
-            <scope>system</scope>
-            <systemPath>${client.location}\lib\lwjgl-natives-windows-2.9.1.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>net.ildar.wurm</groupId>
             <artifactId>Annotations</artifactId>
             <version>${project.version}</version>
