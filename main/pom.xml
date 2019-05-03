@@ -37,12 +37,14 @@
                         <configuration>
                             <tasks>
                                 <copy file="${project.build.directory}\${project.build.finalName}.jar" tofile="${client.location}\mods\${project.parent.artifactId}\${project.parent.artifactId}.jar"/>
-                                <copy file="${project.basedir}\..\WurmHelper.properties" tofile="${client.location}\mods\${project.parent.artifactId}.properties"/>
+                                <copy file="${project.basedir}\..\Mod.properties" tofile="${client.location}\mods\${project.parent.artifactId}.properties"/>
                                 <zip destfile="${project.parent.basedir}/${project.parent.artifactId}.zip">
                                     <zipfileset dir="${project.build.directory}"
                                                 includes="${project.build.finalName}.jar"
                                                 fullpath="${project.parent.artifactId}\${project.parent.artifactId}.jar"/>
-                                    <fileset dir="${project.parent.basedir}" includes="WurmHelper.properties"/>
+                                    <zipfileset dir="${project.parent.basedir}"
+                                                includes="Mod.properties"
+                                                fullpath="${project.parent.artifactId}.properties"/>
                                 </zip>
                             </tasks>
                         </configuration>
@@ -65,6 +67,21 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.parent.basedir}</directory>
+                            <includes>
+                                <include>${project.parent.artifactId}.zip</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
         </plugins>
     </build>
