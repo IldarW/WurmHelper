@@ -16,7 +16,8 @@ public class MeditationBot extends Bot {
     private long repairTimeout;
     private float staminaThreshold;
     private int clicks = 3;
-    private boolean repairInitiated;
+    private volatile boolean repairInitiated;
+    private volatile int clicked;
 
     public MeditationBot() {
         registerInputHandler(MeditationBot.InputKey.s, this::setStaminaThreshold);
@@ -56,13 +57,14 @@ public class MeditationBot extends Bot {
                 } else
                     Utils.consolePrint("Couldn't repair a meditation rug!");
             }
-            float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
-            float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
-            float progress = ReflectionUtil.getPrivateField(progressBar,
-                    ReflectionUtil.getField(progressBar.getClass(), "progress"));
-            if ((stamina+damage) > staminaThreshold && progress == 0f) {
-                for(int i = 0; i < clicks; i++)
+            clicked = 0;
+            while(clicked < clicks) {
+                float stamina = WurmHelper.hud.getWorld().getPlayer().getStamina();
+                float damage = WurmHelper.hud.getWorld().getPlayer().getDamage();
+                if ((stamina+damage) > staminaThreshold) {
                     WurmHelper.hud.sendAction(meditationAction, carpetId);
+                }
+                sleep(1000);
             }
             sleep(timeout);
         }
@@ -73,6 +75,8 @@ public class MeditationBot extends Bot {
                 || message.contains("You start repairing")
                 || message.contains("doesn't need repairing")
                 || message.contains("you will start repairing"), () -> repairInitiated = true);
+        registerEventProcessor(message -> message.contains("You start meditating.")
+                || message.contains("you will start meditating again."), () -> clicked++);
     }
 
     private void setRepairTimeout(String []input){
