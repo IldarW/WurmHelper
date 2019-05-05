@@ -12,6 +12,9 @@
     </parent>
 
     <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
+    </properties>
 
     <build>
         <sourceDirectory>${project.basedir}/java</sourceDirectory>
@@ -22,27 +25,21 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <showWarnings>true</showWarnings>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
                     <execution>
                         <id>install</id>
                         <phase>install</phase>
                         <configuration>
                             <tasks>
-                                <copy file="${project.build.directory}\${project.build.finalName}.jar" tofile="${client.location}\mods\${project.parent.artifactId}\${project.parent.artifactId}.jar"/>
-                                <copy file="${project.basedir}\..\Mod.properties" tofile="${client.location}\mods\${project.parent.artifactId}.properties"/>
-                                <zip destfile="${project.parent.basedir}/${project.parent.artifactId}.zip">
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar" tofile="${client.location}/mods/${project.parent.artifactId}/${project.parent.artifactId}.jar"/>
+                                <copy file="${project.basedir}/../Mod.properties" tofile="${client.location}/mods/${project.parent.artifactId}.properties"/>
+                                <zip destfile="${project.basedir}/../${project.parent.artifactId}.zip">
                                     <zipfileset dir="${project.build.directory}"
                                                 includes="${project.build.finalName}.jar"
-                                                fullpath="${project.parent.artifactId}\${project.parent.artifactId}.jar"/>
-                                    <zipfileset dir="${project.parent.basedir}"
+                                                fullpath="${project.parent.artifactId}/${project.parent.artifactId}.jar"/>
+                                    <zipfileset dir="${project.basedir}/.."
                                                 includes="Mod.properties"
                                                 fullpath="${project.parent.artifactId}.properties"/>
                                 </zip>
@@ -57,8 +54,8 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <tasks>
-                                <copy todir="${project.build.directory}\classes">
-                                    <fileset dir="${project.basedir}\..\annotations\target\classes" includes="**/BotRegistration.class"/>
+                                <copy todir="${project.build.directory}/classes">
+                                    <fileset dir="${project.basedir}/../annotations/target/classes" includes="**/BotRegistration.class"/>
                                 </copy>
                             </tasks>
                         </configuration>
@@ -93,35 +90,35 @@
             <artifactId>client</artifactId>
             <version>${client.version}</version>
             <scope>system</scope>
-            <systemPath>${client.location}\client.jar</systemPath>
+            <systemPath>${client.location}/client.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>client-patched</groupId>
             <artifactId>client-patched</artifactId>
             <version>${client.version}</version>
             <scope>system</scope>
-            <systemPath>${client.location}\client-patched.jar</systemPath>
+            <systemPath>${client.location}/client-patched.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>common</groupId>
             <artifactId>common</artifactId>
             <version>${client.version}</version>
             <scope>system</scope>
-            <systemPath>${client.location}\common.jar</systemPath>
+            <systemPath>${client.location}/common.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>${client.version}</version>
             <scope>system</scope>
-            <systemPath>${client.location}\javassist.jar</systemPath>
+            <systemPath>${client.location}/javassist.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>modlauncher</groupId>
             <artifactId>modlauncher</artifactId>
             <version>${client.version}</version>
             <scope>system</scope>
-            <systemPath>${client.location}\modlauncher.jar</systemPath>
+            <systemPath>${client.location}/modlauncher.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>net.ildar.wurm</groupId>
